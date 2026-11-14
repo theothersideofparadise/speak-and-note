@@ -582,10 +582,11 @@ function activityConfig(){
   const mode = talkMode();
   // 按一下說：關掉自動判斷，由你按按鈕送 activityStart / activityEnd
   // 耐心自動：Gemini 沒有「看意思」的判斷，改成把結尾判斷調鈍、靜音要 2 秒才算講完
-  // 一般自動：用預設值
+  // 一般自動：結尾用預設值
+  // 兩種自動都把「開始說話」調鈍，雜音比較不會被當成你在說話（講太小聲時開頭一兩個字可能被吃掉）
   if(mode === 'ptt') return {automaticActivityDetection:{disabled:true}};
-  if(mode === 'auto') return {automaticActivityDetection:{endOfSpeechSensitivity:'END_SENSITIVITY_LOW', silenceDurationMs:2000}};
-  return {};
+  if(mode === 'auto') return {automaticActivityDetection:{startOfSpeechSensitivity:'START_SENSITIVITY_LOW', endOfSpeechSensitivity:'END_SENSITIVITY_LOW', silenceDurationMs:2000}};
+  return {automaticActivityDetection:{startOfSpeechSensitivity:'START_SENSITIVITY_LOW'}};
 }
 // 斷線後重新連線、又沒辦法接回原本那段對話時，把這堂課到目前為止的對話附給老師
 function lessonSoFar(){
@@ -644,7 +645,7 @@ async function startCall(){
   try{
     // 1. 麥克風：打開網頁後只要一次權限，掛斷時不關掉，下次通話直接沿用
     if(!micStream || !micStream.getAudioTracks().some(t => t.readyState === 'live')){
-      micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+      micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:false}});   // 不自動放大音量：安靜時才不會把背景雜音放大
       startCapture(micStream);   // 瀏覽器一直錄一份在旁邊：給筆記員重聽，也從這裡切出要送給老師的聲音
     }
     actx && actx.resume(); pctx && pctx.resume();
