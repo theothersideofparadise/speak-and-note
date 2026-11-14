@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speak & Note Gemini｜英文口說練習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E6ECF1; --panel:#FFFFFF; --paper:#FBFCFE; --rule:#DCE6EF; --margin:#F2B8B3;
+  --ink:#1C2A39; --muted:#5B6B7B; --red:#C4372E; --green:#2F7D5B; --violet:#6A4BA8;
+  --hl:#FBE38E; --accent:#2B4C7E; --accent-ink:#FFFFFF; --me:#DCE8F5;
+  --font:"Lexend","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+  --hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141B23; --panel:#1C2530; --paper:#1A222C; --rule:#2A3542; --margin:#6B3A38;
+    --ink:#E3EAF1; --muted:#93A3B3; --red:#F0766B; --green:#6CC79B; --violet:#B59BEA;
+    --hl:rgba(251,227,142,.28); --accent:#6E9BE0; --accent-ink:#0F1620; --me:#24364D;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;display:flex;flex-direction:column}
+button,textarea,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:12px;flex-wrap:wrap}
+.top h1{font-family:var(--hand);font-size:2rem;font-weight:700;margin:0;line-height:1}
+.badge{font-size:.75rem;font-weight:600;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+.mode{font-size:.85rem;color:var(--muted);margin-left:12px}
+.top-actions{display:flex;gap:8px}
+.ghost{background:transparent;border:1px solid var(--rule);border-radius:8px;padding:6px 12px}
+.ghost:hover{background:var(--panel)}
+.danger{color:var(--red)}
+
+.layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,400px);gap:16px;padding:0 20px 20px}
+.chat-col,.note-col{min-height:0;display:flex;flex-direction:column;border-radius:14px;overflow:hidden}
+.chat-col{background:var(--panel)}
+
+.chat{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:min(560px,85%);padding:10px 14px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.teacher{align-self:flex-start;background:var(--bg);border-bottom-left-radius:4px}
+.msg.me{align-self:flex-end;background:var(--me);border-bottom-right-radius:4px}
+.msg.pending .txt{color:var(--muted);font-style:italic}
+.msg .meta{display:block;margin-top:4px;font-size:.75rem;color:var(--muted);white-space:normal}
+.msg.sys{align-self:center;background:none;color:var(--muted);font-size:.85rem;padding:2px 8px}
+
+.composer{border-top:1px solid var(--rule);padding:12px 16px 16px}
+.status{min-height:1.4em;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+.status.error{color:var(--red)}
+.composer-row{display:flex;gap:14px;align-items:center}
+.mic{flex:none;width:64px;height:64px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;position:relative}
+.mic svg{width:28px;height:28px}
+.mic.on{background:var(--red)}
+.mic.on::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--red);animation:pulse 1.4s ease-out infinite}
+.mic.hearing::after{animation-duration:.6s}
+.mic:disabled{opacity:.5;cursor:not-allowed}
+@keyframes pulse{from{transform:scale(.9);opacity:.9}to{transform:scale(1.25);opacity:0}}
+.call-text{flex:1;font-size:.95rem}
+.call-text b{display:block}
+.call-text span{color:var(--muted);font-size:.85rem}
+.stats{font-size:.85rem;color:var(--muted);text-align:right}
+.stats b{color:var(--ink);font-size:1.05rem}
+
+.note-col{background:var(--paper);border:1px solid var(--rule);
+  background-image:linear-gradient(to right,transparent 34px,var(--margin) 34px,var(--margin) 36px,transparent 36px)}
+.note-head{display:flex;align-items:baseline;justify-content:space-between;padding:16px 18px 8px 50px}
+.note-head h2{font-family:var(--hand);font-size:1.8rem;margin:0;line-height:1}
+.notes{flex:1;overflow-y:auto;padding:0 18px 12px 50px}
+.empty{color:var(--muted);font-size:.95rem;padding-top:24px}
+.count{font-size:.85rem;color:var(--muted)}
+.note-status{padding:0 18px 8px 50px;font-size:.82rem;color:var(--muted)}
+.note-status:empty{display:none}
+.note-status.error{color:var(--red)}
+.note{padding:12px 0;border-bottom:1px solid var(--rule)}
+.note.fresh{animation:land .9s ease-out}
+@keyframes land{from{background:var(--hl)}to{background:transparent}}
+.line{margin:0}
+.wrong{color:var(--red);text-decoration:underline wavy;text-decoration-thickness:1px;text-underline-offset:4px}
+.correct{background:var(--hl);padding:0 3px;border-radius:3px;font-weight:500}
+.said{color:var(--violet)}
+.mark{display:inline-block;width:1.4em;font-weight:600}
+.mark.x{color:var(--red)}.mark.ok{color:var(--green)}.mark.p{color:var(--violet)}
+.meaning{margin:2px 0 6px 1.4em;color:var(--muted);font-size:.92rem}
+.tag{display:inline-block;margin-left:1.4em;font-size:.72rem;border:1px solid var(--violet);color:var(--violet);border-radius:5px;padding:0 5px}
+.note-actions{display:flex;gap:8px;padding:10px 18px 14px 50px;border-top:1px solid var(--rule)}
+.msg .fix{display:block;color:var(--red);margin-top:4px}
+body.nofix .msg .fix{display:none}
+.hab-add{color:var(--red);font-weight:700}
+.hab-del{color:var(--red);text-decoration:line-through}
+.pron-mark{background:var(--hl);border-radius:3px;padding:0 2px}
+.msg.me .txt,.note.pron-note{cursor:pointer}
+.pron-box{display:block;margin-top:8px;padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);color:var(--ink);white-space:normal;cursor:default}
+.pron-box .pb-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pron-box .pb-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
+.pron-box .pb-row > span{min-width:3.5em;font-size:.85rem;color:var(--muted)}
+.pron-box button{padding:4px 10px;font-size:.85rem}
+.pron-box .pb-status{font-size:.8rem;color:var(--muted);margin:6px 0 0}
+.pron-box .pb-chat{display:flex;flex-direction:column;gap:6px;margin-top:6px;max-height:280px;overflow:auto}
+.pron-box .pb-msg{padding:6px 10px;border-radius:10px;max-width:92%}
+.pron-box .pb-msg.coach{align-self:flex-start;background:var(--paper);border:1px solid var(--rule)}
+.pron-box .pb-msg.coach.good{border-color:var(--green)}
+.pron-box .pb-msg.me{align-self:flex-end;background:var(--me)}
+.pron-box .pb-msg button{padding:0 6px;margin-left:6px;font-size:.8rem}
+.pron-box .pb-zh{display:block;font-size:.82rem;color:var(--muted);margin-top:2px}
+.lesson{border-bottom:1px solid var(--rule);padding:10px 0}
+.lesson-row{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--rule);padding:10px 6px}
+.lesson-row:hover{background:var(--bg)}
+.lesson h3{font-size:1rem;margin:14px 0 4px}
+.lesson .grp{margin:8px 0 12px}
+.msg .play{border:none;background:none;padding:0 0 0 6px;font-size:.85rem;opacity:.7}
+.msg .play:hover{opacity:1}
+label.check{flex-direction:row;align-items:center;gap:8px}
+label[hidden]{display:none}
+
+details.log{border-top:1px solid var(--rule);padding:8px 16px;font-size:.8rem;color:var(--muted)}
+details.log pre{max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0}
+
+dialog{border:none;border-radius:14px;padding:0;background:var(--panel);color:var(--ink);width:min(460px,92vw)}
+dialog::backdrop{background:rgba(10,16,24,.45)}
+dialog form{padding:20px 22px;display:flex;flex-direction:column;gap:14px;max-height:88vh;overflow-y:auto}
+dialog h2{margin:0;font-size:1.15rem}
+label{display:flex;flex-direction:column;gap:4px;font-size:.92rem}
+input[type=text],input[type=password],select,textarea{border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--paper)}
+.hint{font-size:.8rem;color:var(--muted)}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.send{border:none;border-radius:10px;padding:8px 18px;background:var(--ink);color:var(--panel);font-weight:500}
+.dialog-actions .danger{margin-right:auto}
+
+@media (max-width:800px){
+  .layout{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(0,30%)}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important}
+  .mic.on::after{opacity:.6}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div><h1 style="display:inline">Speak & Note</h1><span class="badge">Gemini</span><span id="modeLabel" class="mode"></span></div>
+  <div class="top-actions">
+    <button id="openLessons" class="ghost">課堂整理</button>
+    <button id="newChat" class="ghost">新對話</button>
+    <button id="openSettings" class="ghost">設定</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="chat-col" aria-label="對話">
+    <div id="chat" class="chat" aria-live="polite"></div>
+    <div class="composer">
+      <div id="status" class="status" role="status"></div>
+      <div class="composer-row">
+        <button id="call" class="mic" aria-label="開始通話" title="開始通話">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
+        </button>
+        <div class="call-text" id="callText"><b>按麥克風開始通話</b><span>接通後直接用英文說話，說完停一下，老師就會回你。</span></div>
+        <button id="cancelTalk" class="ghost" hidden title="不送出這句（Esc）">取消這句</button>
+        <button id="hangup" class="ghost danger" hidden>結束課堂</button>
+        <div class="stats" id="stats"></div>
+      </div>
+    </div>
+    <details class="log"><summary>連線紀錄（出問題時打開，整段貼給 Claude）</summary><pre id="log"></pre></details>
+  </section>
+
+  <aside class="note-col" aria-label="筆記本">
+    <div class="note-head"><h2>My notebook</h2><span id="noteCount" class="count"></span></div>
+    <div id="noteStatus" class="note-status" role="status"></div>
+    <div id="notes" class="notes"></div>
+    <div class="note-actions">
+      <button id="exportNotes" class="ghost">匯出筆記</button>
+      <button id="clearNotes" class="ghost danger">清空筆記</button>
+    </div>
+  </aside>
+</main>
+
+<dialog id="lessons" style="width:min(720px,94vw)">
+  <form method="dialog">
+    <h2>課堂整理</h2>
+    <span class="hint">一次通話算一堂課。掛斷後筆記員會把這堂課的錯誤分類、合併成重點。以前的課都留在目錄裡，最新的在最上面。</span>
+    <div id="lessonList"></div>
+    <div class="dialog-actions"><button value="close" class="send">關閉</button></div>
+  </form>
+</dialog>
+
+<dialog id="settings">
+  <form method="dialog">
+    <h2>設定</h2>
+    <label>Google AI Studio 金鑰（老師和筆記員共用）
+      <input type="password" id="googleKey" autocomplete="off" placeholder="AIza...">
+      <span class="hint">到 aistudio.google.com 的「Get API key」申請。金鑰只存在這台電腦的瀏覽器裡。錄影時別打開這個視窗；用公用電腦的話，用完按「清除金鑰」。</span>
+      <span><button type="button" class="ghost" id="testKey">測試金鑰</button> <span class="hint" id="testKeyResult"></span></span>
+    </label>
+    <label>說話方式
+      <select id="talkMode">
+        <option value="ptt">按一下說：按一下開始、再按一下送出（空白鍵也可以）</option>
+        <option value="auto">耐心自動：直接講，你停比較久（約 2 秒）老師才接</option>
+        <option value="fast">一般自動：直接講，停頓一下老師就接（反應最快）</option>
+      </select>
+      <span class="hint">「按一下說」最適合會停頓、結巴的時候，老師不會中途插嘴，句子也不會被切碎。說得比較流利的話，「一般自動」最像真人對話。自動模式請戴耳機，不然老師可能聽到自己的聲音。通話中改的話，下次通話才生效。</span>
+    </label>
+    <label>老師說話速度：<span id="speedVal"></span>
+      <input type="range" id="speed" min="0.7" max="1.2" step="0.05">
+      <span class="hint">Gemini 沒有調速度的開關，這裡是寫進老師的提示詞，請它說慢一點或快一點，效果不一定很明顯。下次通話生效。</span>
+    </label>
+    <label>老師的模型
+      <select id="teacherModel">
+        <option value="gemini-3.8-live">gemini-3.8-live（推薦）</option>
+        <option value="gemini-3.8-live-extended-thinking">gemini-3.8-live-extended-thinking：想比較久再回答</option>
+      </select>
+      <span class="hint">老師直接聽你的聲音，馬上口頭回覆和糾正。你說的話會由老師這條連線順便轉成文字，顯示在聊天欄。下次通話生效。</span>
+    </label>
+    <label>關於我（給老師看的背景）
+      <textarea id="aboutMe" rows="4" placeholder="例如：我是台灣人，正在上 AI 課程，最近用 Claude Code 做 vibe coding，做了一個英文口說練習程式。"></textarea>
+      <span class="hint">老師每次通話前會先讀這段，比較聊得起來，也會知道你講的新名詞。中文或英文都可以。</span>
+    </label>
+    <label>老師對我的記憶（每堂課後自動更新）
+      <textarea id="profileText" rows="8" spellcheck="false" placeholder="還沒有記憶。上完第一堂課（掛斷後）筆記員會自動寫好。"></textarea>
+      <span class="hint">掛斷後筆記員會把這堂課的內容改寫進來：你的程度、常犯的錯、近況和計畫、最近幾堂聊了什麼。下次通話開始時老師會先讀它。用英文寫是為了讓老師讀得最準。你可以直接修改；清空就是讓老師忘掉。</span>
+    </label>
+    <label>老師的個性和上課方式（模板）
+      <select id="teacherTemplate"></select>
+      <span class="hint">選一個模板會把下面的內容換成那個模板。</span>
+    </label>
+    <label>老師的提示詞（可以自己改）
+      <textarea id="teacherStyle" rows="12" spellcheck="false"></textarea>
+      <span class="hint">寫老師是誰、怎麼聊、第一句說什麼。中文或英文都可以（英文效果通常比較穩）。清空就會用回「一對一家教」。改完按儲存，通話中改的話下一句開始生效（第一句招呼要重新通話才會變）。</span>
+    </label>
+    <details class="hint">
+      <summary>另外一定會自動加上的規則（不能改，保護「發音不清楚不算文法錯」和筆記本一致）</summary>
+      <pre id="fixedRules" style="white-space:pre-wrap;font-size:12px;max-height:240px;overflow:auto"></pre>
+    </details>
+    <label>筆記員的模型（Google，要能聽錄音）
+      <select id="noteModelSelect"></select>
+      <span class="hint" id="noteModelHint">老師講完後，筆記員在背景重聽你的錄音、檢查老師的糾正，再寫進筆記本。老師講錯時，它會提醒老師下一句自己更正。</span>
+    </label>
+    <label id="noteCustomWrap" hidden>自訂筆記員模型名稱
+      <input type="text" id="noteModelCustom" placeholder="例如 gemini-3.8-flash">
+    </label>
+    <label>筆記解釋語言
+      <select id="noteLang">
+        <option value="zh">繁體中文</option>
+        <option value="en">英文</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" id="showFix"> 在我說的句子下面，用紅字顯示正確說法</label>
+    <label class="check"><input type="checkbox" id="webSearch"> 老師可以上網查時事（聊到新聞、新東西時自己用 Google 搜尋查，每查一次要多付一點 Google 費用）</label>
+    <label class="check"><input type="checkbox" id="pronNotes"> 發音提醒（記在筆記本，跟文法分開）</label>
+    <label>糾正程度
+      <select id="strict">
+        <option value="gentle">溫和：只改明顯會誤會的錯</option>
+        <option value="strict">嚴格：文法和不自然的說法都改</option>
+      </select>
+    </label>
+    <div class="dialog-actions">
+      <button type="button" class="ghost danger" id="clearKeys">清除金鑰</button>
+      <button type="button" class="ghost" onclick="document.getElementById('settings').close('cancel')">取消</button>
+      <button value="save" class="send">儲存</button>
+    </div>
+  </form>
+</dialog>
+
+<audio id="au" autoplay></audio>
+
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+/* ---------- 聊天紀錄和錄音的本機資料庫（IndexedDB） ----------
+   localStorage 太小裝不下錄音，所以每一句（文字＋錄音）存在瀏覽器的 IndexedDB，關掉網頁也不會消失。
+   一句一筆：{id, lessonId, role:'me'|'teacher', text, fix, meta, wav(Blob), t}。出錯只記在連線紀錄，不影響通話。 */
+const chatDb = {
+  _p:null,
+  open(){
+    if(this._p) return this._p;
+    this._p = new Promise((ok, bad) => {
+      if(!window.indexedDB) return bad(new Error('這個瀏覽器不支援 IndexedDB'));
+      const r = indexedDB.open('sngm', 1);   // 和 realtime.html 的 snrt 分開
+      r.onupgradeneeded = () => { const s = r.result.createObjectStore('lines', {keyPath:'id'}); s.createIndex('lessonId', 'lessonId'); };
+      r.onsuccess = () => ok(r.result);
+      r.onerror = () => bad(r.error);
+    });
+    this._p.catch(e => log('本機資料庫打不開：' + (e && e.message)));
+    return this._p;
+  },
+  async run(mode, fn){
+    const db = await this.open();
+    return new Promise((ok, bad) => {
+      const tx = db.transaction('lines', mode); const s = tx.objectStore('lines');
+      const req = fn(s);
+      tx.oncomplete = () => ok(req && req.result); tx.onerror = () => bad(tx.error); tx.onabort = () => bad(tx.error);
+    });
+  },
+  put(rec){ return this.run('readwrite', s => s.put(rec)).catch(e => log('聊天紀錄存不進去：' + (e && e.message))); },
+  async lesson(lessonId){
+    try{ const a = await this.run('readonly', s => s.index('lessonId').getAll(lessonId)); return (a || []).sort((x, y) => x.id - y.id); }
+    catch(e){ log('讀不到聊天紀錄：' + (e && e.message)); return []; }
+  },
+  remove(lessonId){
+    return this.run('readwrite', s => { const c = s.index('lessonId').openKeyCursor(lessonId); c.onsuccess = () => { const k = c.result; if(k){ s.delete(k.primaryKey); k.continue(); } }; })
+      .catch(e => log('刪不掉聊天紀錄：' + (e && e.message)));
+  }
+};
+let lineSeq = 0;
+function newLineId(){ return Date.now() * 1000 + (lineSeq++ % 1000); }   // 依建立順序排列
+function saveUserLine(u){
+  if(!u || !u.lessonId) return;
+  chatDb.put({id:u.recId, lessonId:u.lessonId, role:'me', text:u.transcript || '', fix:u.fix || '', heard:u.heard || '', habits:u.habits || [], chances:u.chances || {}, pron:u.pron || [], wav:u.wav ? u.wav.blob : null, t:u.t || Date.now()});
+}
+function saveTeacherLine(r){
+  if(!r || !r.lessonId || !r.text) return;
+  // 接著說的那段（r.prefix 是前面那段）：用同一個編號存整段，課堂整理裡才會是同一個泡泡
+  chatDb.put({id:r.recId, lessonId:r.lessonId, role:'teacher', text:((r.prefix || '') + r.text).trim(), meta:r.meta || '', t:r.t || Date.now()});
+}
+function newUserTurn(extra){
+  const u = Object.assign({transcript:'', tStart:performance.now(), t:Date.now(), recId:newLineId(), lessonId:lesson && lesson.id}, extra);
+  return u;
+}
+try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}   // 請瀏覽器不要自動清掉
+
+/* Gemini 版：設定、筆記、課堂整理都存在 sngm_ 開頭的位置，不讀也不寫 realtime.html 的 snrt_ */
+const TOOLS_ON = true;    // recall（回想以前的課）、web_search（上網查時事）
+const DEFAULT_NOTE_MODEL = 'gemini-3.8-flash';
+let settings = Object.assign({
+  googleKey:'', teacherModel:'gemini-3.8-live', strict:'gentle',
+  aboutMe:'', keywords:'vibe coding, Claude, Claude Code, AI', noise:'near_field',
+  noteModel:DEFAULT_NOTE_MODEL, noteLang:'zh', pronNotes:false,
+  talkMode:'ptt', speed:1, teacherTemplate:'tutor', teacherStyle:'', showFix:true, webSearch:false
+}, store.get('sngm_settings', {}));
+let lessons = store.get('sngm_lessons', []);   // 課堂整理：一次通話一堂課
+let lesson = null;                             // 正在上的這一堂
+let notes = store.get('sngm_notes', []);   // 筆記本，和 v6 的筆記分開
+let profile = store.get('sngm_profile', {text:'', updated:0});   // 學生小檔案：老師對你的記憶，每堂課後改寫
+function todayText(){ return new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric', weekday:'long'}); }
+/* gemini-2：老師換成 Gemini Live。之前存的 OpenAI 模型名稱和金鑰清掉 */
+if(!/^gemini-/.test(settings.teacherModel || '') || settings.openaiKey !== undefined){
+  if(!/^gemini-/.test(settings.teacherModel || '')) settings.teacherModel = 'gemini-3.8-live';
+  delete settings.openaiKey; delete settings.transcribeModel; delete settings.noise;
+  store.set('sngm_settings', settings);
+}
+/* v10 升級：只改一次。發音提醒預設關掉（老師沒講過的東西不要出現在筆記本），說話方式預設「按一下說」 */
+if(!settings.v10){
+  settings.pronNotes = false;
+  settings.talkMode = settings.talkMode || 'ptt';
+  settings.speed = settings.speed || 1;
+  settings.v10 = true;
+  store.set('sngm_settings', settings);
+}
+/* gemini-8：工具補回來了。之前「上網查」是被強制關掉的，改回預設開（和 v17 一樣），只改一次 */
+if(!settings.tools8){ settings.webSearch = true; settings.tools8 = true; store.set('sngm_settings', settings); }
+
+let micStream = null, connecting = false;
+let lastStop = 0;                 // 最近一次「說完」的時間點
+let waitingTurn = null;           // 剛說完、還在等老師回覆的那一輪
+const userBubbles = new Map();    // item_id -> 這一輪的資料 {bubble, tStart, tStop, wav, transcript}
+const replies = new Map();        // response_id -> {bubble, t0, tStart, text, turn}
+const turns = [];                 // 每一輪的秒數，用來算平均
+const convo = [];                 // 對話文字紀錄，給筆記員當上下文 [{role, text}]
+
+const chatEl = $('chat');
+
+/* ---------- 小工具 ---------- */
+function setStatus(text, isError){
+  $('status').textContent = text || '';
+  $('status').classList.toggle('error', !!isError);
+}
+function log(msg, obj){
+  const t = new Date().toLocaleTimeString('zh-TW', {hour12:false});
+  let line = '[' + t + '] ' + msg;
+  if(obj !== undefined){ try{ line += ' ' + JSON.stringify(obj); }catch(e){ line += ' ' + String(obj); } }
+  const el = $('log');
+  el.textContent += (el.textContent ? '\n' : '') + line;
+  el.scrollTop = el.scrollHeight;
+}
+function secs(ms){ return (ms / 1000).toFixed(1); }
+function updateModeLabel(){
+  $('modeLabel').textContent = '老師 ' + settings.teacherModel + '｜筆記員 ' + String(settings.noteModel).split('/').pop();
+}
+function addBubble(role, text, pending){
+  const div = document.createElement('div');
+  div.className = 'msg ' + (role === 'user' ? 'me' : role === 'sys' ? 'sys' : 'teacher') + (pending ? ' pending' : '');
+  const span = document.createElement('span');
+  span.className = 'txt'; span.textContent = text;
+  div.appendChild(span);
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return div;
+}
+function setText(div, text, pending){
+  div.querySelector('.txt').textContent = text;
+  div.classList.toggle('pending', !!pending);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+function setMeta(div, text){
+  let m = div.querySelector('.meta');
+  if(!m){ m = document.createElement('span'); m.className = 'meta'; div.appendChild(m); }
+  m.textContent = text;
+}
+function renderStats(){
+  const s = turns.filter(t => t.start != null);
+  if(!s.length){ $('stats').innerHTML = ''; return; }
+  const avg = s.reduce((a, t) => a + t.start, 0) / s.length;
+  $('stats').innerHTML = '平均開口<br><b>' + secs(avg) + ' 秒</b><br>' + s.length + ' 輪';
+}
+// 畫面狀態：off 沒通話／connecting 連線中／auto 自動模式通話中／ready 按一下說：等你開口／talking 按一下說：你正在說
+let callState = 'off';
+let talkQueued = false;   // 換說話方式時先按了空白鍵：換好就開始說
+function setCallUI(state){
+  callState = state;
+  if(state !== 'switching' && state !== 'ready' && state !== 'auto') talkQueued = false;
+  if(state === 'ready' && talkQueued){ talkQueued = false; setTimeout(() => { if(callState === 'ready') startTalking(); }, 0); }
+  const btn = $('call');
+  btn.classList.toggle('on', state === 'auto' || state === 'talking');
+  btn.disabled = state === 'connecting' || state === 'switching' || state === 'ending';
+  btn.classList.toggle('paused', state === 'paused');
+  const labels = {off:'開始上課', connecting:'連線中', switching:'切換中', ending:'下課中', auto:'暫停', paused:'繼續上課', ready:'開始說話', talking:'說完了，送出'};
+  btn.setAttribute('aria-label', labels[state]); btn.title = labels[state];
+  $('hangup').hidden = !(state === 'ready' || state === 'talking' || state === 'auto' || state === 'paused' || state === 'switching' || state === 'ending');
+  $('cancelTalk').hidden = state !== 'talking';
+  const text = {
+    off:'<b>按麥克風開始上課</b><span>接通後老師會先跟你打招呼。</span>',
+    connecting:'<b>連線中…</b><span>第一次會問你能不能用麥克風，請按允許。</span>',
+    switching:'<b>切換成「' + modeName(modeSwitch || talkMode()) + '」…</b><span>老師回完這句就換好，請稍等一下。</span>',
+    auto:'<b>上課中（' + modeName(talkMode()) + '）</b><span>直接用英文說話，講完老師就會回你。想停一下就按麥克風暫停；要下課按「結束課堂」。</span>',
+    paused:'<b>暫停中</b><span>你的聲音沒有送出，老師在等你。按麥克風繼續；要下課按「結束課堂」。</span>',
+    ready:'<b>按一下開始說話</b><span>或按空白鍵。想停頓多久都可以，說完再按一次送出。</span>',
+    talking:'<b>正在聽你說…</b><span>說完再按一次（或空白鍵），老師才會回答。講不好想重來：按 Esc 或「取消這句」。</span>'
+  };
+  $('callText').innerHTML = text[state];
+}
+function inCall(){ return callState === 'auto' || callState === 'ready' || callState === 'talking'; }
+let micSending = false;   // 自動模式才用：要不要把麥克風聲音即時送給老師（麥克風本身一直開著，錄音才不會斷）
+function setMicOn(on){ micSending = !!on; }
+
+/* ---------- 給老師的指示 ---------- */
+/* 老師的「個性和上課方式」：設定裡可以自己改，下面是幾個預設模板 */
+const TEACHER_TEMPLATES = {
+  tutor:{name:'一對一家教（推薦）', text:`# Who you are
+You are the learner's personal English tutor in a one-on-one speaking lesson. You are a real teacher: warm, attentive, and precise. The learner is here on purpose to practice speaking and get corrected. Talk like an experienced human tutor, not like an assistant or a chatbot. Never say you are an AI unless asked.
+
+# How to speak
+- Always speak English, at a friendly, natural pace an intermediate learner can follow.
+- Keep each turn short: 1 to 3 short sentences.
+- Usually end with a question to keep them talking.
+
+When the lesson starts, greet the learner warmly as their tutor in one or two short sentences and ask them something to get them talking.`},
+  chat:{name:'輕鬆聊天的朋友', text:`# Who you are
+You are the learner's friendly English-speaking friend having a relaxed chat over coffee. You also happen to be a good English teacher, so you quietly help them speak better. Keep the conversation fun and natural. Never say you are an AI unless asked.
+
+# How to speak
+- Always speak English, casually and naturally, like a friend.
+- Keep each turn short: 1 to 3 sentences. Share a little about yourself sometimes, then ask them something.
+- Follow whatever topic they bring up and show real interest.
+
+When the chat starts, say hi like an old friend in one short sentence and ask how their day is going.`},
+  intro:{name:'自我介紹教練', text:`# Who you are
+You are an English speaking coach helping the learner prepare a 5 to 8 minute self-introduction for a class. Be warm, practical, and precise. Never say you are an AI unless asked.
+
+# How the session works
+- Ask the learner to say their introduction one part at a time (who they are, what they do, what they built, what they want to learn).
+- After each part, react like an interested classmate would, then give at most one tip to make it clearer or more natural.
+- Sometimes ask a follow-up question a classmate might ask, so they practice answering on the spot.
+
+# How to speak
+- Always speak English, at a clear pace an intermediate learner can follow.
+- Keep each turn short: 1 to 3 short sentences.
+
+When the session starts, greet the learner in one short sentence and ask them to start with the first part of their introduction.`},
+  interview:{name:'英文面試官', text:`# Who you are
+You are a friendly but professional interviewer running a practice job interview in English. Stay in the interviewer role. Never say you are an AI unless asked.
+
+# How the session works
+- Ask one common interview question at a time, and follow up on their answers like a real interviewer.
+- When an answer is very short, ask them to tell you more or give an example.
+
+# How to speak
+- Always speak English, at a clear, professional pace.
+- Keep each turn short: 1 to 3 short sentences.
+
+When the interview starts, welcome the learner in one short sentence and ask them to introduce themselves.`}
+};
+function teacherStyleText(){
+  const t = (settings.teacherStyle || '').trim();
+  return t || TEACHER_TEMPLATES.tutor.text;
+}
+function speedLine(){   // Gemini 沒有語速參數，改寫進提示詞
+  const v = Number(settings.speed) || 1;
+  if(v <= 0.8) return '\n\n# Speaking speed\nSpeak noticeably slowly and clearly, with short pauses between sentences. The learner needs extra time to follow.';
+  if(v < 0.95) return '\n\n# Speaking speed\nSpeak a little more slowly and clearly than usual.';
+  if(v > 1.05) return '\n\n# Speaking speed\nSpeak at a lively, natural native pace.';
+  return '';
+}
+function teacherPrompt(){
+  const gentle = settings.strict === 'gentle';
+  const about = settings.aboutMe.trim();
+  const mem = (profile.text || '').trim();
+  return `${teacherStyleText()}
+${mem ? `
+# What you remember about this learner from past lessons
+Today is ${todayText()}. These are your own notes from earlier lessons with this learner:
+${mem}
+Use this like a real tutor who remembers their student: follow up on things they mentioned (for example, ask how an event went), and pay extra attention to their usual mistakes, except the habit mistakes listed below, which you never correct aloud. Bring it up naturally and only when it fits; do not recite these notes or say you have notes.
+` : ''}
+
+# Things that always apply
+You hear the learner's voice directly. They are a non-native speaker still improving their English and pronunciation, so some words may sound unclear. Helping them speak accurately is part of your job in every conversation.
+${about ? `
+# About the learner (written by the learner)
+${about}
+Use this to understand their topics and words. Bring it up naturally when it fits; do not recite it.
+` : ''}${TOOLS_ON && hasPastLessons() ? `
+# Remembering earlier lessons
+You have a tool called recall that looks through your records of earlier lessons with this learner (what they said, the topics, their mistakes).
+- Use it when the learner mentions something from an earlier lesson that is not in your notes above, or asks what you talked about before, or when you want to follow up on a detail you do not remember.
+- Do NOT use it for things from this lesson or things already in your notes.
+- Before calling it, say a short natural filler first, like "Hmm, let me think..." Then use the answer naturally in your reply. If nothing is found, say honestly that you do not remember the details and ask them to remind you.
+` : ''}${TOOLS_ON && settings.webSearch ? `
+# Current events
+You have a tool called web_search. Talk about the news and new things like a friend who keeps up with them.
+- Use it when the learner mentions a recent event, news, a new product, a new show or game, a person in the news, or a new word or name you do not know, or asks about anything that may have happened after your training.
+- Do NOT use it for general knowledge, English questions, or things the learner just explained to you.
+- Before calling it, say a short natural filler first, like "Oh, let me check..." Then share one or two interesting facts in your own words, like a friend would, and keep the conversation going. Do not read out links or long lists.
+` : ''}
+# Understand first
+- The learner always speaks English with you. ALWAYS reply in English only, even if what you hear sounds like another language. If you hear only silence, noise, or sounds that are not clear English words, do not guess: just say briefly in English that you did not catch that and ask them to say it again.
+- Remember the whole lesson so far and use it to work out what they meant.
+- When a word sounds unclear or like a different word, pick the word that makes sense in context. Unclear pronunciation is NOT a grammar mistake.
+- If you are not sure whether they really made a mistake (a short or quiet word like "I'm", "is", "a", "the" could be either way), assume they said it correctly and do not correct it.
+- If a missing ending sound (-s, -ed, -ing, -'s) could be a pronunciation slip, do NOT treat it as grammar.
+- If you truly cannot understand part of it, say so kindly and ask them to say it again. Never correct a guess.
+- If they use a term you do not know (new slang, tech words, names), it is NOT a mistake. Assume it is real and ask them about it with curiosity.
+
+${settings.teacherTemplate === 'interview' ? `# No spoken corrections in this session
+Stay fully in your role and do NOT correct the learner's English aloud at all, not even small hints. A notebook on the learner's screen records every mistake for them to review later. Just respond to what they say, like the real situation would.
+
+` : `# Habit mistakes: never correct these aloud
+The learner's screen marks these small habit mistakes in red under their own sentence, so you do NOT correct them aloud, not even once, and not when they retry:
+- third person -s (She mean -> She means)
+- plural -s (two cat -> two cats)
+- past tense, -ed or irregular (Yesterday I go -> went)
+- the verb be (I'm prefer -> I prefer; She happy -> She is happy)
+- subject-verb agreement (has/have, is/are, was/were)
+- mixing up he and she (or his and her)
+- a/an
+If the only mistakes in a turn are these, just reply to what they said like a normal conversation. Never praise or comment on them either. Correct only other kinds of mistakes, by the rules below.
+
+# Correct like a tutor (${gentle ? 'GENTLE' : 'STRICT'} mode)
+- Only correct a grammar or word-choice mistake you are confident the learner really made.
+- Before every correction, check its type. If it is a habit mistake from the list above (-s endings, past tense, be, has/have, is/are, was/were, do/does, he/she, a/an), do NOT say it, even if it is the only mistake in the sentence and even if it is obvious. Pick a different kind of mistake or correct nothing.
+${gentle
+  ? '- Only correct mistakes that change the meaning, could cause confusion, or sound clearly wrong to a native speaker. Let small slips go. Correct at most ONE thing per turn, the most important one.'
+  : '- Correct clear grammar mistakes and unnatural phrasing. At most TWO things per turn.'}
+- If nothing is worth correcting, do not correct anything. Never invent mistakes.
+- When there is nothing to correct, do NOT comment on their English at all: no "Great sentence", no "Perfect", no "Your English is good". Just reply to what they said, like a normal conversation. (Praising a retry, below, is the only exception.)
+- Be exact about what changed. Say: Try saying: "<corrected sentence>" then name the exact words they said and the exact words to use instead, for example: You said "interesting", but for your feelings use "interested".
+- Before you explain, compare the two versions word by word in your head. Only explain the words that actually changed. Never claim they said or missed something they did not.
+- If you are not sure WHY it is wrong, do not make up a rule. Just say the new version sounds more natural.
+
+# When they try again
+- If the learner repeats your corrected sentence (or close to it), that is them practicing. Praise it right away and specifically, for example: "Perfect, that's exactly it!" Do NOT react to it as new information. Then continue the conversation from where it was.
+- If their retry still has the mistake you corrected, gently point to just that part once more (never a habit mistake from the list above).
+
+`}# Pronunciation
+- Do not comment on pronunciation unless you could not understand them.${speedLine()}`;
+}
+/* ---------- Gemini Live 連線設定（setup 只能在一開始送一次，通話中改設定要下次通話才生效） ---------- */
+const AUTO_READY = true;   // 自動模式（耐心自動、一般自動）：第 5 步做好了
+// 說話方式在開始上課時就定下來：上課中改設定，要等下次開始上課才換（Google 那條連線的設定改不了，混用會整句沒反應）
+let callMode = null;
+function talkMode(){ return callMode || (AUTO_READY ? settings.talkMode : 'ptt'); }
+function activityConfig(){
+  const mode = talkMode();
+  // 按一下說：關掉自動判斷，由你按按鈕送 activityStart / activityEnd
+  // 耐心自動：Gemini 沒有「看意思」的判斷，改成把結尾判斷調鈍、靜音要 2 秒才算講完
+  // 一般自動：用預設值
+  if(mode === 'ptt') return {automaticActivityDetection:{disabled:true}};
+  if(mode === 'auto') return {automaticActivityDetection:{endOfSpeechSensitivity:'END_SENSITIVITY_LOW', silenceDurationMs:2000}};
+  return {};
+}
+// 斷線後重新連線、又沒辦法接回原本那段對話時，把這堂課到目前為止的對話附給老師
+function lessonSoFar(){
+  const lines = convo.slice(-30).map(c => c.role + ': ' + c.text).join('\n');
+  if(!lines) return '';
+  return '\n\n# This lesson so far\nThe connection was briefly interrupted in the middle of this lesson. Here is what was said so far (automatic transcription, may contain misheard words). Continue naturally from here. Do not greet the learner as if it were a new lesson.\n' + lines;
+}
+let sessionMode = null;   // 這段對話（續連代碼）開始時的說話方式：用續連代碼接回時，Google 會沿用它，改不了
+function setupMessage(){
+  // 說話方式改過了：續連代碼接回去還會是舊的方式（實測整句沒反應），所以改成開新的一段、附上目前的對話
+  if(resumeHandle && sessionMode && sessionMode !== talkMode()){ resumeHandle = ''; log('說話方式改了，不用續連代碼，改成附上目前的對話'); }
+  usedHandle = !!resumeHandle;
+  if(!usedHandle) sessionMode = talkMode();
+  return {setup:{
+    model:'models/' + settings.teacherModel,
+    generationConfig:{responseModalities:['AUDIO']},
+    systemInstruction:{parts:[{text:teacherPrompt() + (rejoin && !usedHandle ? lessonSoFar() : '')}]},
+    inputAudioTranscription:{},    // 你說的話變成文字（只給聊天欄看）
+    outputAudioTranscription:{},   // 老師說的話變成文字
+    realtimeInputConfig:activityConfig(),
+    contextWindowCompression:{slidingWindow:{}},   // 長時間通話不會因為內容太多被切斷
+    sessionResumption:resumeHandle ? {handle:resumeHandle} : {},
+    ...liveTools()
+  }};
+}
+function send(obj){
+  if(ws && ws.readyState === 1 && (wsReady || obj.setup)){ ws.send(JSON.stringify(obj)); return true; }
+  return false;
+}
+
+/* ---------- 通話 ---------- */
+let ws = null, wsReady = false, resumeHandle = '';
+let rejoin = false;       // 這次連線是「暫停／斷線後回來繼續同一堂課」
+let usedHandle = false;   // 這次連線有沒有用 Google 給的續連代碼接回原本的對話
+let greetTimer = null;
+// WebSocket 被關掉時，Google 會在 code 和 reason 寫原因，翻成中文
+function friendlyClose(code, reason){
+  const r = reason || '';
+  if(/API key not valid|API_KEY_INVALID/i.test(r)) return 'Google 金鑰不正確，請到「設定」檢查。';
+  if(/not found|is not supported|unsupported model/i.test(r)) return '找不到老師的模型 ' + settings.teacherModel + '，請到「設定」換一個。';
+  if(/quota|exceeded|RESOURCE_EXHAUSTED/i.test(r)) return '用量超過上限或餘額不足，請到 AI Studio 檢查。';
+  if(/billing|prepay|payment|balance/i.test(r)) return 'Google 帳戶的儲值餘額不足，請到 AI Studio 儲值。';
+  if(code === 1006) return '連線突然斷掉（可能是網路不穩）。';
+  return '老師的連線被關掉了（' + code + (r ? '：' + r : '') + '）。';
+}
+
+async function startCall(){
+  if(!settings.googleKey){ setStatus('請先到「設定」貼上 Google AI Studio 金鑰。', true); openSettings(); return; }
+  connecting = true; setCallUI('connecting'); setStatus('');
+  lesson = {id:Date.now(), start:Date.now(), end:null, turns:0, sentences:[], items:[], natural:[], status:'live'};
+  resumeHandle = ''; rejoin = false; autoRetries = 0;
+  callMode = null; callMode = talkMode();
+  // 錄音和播放的音訊引擎要在「按下按鈕的當下」建立，不然 Chrome 可能不讓它啟動。掛斷後會保留，下次直接沿用。
+  if(!actx){ try{ actx = new AudioContext(); }catch(e){ actx = null; log('無法建立錄音引擎：' + e.message); } }
+  if(!pctx){ try{ pctx = new AudioContext(); }catch(e){ pctx = null; log('無法建立播放引擎：' + e.message); } }
+  try{
+    // 1. 麥克風：打開網頁後只要一次權限，掛斷時不關掉，下次通話直接沿用
+    if(!micStream || !micStream.getAudioTracks().some(t => t.readyState === 'live')){
+      micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true, autoGainControl:true}});
+      startCapture(micStream);   // 瀏覽器一直錄一份在旁邊：給筆記員重聽，也從這裡切出要送給老師的聲音
+    }
+    actx && actx.resume(); pctx && pctx.resume();
+    setMicOn(false);
+    openSocket();
+  }catch(err){
+    log('錯誤：' + (err && err.message));
+    let msg = err && err.message || '未知錯誤';
+    if(err && err.name === 'NotAllowedError') msg = '瀏覽器沒有給麥克風權限。請點網址列左邊的圖示，允許使用麥克風。';
+    else if(err && err.name === 'NotFoundError') msg = '找不到麥克風，請接上耳機麥克風再試。';
+    setStatus(msg, true);
+    endCall(false);
+  }
+}
+function openSocket(){
+  log('開啟 WebSocket，老師模型 ' + settings.teacherModel + '，說話方式 ' + talkMode());
+  const t0 = performance.now();
+  const sock = new WebSocket('wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=' + encodeURIComponent(settings.googleKey));
+  ws = sock; wsReady = false;
+  sock.onopen = () => {
+    if(ws !== sock) return;
+    log('WebSocket 已開啟（' + secs(performance.now() - t0) + ' 秒）');
+    send(setupMessage());
+  };
+  sock.onmessage = async e => {
+    if(ws !== sock) return;
+    let m;
+    try{ m = JSON.parse(typeof e.data === 'string' ? e.data : await e.data.text()); }catch(err){ log('看不懂的訊息', String(e.data).slice(0, 200)); return; }
+    onServer(m, t0);
+  };
+  sock.onerror = () => { if(ws === sock) log('WebSocket 發生錯誤（原因會寫在下一行的關閉訊息）'); };
+  sock.onclose = e => {
+    if(ws !== sock) return;
+    log('WebSocket 關閉：code ' + e.code + (e.reason ? '，reason ' + e.reason : ''));
+    // 換線時 Google 還沒放掉舊連線：畫面不動，等一下再悄悄試（最多 4 次）
+    if(swapping && /already connected/i.test(e.reason || '') && swapTries < 4){
+      swapTries++; ws = null;
+      log('Google 還沒放掉舊連線，' + swapTries + ' 秒後再試');
+      setTimeout(() => { if(swapping && !ws) openSocket(); }, 1000 * swapTries);
+      return;
+    }
+    const wasConnecting = connecting || swapping;
+    ws = null; wsReady = false;
+    swapping = false; swapBuf = []; clearInterval(swapWatch);
+    if(callState === 'off') return;
+    if(connecting && !rejoin){   // 一開始就連不上（金鑰、模型錯）：這堂課不算
+      setStatus(friendlyClose(e.code, e.reason), true);
+      endCall(false);
+      return;
+    }
+    const stillBusy = /already connected/i.test(e.reason || '');   // 舊連線還沒放掉：代碼還能用，等一下再試
+    if(wasConnecting && usedHandle && !stillBusy){ resumeHandle = ''; log('續連代碼接不回原本的對話，下次改成附上目前的對話'); }
+    connecting = false;
+    dropSocket();
+    // 上課中斷線：自動重新連線（最多 3 次）。暫停中斷線、金鑰或餘額問題：等你按麥克風
+    if(callState !== 'paused' && autoRetries < 3 && !fatalClose(e.code, e.reason)){
+      autoRetries++;
+      rejoin = true; connecting = true;
+      setCallUI('connecting');
+      setStatus('連線斷了，自動重新連線中…（第 ' + autoRetries + ' 次）');
+      log('自動重新連線（第 ' + autoRetries + ' 次），' + (resumeHandle ? '試著接回原本的對話' : '附上目前的對話'));
+      setTimeout(() => { if(callState === 'connecting' && lesson && !ws) openSocket(); }, 1000 * autoRetries);
+      return;
+    }
+    autoRetries = 0;
+    setCallUI('paused');
+    setStatus(friendlyClose(e.code, e.reason) + ' 這堂課還在，按麥克風重新連線繼續。', true);
+  };
+}
+function fatalClose(code, reason){
+  return /API key not valid|API_KEY_INVALID|not found|is not supported|unsupported model|quota|exceeded|RESOURCE_EXHAUSTED|billing|prepay|payment|balance/i.test(reason || '');
+}
+
+/* ---------- 長時間通話：Google 每條連線只能用一段時間，快到時會送 goAway。
+   收到後等一個空檔（你沒在說、老師沒在講），換一條新連線，用續連代碼接回同一段對話。
+   換線的一兩秒內你的聲音先存著，接通後再補送。 ---------- */
+let swapping = false;     // 正在換線
+let swapBuf = [];         // 換線時先存著的麥克風聲音
+let swapWatch = null;
+let autoRetries = 0;      // 斷線後自動重連了幾次（接通就歸零）
+let swapTries = 0;        // 換線時 Google 說舊連線還在，重試了幾次
+function quietForSwap(){
+  if(cur || serverBusy || toolPending || autoTurn || pttTurn || pttSending || callState === 'talking' || callState === 'connecting' || teacherSpeaking()) return false;
+  if(waitingTurn && performance.now() - (waitingTurn.tStop || 0) < 8000) return false;   // 剛說完，老師快要回了
+  return true;
+}
+function onGoAway(g){
+  const left = parseFloat(g && g.timeLeft) || 30;
+  log('Google 通知連線快到時間了，剩 ' + left + ' 秒；等空檔換新連線' + (resumeHandle ? '' : '（還沒拿到續連代碼，會改成附上目前的對話）'));
+  clearInterval(swapWatch);
+  const t0 = performance.now(), sock = ws;
+  swapWatch = setInterval(() => {
+    if(ws !== sock || swapping || callState === 'off'){ clearInterval(swapWatch); return; }
+    if(quietForSwap()){ clearInterval(swapWatch); swapSocket(); }
+    else if(performance.now() - t0 > Math.max(1, left - 3) * 1000){ clearInterval(swapWatch); log('一直等不到空檔，時間快到了直接換線'); swapSocket(); }
+  }, 250);
+}
+function swapSocket(){
+  if(!ws || swapping) return;
+  log('換一條新連線，' + (resumeHandle && !(sessionMode && sessionMode !== talkMode()) ? '用續連代碼接回同一段對話' : '附上目前的對話'));
+  swapping = true; swapBuf = []; rejoin = true; swapTries = 0;
+  clearTimeout(greetTimer);
+  if(cur){ stopPlayback(); const r = cur; cur = null; finishReply(r, true); }   // 只有等不到空檔硬換時才會發生
+  continuation = null; serverBusy = false; discarding = false;
+  window.swapT0 = performance.now();
+  // 舊連線要真的關好，Google 才肯讓新連線接回同一段對話（不然會說 already connected）
+  const old = ws; ws = null; wsReady = false;
+  let opened = false;
+  const next = () => { if(opened || !swapping) return; opened = true; openSocket(); };
+  old.onclose = () => { log('舊連線已關好（' + secs(performance.now() - window.swapT0) + ' 秒）'); setTimeout(next, 1000); };
+  setTimeout(next, 4000);
+  try{ old.close(1000, 'swap'); }catch(e){ next(); }
+}
+/* ---------- 上課中改說話方式：Google 連線的設定中途改不了，所以換一條新連線（用續連代碼接回同一段對話），新連線用新的說話方式。
+   按一下說說到一半就去改：這句當作說完了照常送出，老師回完的空檔再換。等的時候麥克風按鈕顯示「切換中」。 ---------- */
+let modeSwitch = null, modeWatch = null, pttSending = false;
+function modeName(m){ return m === 'ptt' ? '按一下說' : m === 'fast' ? '一般自動' : '耐心自動'; }
+function switchMode(mode){
+  if(mode !== 'ptt') talkQueued = false;
+  if(callState === 'switching' && modeSwitch){ modeSwitch = mode; setCallUI('switching'); return; }   // 還在等換線：改成最後選的
+  if(callState === 'off' || callState === 'connecting' || mode === talkMode()) return;
+  if(callState === 'paused'){
+    callMode = mode;   // 暫停中：直接換（連線還在就馬上換線，斷了的話按繼續重連時就用新的）
+    log('說話方式改成' + modeName(mode) + (ws && wsReady ? '，暫停中直接換線' : ''));
+    if(ws && wsReady && !swapping) swapSocket();
+    return;
+  }
+  if(pttTurn) finishTalking();   // 說到一半：當作說完了，這句照常送出、老師照常回答
+  modeSwitch = mode;
+  setCallUI('switching');
+  setStatus('');
+  log('說話方式要改成' + modeName(mode) + '：等老師回完再換線');
+  clearInterval(modeWatch);
+  const t0 = performance.now();
+  modeWatch = setInterval(() => {
+    if(callState !== 'switching' || !modeSwitch){ clearInterval(modeWatch); return; }
+    if(talkMode() !== 'ptt' && !autoTurn) setMicOn(false);   // 原本是自動模式：你這句說完就先不收音
+    if(!ws || !wsReady || swapping) return;
+    if(quietForSwap() || performance.now() - t0 > 30000){
+      clearInterval(modeWatch);
+      callMode = modeSwitch;   // 新連線的設定會用這個
+      swapSocket();
+    }
+  }, 250);
+}
+// 讓老師先打招呼：用文字送一句開場指示。按一下說模式有時文字不會觸發回覆，5 秒沒動靜就換另一種送法再試一次
+const HABIT_SHORT = {'3s':'the -s on verbs after he, she or it', plural:'the plural -s', past:'past tense', be:'when to use am, is, are', agree:'has and have, is and are, was and were', heshe:'he and she', a_an:'a and an'};
+function habitsToday(L){   // 這堂課到目前為止，習慣清單每一項 [機會, 用對]
+  const sum = {};
+  for(const e of (L && L.habits) || []) for(const [t, v] of Object.entries(e.chances || {})){
+    if(!HABIT_SHORT[t] || !Array.isArray(v)) continue;
+    sum[t] = sum[t] || [0, 0]; sum[t][0] += parseInt(v[0], 10) || 0; sum[t][1] += parseInt(v[1], 10) || 0;
+  }
+  return sum;
+}
+function greetText(){
+  const casual = settings.teacherTemplate === 'tutor' || settings.teacherTemplate === 'chat';
+  if(!casual) return 'The lesson starts now. Greet the learner.';
+  const last = store.get('sngm_lastGreeting', '');
+  const focus = habitProgress(null).filter(x => x.status === 'practice').sort((a, b) => a.pct - b.pct).slice(0, 2).map(x => HABIT_SHORT[x.code]);
+  return 'The lesson starts now. Greet the learner like a real person would, in one or two short sentences, then ask one question to get them talking. ' +
+    'Vary your opening every lesson: do NOT just ask what they did today or what they got up to. You could follow up on something from your notes about them, ask about something coming up for them, mention the day of the week, or pick a light topic. ' +
+    (last ? 'Last lesson you opened with: "' + last + '". Open in a clearly different way. ' : '') +
+    (focus.length ? 'Also say briefly and warmly that today you will keep an ear on ' + focus.join(' and ') + '. Do not explain any rule.' : '');
+}
+function greet(){
+  const text = greetText();
+  send({realtimeInput:{text}});
+  log('送出開場指示（realtimeInput.text）');
+  clearTimeout(greetTimer);
+  greetTimer = setTimeout(() => {
+    if(!ws || cur || convo.some(c => c.role === 'Tutor')) return;
+    log('5 秒沒有回覆，改用 clientContent 再送一次開場指示');
+    send({clientContent:{turns:[{role:'user', parts:[{text}]}], turnComplete:true}});
+  }, 5000);
+}
+
+// 關掉和老師的連線，收好正在進行的句子（不結束這堂課）
+function dropSocket(){
+  clearTimeout(greetTimer);
+  swapping = false; swapBuf = []; clearInterval(swapWatch);
+  if(ws){ const s = ws; ws = null; wsReady = false; try{ s.close(1000, 'bye'); }catch(e){} }
+  stopPlayback();
+  if(cur){ finishReply(cur, true); cur = null; }
+  setMicOn(false);
+  if(pttTurn){ pttTurn.bubble.remove(); const i = convo.indexOf(pttTurn.convo); if(i >= 0) convo.splice(i, 1); pttTurn = null; }
+  if(autoTurn) autoTurnStop(lastVoiceT || performance.now());
+  transcribing = null; serverBusy = false; discarding = false;
+  continuation = null; lastTeacher = null; toolPending = 0;
+  serverVad = false; lastVoiceT = 0; silentSince = 0;
+  $('call').classList.remove('hearing');
+}
+// 暫停：不送你的聲音、老師的聲音停掉，但這堂課還在
+function pauseCall(){
+  // 不送 audioStreamEnd：Google 會把它當成「你說完了」而開始回答。只要停止送聲音，老師就會一直等
+  setMicOn(false);
+  stopPlayback();
+  if(cur){ const r = cur; cur = null; finishReply(r, true); if(serverBusy) discarding = true; }
+  // 你還沒說完就按暫停：這句作廢，不送筆記員（不然一點按鍵聲也會被腦補成一句話）
+  if(autoTurn){
+    const u = autoTurn; autoTurn = null;
+    const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
+    if(transcribing === u) transcribing = null;
+    setText(u.bubble, '（暫停了，這句沒記下來）', true);
+    log('暫停：還沒說完的那句作廢，不記筆記');
+  }
+  if(pttTurn){ pttTurn.bubble.remove(); const i = convo.indexOf(pttTurn.convo); if(i >= 0) convo.splice(i, 1); pttTurn = null; }
+  $('call').classList.remove('hearing');
+  setCallUI('paused');
+  setStatus('已暫停。老師在等你，按麥克風繼續。');
+  log('暫停');
+}
+// 繼續：連線還在就直接繼續；斷掉了就重新連線，同一堂課接著上
+function resumeCall(){
+  actx && actx.resume(); pctx && pctx.resume();
+  if(ws && wsReady){
+    setMicOn(talkMode() !== 'ptt');
+    setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
+    setStatus('繼續上課。');
+    log('繼續');
+    return;
+  }
+  rejoin = true; connecting = true; swapping = false; swapBuf = []; clearInterval(swapWatch);
+  if(ws){ const s = ws; ws = null; try{ s.close(1000, 'bye'); }catch(e){} }   // 換線到一半：那條不要了，重新連
+  setCallUI('connecting'); setStatus('重新連線中…');
+  log('重新連線，' + (resumeHandle ? '試著接回原本的對話' : '附上目前的對話'));
+  openSocket();
+}
+// 按「結束課堂」：老師先用一兩句話道別、提一句這堂的表現，講完才掛斷（最多等 15 秒；再按一次就直接結束）
+let byeWatch = null;
+function sayGoodbye(){
+  if(byeWatch || callState === 'talking' || !(ws && wsReady) || !lesson || !(lesson.turns > 0)){ endCall(true); return; }
+  const sum = habitsToday(lesson);
+  const res = Object.entries(sum).filter(([t, v]) => v[0] >= 2).map(([t, v]) => HABIT_SHORT[t] + ': ' + v[1] + ' of ' + v[0] + ' right');
+  const text = 'The learner pressed "End lesson". Say goodbye now in one or two short, warm sentences, like a real tutor at the end of a lesson. ' +
+    (res.length ? 'Mention ONE encouraging thing about how they did today, based on these results (do not read out numbers): ' + res.join('; ') + '. ' : 'Mention one nice thing about today\'s lesson. ') +
+    'Do not ask any question.';
+  setMicOn(false); stopPlayback();
+  if(cur){ const r = cur; cur = null; finishReply(r, true); }
+  actx && actx.resume(); pctx && pctx.resume();
+  setCallUI('ending'); setStatus('老師在跟你道別……（再按一次「結束課堂」可以直接結束）');
+  const n0 = convo.length, t0 = performance.now();
+  send({realtimeInput:{text}});
+  log('下課：請老師道別');
+  byeWatch = setInterval(() => {
+    const said = convo.slice(n0).some(c => c.role === 'Tutor');
+    if((said && !serverBusy && !cur && playing_.size === 0) || performance.now() - t0 > 15000) endCall(true);
+  }, 300);
+}
+function endCall(say){
+  connecting = false;
+  clearInterval(byeWatch); byeWatch = null;
+  const g = convo.find(c => c.role === 'Tutor'); if(g && lesson && lesson.turns > 0) store.set('sngm_lastGreeting', g.text.slice(0, 200));
+  dropSocket();
+  callMode = null; sessionMode = null; modeSwitch = null; clearInterval(modeWatch); pttSending = false;
+  setCallUI('off');
+  if(say){ setStatus('已結束課堂。'); log('結束課堂'); }
+  // 這堂課結束：等筆記員把最後幾句審完，再做課堂整理
+  if(lesson){
+    const L = lesson; lesson = null;
+    if(L.turns > 0){
+      L.end = Date.now(); L.status = 'waiting'; saveLesson(L);
+      reviewChain.then(() => summarizeLesson(L)).then(() => updateProfile(L));
+    }else setTimeout(() => chatDb.remove(L.id), 3000);   // 沒說到話的通話不算一堂課，只有招呼的紀錄就丟掉
+  }
+}
+
+/* ---------- 播放老師的聲音：Google 送來一小段一小段的 24kHz PCM，自己排隊接著播 ---------- */
+let pctx = null, playHead = 0;
+const playing_ = new Set();   // 正在播或排隊中的片段
+function b64ToBytes(b64){ const bin = atob(b64); const u = new Uint8Array(bin.length); for(let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+function bytesToB64(bytes){ let bin = ''; for(let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(bin); }
+function playChunk(b64, mime){
+  if(!pctx) return;
+  const rate = Number((/rate=(\d+)/.exec(mime || '') || [])[1]) || 24000;
+  const bytes = b64ToBytes(b64);
+  const n = bytes.length >> 1;
+  if(!n) return;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, n * 2);
+  const buf = pctx.createBuffer(1, n, rate);
+  const ch = buf.getChannelData(0);
+  for(let i = 0; i < n; i++) ch[i] = view.getInt16(i * 2, true) / 32768;
+  const src = pctx.createBufferSource();
+  src.buffer = buf; src.connect(pctx.destination);
+  // 接在上一段後面播；如果已經播完了（中間有空檔），就稍微留 0.05 秒緩衝再開始
+  const now = pctx.currentTime;
+  if(playHead < now + 0.02) playHead = now + 0.05;
+  src.start(playHead);
+  playHead += buf.duration;
+  playing_.add(src);
+  src.onended = () => playing_.delete(src);
+}
+function stopPlayback(){
+  for(const s of playing_){ try{ s.onended = null; s.stop(); }catch(e){} }
+  playing_.clear();
+  playHead = 0;
+}
+function teacherSpeaking(){ return playing_.size > 0; }
+
+/* ---------- 老師的每一次回覆 ---------- */
+let cur = null;           // 老師正在講的這一次回覆
+let transcribing = null;  // 正在等轉錄文字的那一輪（你說的）
+function ensureReply(){
+  if(!cur){
+    // 自動模式：老師已經開始回答，代表 Google 判斷你說完了；這邊還沒判斷到的話，就以最後一次有聲音的時間當作說完
+    if(autoTurn) autoTurnStop(lastVoiceT || performance.now());
+    // 這一輪是接在你說完之後的，就從你說完那一刻開始計時
+    cur = {bubble:null, t0:lastStop || null, tStart:null, text:'', turn:waitingTurn, recId:newLineId(), lessonId:lesson && lesson.id, t:Date.now()};
+    // 查好資料（回想、上網查）後老師接著說的那一段：接在上一個老師泡泡後面，看起來是同一段話
+    if(continuation && !waitingTurn){
+      cur.bubble = continuation.bubble; cur.prefix = continuation.prefix; cur.t0 = null;
+      if(continuation.recId){ cur.recId = continuation.recId; cur.t = continuation.t; cur.meta = continuation.meta; cur.lessonId = continuation.lessonId; }
+    }
+    continuation = null;
+    lastStop = 0; waitingTurn = null;
+  }
+  return cur;
+}
+function finishReply(r, interrupted){
+  r.text = r.text.replace(/\s+/g, ' ').trim();
+  const shown = ((r.prefix || '') + r.text).trim();
+  if(r.text){ if(!r.bubble) r.bubble = addBubble('assistant', shown); else setText(r.bubble, shown); }
+  if(interrupted && r.bubble) r.bubble.querySelector('.txt').textContent = shown + ' (interrupted)';   // 被你打斷：畫面上標出來
+  if(r.t0 && r.bubble){
+    const now = performance.now();
+    const turn = {start:r.tStart ? r.tStart - r.t0 : null, done:now - r.t0};
+    turns.push(turn);
+    r.meta = (turn.start != null ? '開口 ' + secs(turn.start) + ' 秒｜' : '') + '寫完 ' + secs(turn.done) + ' 秒';
+    setMeta(r.bubble, r.meta);
+    log('本輪：開口 ' + (turn.start != null ? secs(turn.start) : '?') + ' 秒，寫完 ' + secs(turn.done) + ' 秒');
+    renderStats();
+  }
+  if(r.text) convo.push({role:'Tutor', text:r.text + (interrupted ? ' (interrupted)' : '')});
+  saveTeacherLine(r);
+  if(r.bubble) lastTeacher = {bubble:r.bubble, text:shown, recId:r.recId, t:r.t, meta:r.meta, lessonId:r.lessonId};
+  // 老師講完（或被你打斷）：和筆記員的結果對照（筆記員在你說完時就開始重聽了）
+  if(r.turn && !r.turn.replyDone){
+    r.turn.replyDone = performance.now();
+    r.turn.replyText = r.text; r.turn.replyInterrupted = !!interrupted;
+    settleTurn(r.turn);
+  }
+}
+
+/* ---------- 處理 Google 傳來的訊息 ---------- */
+let audioChunks = 0;
+let serverBusy = false;   // Google 那邊這次回覆還沒結束（還沒收到 turnComplete）
+let discarding = false;   // 你打斷了老師：舊回覆剩下的聲音和文字直接丟掉，等它結束
+function onServer(m, t0){
+  if(m.setupComplete){
+    wsReady = true; connecting = false; autoRetries = 0;
+    log('setupComplete（接通共 ' + secs(performance.now() - t0) + ' 秒）');
+    const switched = !!modeSwitch; modeSwitch = null; clearInterval(modeWatch);
+    if(swapping){   // 換線完成：畫面和麥克風維持原樣，補送換線時存著的聲音
+      swapping = false;
+      if(switched || callState === 'switching'){   // 改說話方式的換線：換好了，按鈕改成新的方式
+        setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
+        setMicOn(talkMode() !== 'ptt');
+        setStatus('已改成「' + modeName(talkMode()) + '」，繼續上課。');
+        log('說話方式已改成' + modeName(talkMode()));
+      }
+      const buf = swapBuf; swapBuf = [];
+      for(const b64 of buf) send({realtimeInput:{audio:{mimeType:'audio/pcm;rate=16000', data:b64}}});
+      log('換線完成（' + secs(performance.now() - (window.swapT0 || t0)) + ' 秒），' + (usedHandle ? '接回同一段對話' : '已附上目前的對話') + (buf.length ? '，補送 ' + buf.length + ' 段聲音' : ''));
+      return;
+    }
+    setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
+    setMicOn(talkMode() !== 'ptt');
+    if(rejoin){
+      setStatus('已重新連上，繼續上課。');
+      if(usedHandle) log('已接回原本那段對話');
+      else{
+        log('接不回原本的對話，改成附上目前的對話重新開始');
+        send({realtimeInput:{text:'The learner is back after a short break. Say welcome back in one short sentence, then continue the conversation from where it was.'}});
+      }
+    }else{
+      setStatus('已接通。');
+      greet();
+    }
+    return;
+  }
+  if(m.sessionResumptionUpdate){ if(m.sessionResumptionUpdate.resumable && m.sessionResumptionUpdate.newHandle) resumeHandle = m.sessionResumptionUpdate.newHandle; return; }
+  if(m.goAway){ onGoAway(m.goAway); return; }
+  if(m.voiceActivity){
+    const ty = m.voiceActivity.type;
+    log('voiceActivity ' + ty);
+    if(talkMode() !== 'ptt' && inCall()){
+      if(!serverVad){ serverVad = true; log('Google 會告訴我們你何時開始、何時說完，改用它的判斷'); }
+      if(ty === 'ACTIVITY_START') autoTurnStart(performance.now());
+      else if(ty === 'ACTIVITY_END') autoTurnStop(lastVoiceT || performance.now());
+    }
+  }
+  if(m.toolCall){ onToolCall(m.toolCall); return; }
+  if(m.toolCallCancellation){ for(const id of (m.toolCallCancellation.ids || [])) toolCancelled.add(id); log('工具被取消（你打斷了老師）'); return; }
+  const sc = m.serverContent;
+  if(!sc){ if(!m.usageMetadata && !m.voiceActivity && Object.keys(m).length) log('其他訊息', Object.keys(m)); return; }
+
+  if(sc.inputTranscription && sc.inputTranscription.text){
+    // 自動模式：沒偵測到你開始說話，轉錄文字卻先來了，就補開一句
+    if(!transcribing && talkMode() !== 'ptt' && inCall()) autoTurnStart(performance.now() - 1000);
+    const u = transcribing;
+    if(u){
+      u.transcript = ((u.transcript || '') + sc.inputTranscription.text).replace(/\s+/g, ' ');
+      if(u.convo) u.convo.text = u.transcript.trim();
+      if(!u.heard) setText(u.bubble, u.transcript.trim(), false);   // 筆記員好了以後字幕用筆記員的版本，不再被轉錄蓋掉
+      if(u.wav) addPlayButton(u.bubble, u.wav);
+      if(u.tStop && !u.tTrans){ u.tTrans = performance.now(); setMeta(u.bubble, '轉錄 ' + secs(u.tTrans - u.tStop) + ' 秒'); }
+      saveUserLine(u);
+    }else log('收到轉錄文字但找不到是哪一句：' + sc.inputTranscription.text);
+  }
+  if(sc.modelTurn || sc.outputTranscription) serverBusy = true;
+  if(sc.modelTurn && sc.modelTurn.parts && !discarding){
+    for(const p of sc.modelTurn.parts){
+      if(p.inlineData && p.inlineData.data && /audio/.test(p.inlineData.mimeType || 'audio')){
+        const r = ensureReply();
+        if(!r.tStart) r.tStart = performance.now();
+        if(!audioChunks++) log('第一段老師聲音：' + (p.inlineData.mimeType || '(沒寫格式)'));
+        if(callState === 'paused'){ if(!r.mutedLogged){ r.mutedLogged = true; log('暫停中：老師的聲音不播（文字照樣顯示）'); } }
+        else playChunk(p.inlineData.data, p.inlineData.mimeType);
+      }
+    }
+  }
+  if(sc.outputTranscription && sc.outputTranscription.text && !discarding){
+    const r = ensureReply();
+    r.text += sc.outputTranscription.text;
+    if(!r.bubble) r.bubble = addBubble('assistant', r.text.trim());
+    else setText(r.bubble, ((r.prefix || '') + r.text).trim());
+  }
+  if(sc.interrupted){
+    log('老師被打斷');
+    stopPlayback();
+    if(cur){ const r = cur; cur = null; finishReply(r, true); }
+    discarding = false;
+  }
+  if(sc.turnComplete){
+    serverBusy = false; discarding = false;
+    if(cur){ const r = cur; cur = null; finishReply(r, r.interrupted); }
+    if(transcribing && !transcribing.transcript){ setText(transcribing.bubble, '（沒有聽到內容）', false); }
+  }
+}
+
+/* ---------- 自動模式（耐心自動、一般自動） ----------
+   麥克風的聲音降成 16kHz 即時送給老師，由 Google 判斷你什麼時候說完、什麼時候該回答。
+   畫面上「你的這一句」從哪裡開始、到哪裡結束：Google 有送 voiceActivity 就用它的；
+   沒有的話，用瀏覽器這邊的音量自己判斷（只用來切錄音和算秒數，不影響老師）。 */
+let autoTurn = null;      // 自動模式下，你正在說的這一句
+let serverVad = false;    // 這次通話 Google 有沒有送 voiceActivity
+let lastVoiceT = 0;       // 最後一次聽到你有聲音的時間
+let silentSince = 0;
+function toPcm16(d, inRate){
+  const n = Math.floor(d.length * 16000 / inRate), step = inRate / 16000;
+  const out = new Int16Array(n);
+  for(let i = 0; i < n; i++){
+    const a = Math.floor(i * step), b = Math.max(a + 1, Math.floor((i + 1) * step));
+    let s = 0; for(let j = a; j < b && j < d.length; j++) s += d[j];
+    s = Math.max(-1, Math.min(1, s / (b - a)));
+    out[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+  }
+  return out;
+}
+function onMicChunk(t, d, rate){
+  if(talkMode() === 'ptt') return;
+  if(swapping){   // 換線中：聲音先存著（最多約 15 秒），接通後補送
+    if(swapBuf.length < 400) swapBuf.push(bytesToB64(new Uint8Array(toPcm16(d, rate).buffer)));
+    return;
+  }
+  if(!ws || !wsReady) return;
+  const pcm = toPcm16(d, rate);
+  send({realtimeInput:{audio:{mimeType:'audio/pcm;rate=16000', data:bytesToB64(new Uint8Array(pcm.buffer))}}});
+  // 瀏覽器這邊的音量判斷
+  let sum = 0; for(let i = 0; i < d.length; i++) sum += d[i] * d[i];
+  const loud = Math.sqrt(sum / d.length) * 32768 > VOICE_RMS;
+  const chunkMs = d.length / rate * 1000;
+  if(loud){
+    lastVoiceT = t;
+    // 老師在講話時不自己開新的一句（喇叭的聲音可能被收進來）；你真的插話時 Google 會送 interrupted
+    if(!serverVad && !autoTurn && !teacherSpeaking()) autoTurnStart(t - chunkMs);
+  }else if(autoTurn && !serverVad){
+    const quiet = settings.talkMode === 'auto' ? 2100 : 700;
+    if(t - lastVoiceT > quiet) autoTurnStop(lastVoiceT);
+  }
+}
+function autoTurnStart(t){
+  if(autoTurn) return;
+  const u = newUserTurn({bubble:addBubble('user', '（聆聽中…）', true)});
+  u.tStart = t;
+  convo.push(u.convo = {role:'Learner', text:'(unclear)'});
+  autoTurn = u; transcribing = u;
+  $('call').classList.add('hearing');
+}
+function autoTurnStop(tStop){
+  const u = autoTurn;
+  if(!u) return;
+  autoTurn = null;
+  $('call').classList.remove('hearing');
+  u.tStop = tStop;
+  u.wav = cutTurnAudio(u.tStart, tStop + 200, 500);
+  const v = u.wav ? voiceLevel(u.wav.pcm) : {voiced:0, peak:0};
+  u.voiced = v.voiced;
+  if(v.voiced < MIN_VOICED_SECS && !u.transcript){
+    // 只是雜音：把這句收掉
+    u.bubble.remove(); const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
+    if(transcribing === u) transcribing = null;
+    u.wav = null;
+    return;
+  }
+  log('你說完了：' + (u.wav ? u.wav.secs.toFixed(1) : '?') + ' 秒，有聲音 ' + v.voiced.toFixed(2) + ' 秒');
+  if(!u.transcript) setText(u.bubble, '（轉錄中…）', true);
+  if(u.wav) addPlayButton(u.bubble, u.wav);
+  saveUserLine(u);
+  lastStop = tStop;
+  waitingTurn = u;
+  startReview(u);
+}
+
+/* ---------- 按一下說（push-to-talk） ----------
+   說話時先只錄在瀏覽器裡；按「說完了」才把這一句切下來，分成每段 100ms 送給老師，
+   前後包上 activityStart / activityEnd。這樣「取消這句」或按太短時，什麼都不用送。 */
+let pttTurn = null;          // 正在說的這一輪
+let commitTurn = null;       // （舊版用，保留給「新對話」清空）
+let activeResponse = null;   // （舊版用，保留給「新對話」清空）
+function startTalking(){
+  if(callState !== 'ready') return;
+  // 老師還在講的話，自己先停掉聲音（Google 那邊收到你的下一句時也會停）
+  if(teacherSpeaking() || cur){
+    stopPlayback(); log('你開始說話，老師的聲音先停');
+    if(cur){ const r = cur; cur = null; finishReply(r, true); }
+    if(serverBusy) discarding = true;   // 舊回覆還在送過來：剩下的丟掉
+  }
+  const u = newUserTurn({bubble:addBubble('user', '（正在聽你說…）', true)});
+  convo.push(u.convo = {role:'Learner', text:'(unclear)'});
+  pttTurn = u;
+  setCallUI('talking');
+}
+function finishTalking(){
+  if(callState !== 'talking' || !pttTurn) return;
+  const u = pttTurn; pttTurn = null;
+  setCallUI('ready');
+  u.tStop = performance.now();
+  if(u.tStop - u.tStart < 600){   // 太短，當作按錯
+    u.bubble.remove(); convo.splice(convo.indexOf(u.convo), 1);
+    setStatus('太短了，請按一下、說完再按一次。');
+    return;
+  }
+  setText(u.bubble, '（轉錄中…）', true);
+  pttSending = true;   // 送出之前不要換線（換線會換成別的說話方式）
+  // 等 0.3 秒讓最後一個字也錄進來，再切下來送出
+  setTimeout(function go(tEnd = performance.now(), tries = 0){
+    // 剛好在換線：等新連線接通（最多 6 秒）再送
+    if(swapping && tries < 30){ setTimeout(() => go(tEnd, tries + 1), 200); return; }
+    pttSending = false;
+    if(!ws || !wsReady){ setText(u.bubble, '（沒有送出：連線已中斷）', false); return; }
+    u.wav = cutTurnAudio(u.tStart, tEnd, 300);
+    if(!u.wav){ setText(u.bubble, '（沒錄到聲音）', false); return; }
+    // 沒有說話（只有安靜或雜音）就不送：送出去的話，老師會把雜音聽成別的語言，亂回答
+    const v = voiceLevel(u.wav.pcm);
+    u.voiced = v.voiced;
+    log('這一句的音量：有聲音 ' + v.voiced.toFixed(2) + ' 秒，最大 ' + v.peak);
+    if(v.voiced < MIN_VOICED_SECS){
+      setText(u.bubble, '（沒聽到你說話，這句沒有送出）', false);
+      const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
+      u.wav = null;
+      setStatus('沒聽到聲音，這句沒有送給老師。請靠近麥克風再說一次。');
+      return;
+    }
+    addPlayButton(u.bubble, u.wav);
+    saveUserLine(u);
+    lastStop = performance.now();
+    waitingTurn = u; transcribing = u;
+    sendAudio(u.wav.pcm);
+    startReview(u);
+    log('送出這一句：' + u.wav.secs.toFixed(1) + ' 秒，' + Math.ceil(u.wav.pcm.length / 3200) + ' 段');
+  }, 300);
+}
+// 算一句話裡「真的有人在說話」的時間：每 20ms 算一次音量，夠大的才算
+const MIN_VOICED_SECS = 0.2, VOICE_RMS = 400;
+const SHORT_VOICED_SECS = 0.6;   // 比這短、又沒有轉錄文字的一句，不送筆記員
+function voiceLevel(pcm){
+  const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.length - (pcm.length % 2));
+  const n = view.byteLength >> 1, win = 320;
+  let voicedWins = 0, peak = 0;
+  for(let i = 0; i + win <= n; i += win){
+    let sum = 0;
+    for(let j = i; j < i + win; j++){ const x = view.getInt16(j * 2, true); sum += x * x; }
+    const rms = Math.sqrt(sum / win);
+    if(rms > peak) peak = rms;
+    if(rms > VOICE_RMS) voicedWins++;
+  }
+  return {voiced:voicedWins * win / 16000, peak:Math.round(peak)};
+}
+// 把 16kHz、16-bit 的聲音，每 100ms（3200 bytes）一段送出，前後包 activityStart / activityEnd
+function sendAudio(pcm){
+  send({realtimeInput:{activityStart:{}}});
+  for(let i = 0; i < pcm.length; i += 3200){
+    send({realtimeInput:{audio:{mimeType:'audio/pcm;rate=16000', data:bytesToB64(pcm.subarray(i, i + 3200))}}});
+  }
+  send({realtimeInput:{activityEnd:{}}});
+}
+// 按一下說：講到一半想重來，取消這句，不送給老師
+function cancelTalking(){
+  if(callState !== 'talking' || !pttTurn) return;
+  const u = pttTurn; pttTurn = null;
+  u.bubble.remove(); const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
+  setCallUI('ready');
+  setStatus('已取消這句，沒有送出。準備好再按一下重新說。');
+}
+document.addEventListener('keydown', e => {
+  if(e.code === 'Escape' && callState === 'talking' && !$('settings').open && !$('lessons').open){ e.preventDefault(); cancelTalking(); return; }
+  if(e.code !== 'Space' || $('settings').open || $('lessons').open) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if(['input','textarea','select'].includes(tag) || e.target.isContentEditable) return;
+  // 空白鍵＝左下的麥克風按鈕（開始上課、說／說完、暫停、繼續）。
+  // 不讓空白鍵去按「目前有焦點的按鈕」：關掉設定後焦點會回到「設定」按鈕，以前按空白會又打開設定
+  e.preventDefault();
+  if(e.repeat) return;
+  if(e.target.blur && e.target !== document.body) e.target.blur();
+  if(pronBox){ pronBox.talk(); return; }   // 發音小窗開著：空白鍵＝小窗的「● 說」
+  // 剛改成按一下說、還在換線（約 1.5 秒）：先記著，換好馬上開始錄你的聲音
+  const toPtt = callState === 'switching' ? (modeSwitch || talkMode()) === 'ptt' : (callState === 'auto' && settings.talkMode === 'ptt');
+  if(toPtt){ talkQueued = true; setStatus('正在換成「按一下說」，換好馬上開始聽你說。'); return; }
+  if(callState === 'auto'){ setStatus('自動模式不用按，直接說話就好。想暫停請按左下的麥克風。'); return; }
+  if(callState === 'switching') return;
+  if(!$('call').disabled) $('call').onclick();
+});
+document.addEventListener('keyup', e => {   // 按鈕是在放開空白鍵時觸發，這裡也擋掉
+  if(e.code !== 'Space' || $('settings').open || $('lessons').open) return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if(tag === 'button') e.preventDefault();
+});
+
+/* ---------- 錄下每一輪你的聲音 ---------- */
+// 通話時，瀏覽器在旁邊同步錄一份麥克風聲音（只留最近 2 分鐘），
+// 你每說完一句，就依照「開始說／說完」的時間點切下那一段，存成 WAV。
+let actx = null, proc = null, ring = [];
+function startCapture(stream){
+  if(!actx) return;
+  try{
+    actx.resume();
+    const src = actx.createMediaStreamSource(stream);
+    proc = actx.createScriptProcessor(2048, 1, 1);   // 每段約 0.04 秒，自動模式送得比較即時
+    proc.onaudioprocess = e => {
+      const t = performance.now();
+      const d = new Float32Array(e.inputBuffer.getChannelData(0));
+      ring.push({t, d});
+      while(ring.length && t - ring[0].t > 120000) ring.shift();
+      if(micSending) onMicChunk(t, d, actx.sampleRate);
+    };
+    src.connect(proc); proc.connect(actx.destination);   // 輸出是靜音，只是讓它持續運作
+  }catch(e){ log('錄音引擎啟動失敗：' + e.message); }
+}
+function stopCapture(){
+  if(proc){ try{ proc.disconnect(); }catch(e){} proc = null; }
+  if(actx){ try{ actx.close(); }catch(e){} actx = null; }
+  ring = [];
+}
+function cutTurnAudio(tStart, tStop, pad){
+  if(!actx || !ring.length) return null;
+  const rate = actx.sampleRate;
+  // 自動模式：「開始說」的通知會晚一點才到，所以往前多抓 1.5 秒；按一下說模式：按下就是開始，只多抓 0.3 秒
+  const from = tStart - pad, to = tStop;
+  const parts = ring.filter(c => c.t >= from && c.t - c.d.length / rate * 1000 <= to);
+  const len = parts.reduce((a, c) => a + c.d.length, 0);
+  if(len < rate * 0.4) return null;   // 短於 0.4 秒就不算
+  const pcm = new Float32Array(len);
+  let o = 0; for(const c of parts){ pcm.set(c.d, o); o += c.d.length; }
+  return makeWav(pcm, rate, 16000);
+}
+function makeWav(pcm, inRate, outRate){
+  const n = Math.floor(pcm.length * outRate / inRate);
+  const view = new DataView(new ArrayBuffer(44 + n * 2));
+  const w = (o, s) => { for(let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); view.setUint32(4, 36 + n * 2, true); w(8, 'WAVE');
+  w(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, outRate, true); view.setUint32(28, outRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  w(36, 'data'); view.setUint32(40, n * 2, true);
+  const step = inRate / outRate;
+  for(let i = 0; i < n; i++){
+    // 把附近幾個取樣平均，避免降頻時出現雜音
+    const a = Math.floor(i * step), b = Math.max(a + 1, Math.floor((i + 1) * step));
+    let s = 0; for(let j = a; j < b && j < pcm.length; j++) s += pcm[j];
+    s = Math.max(-1, Math.min(1, s / (b - a)));
+    view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  const bytes = new Uint8Array(view.buffer);
+  let bin = '';
+  for(let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  const blob = new Blob([bytes], {type:'audio/wav'});
+  return {b64:btoa(bin), blob, url:URL.createObjectURL(blob), secs:n / outRate, pcm:bytes.subarray(44)};
+}
+// 重聽：一次只播一段，前一段還沒播完就按，先停掉前一段，從頭播新的
+let playing = null;
+function playWav(url){
+  if(playing){ playing.pause(); playing.currentTime = 0; }
+  playing = new Audio(url);
+  playing.play().catch(() => {});
+}
+function addPlayButton(div, wav){
+  if(div.querySelector('.play')) return;
+  const b = document.createElement('button');
+  b.className = 'play'; b.textContent = '▶'; b.title = '重聽這一句（' + wav.secs.toFixed(1) + ' 秒）';
+  b.setAttribute('aria-label', '重聽這一句');
+  b.onclick = () => playWav(wav.url);
+  div.querySelector('.txt').after(b);
+}
+
+/* ---------- 發音練習小窗：小小的對話練習 ----------
+   入口：字幕上黃底的字、右欄的發音提醒、字幕裡任何一個字。老師先念一次，你按「● 說」（或空白鍵）念，念完再按一次；
+   老師聽完開口回你（哪裡不對、示範那個音、再試一次，或 Good!），一直練到你按「收起」。
+   打開時上課自動暫停，收起後恢復。小窗關掉就忘記，什麼都不存。 */
+const TTS_MODEL = 'gemini-3.8-flash-tts', TTS_VOICE = 'Puck', SLOW_RATE = 0.65;
+let pronBox = null;
+function pronCoachPrompt(word, said){
+  return `You are a patient, warm English pronunciation coach doing a short voice drill with a Taiwanese learner. The target is: "${word}".${said ? ' Earlier in the lesson it sounded like "' + said + '".' : ''}
+Each turn the learner tries to say the target and you hear their latest recording. You also get what happened before in this drill.
+Reply like a real coach talking out loud, short and natural:
+- If it sounded right: praise briefly and specifically (for example "Good! Your th was perfect."). If they got it right before too, you can tell them they can move on.
+- If not: point out ONE problem, the most important one, in plain words (no phonetic symbols, the learner cannot read them). Demonstrate it by saying the sound and then the word (for example "th... th... think"), then ask them to try again. If the problem from last time is fixed, say so first.
+- If you hear no clear speech, or a different word, say you didn't catch it and ask them to say "${word}" again.
+- Judge each try fresh and carefully, even if earlier tries were good: if any sound clearly differs from standard English (th as s, f or t; v as b or w; r and l mixed up; a long vowel made short; a dropped final consonant), it is NOT right yet. Never invent problems either: a light accent with every sound correct is fine.
+Fields:
+"reply": what you say out loud, simple English, at most 30 words. A speech engine reads it aloud, so write only words to be spoken: no symbols, no brackets, no Chinese.
+"zh": the same advice in one short sentence of Traditional Chinese (Taiwan usage) for the learner to read; "" if it was good.
+"heard": a few English words for your own memory of how this try sounded (for example "th sounded like s").
+"good": true if it sounded right.
+Respond with ONLY a JSON object: {"reply": "", "zh": "", "heard": "", "good": false}`;
+}
+function pcmWav(pcm, rate){   // 萬一回傳的是原始 PCM，包成 wav
+  const v = new DataView(new ArrayBuffer(44)); const w = (o, t) => { for(let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + pcm.length, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, pcm.length, true);
+  return new Blob([v.buffer, pcm], {type:'audio/wav'});
+}
+async function ttsUrl(text){
+  if(!settings.googleKey) throw new Error('沒有填 Google 金鑰。');
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + TTS_MODEL + ':generateContent', {
+    method:'POST', headers:{'x-goog-api-key':settings.googleKey, 'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{role:'user', parts:[{text}]}], generationConfig:{responseModalities:['AUDIO'], speechConfig:{languageCode:'en-US', voiceConfig:{prebuiltVoiceConfig:{voiceName:TTS_VOICE}}}}})
+  });
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok){ log('發音示範失敗 HTTP ' + res.status, data.error); throw new Error((data.error && data.error.message) || ('HTTP ' + res.status)); }
+  const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
+  const part = parts.find(x => x.inlineData && x.inlineData.data);
+  if(!part) throw new Error('沒有拿到示範的聲音。');
+  const mime = part.inlineData.mimeType || '', bytes = b64ToBytes(part.inlineData.data);
+  const blob = /wav/i.test(mime) ? new Blob([bytes], {type:'audio/wav'}) : pcmWav(bytes, parseInt((mime.match(/rate=(\d+)/) || [])[1], 10) || 24000);
+  return URL.createObjectURL(blob);
+}
+function closePron(){
+  const b = pronBox; if(!b) return;
+  pronBox = null;
+  if(b.rec && b.rec.state === 'recording'){ b.drop = true; b.rec.stop(); }
+  clearTimeout(b.recTimer);
+  if(b.ownStream) b.ownStream.getTracks().forEach(t => t.stop());
+  if(b.audio){ b.audio.pause(); b.audio = null; }
+  b.urls.forEach(u => URL.revokeObjectURL(u));
+  b.el.remove();
+  if(b.paused && callState === 'paused') resumeCall();
+}
+function openPron(anchor, info){
+  closePron();
+  const word = String(info.word || '').trim(); if(!word) return;
+  const live = ['ready', 'talking', 'auto'].includes(callState);
+  if(live) pauseCall();
+  const b = {el:el('div', 'pron-box'), paused:live, nid:info.nid || '', urls:[], audio:null, history:[], tries:0, busy:false, rec:null};
+  pronBox = b;
+  b.el.onclick = e => e.stopPropagation();
+  const head = el('div', 'pb-head');
+  head.appendChild(el('b', null, '🗣 練習：' + word));
+  const x = el('button', 'ghost', '收起'); x.type = 'button'; x.onclick = closePron; head.appendChild(x);
+  b.el.appendChild(head);
+  if(info.said || info.tip) b.el.appendChild(el('p', 'meaning', (info.said ? '剛才聽起來像「' + info.said + '」。' : '') + (info.tip || '')));
+  const chat = el('div', 'pb-chat'); b.el.appendChild(chat);
+  const ctl = el('div', 'pb-row');
+  const btn = (t, fn) => { const k = el('button', 'ghost', t); k.type = 'button'; k.onclick = fn; ctl.appendChild(k); return k; };
+  const status = el('p', 'pb-status', live ? '上課先暫停了，收起後自動繼續。' : '');
+  const say = t => { status.textContent = t; };
+  const play = (url, rate) => {
+    if(b.audio) b.audio.pause();
+    const a = new Audio(url); a.playbackRate = rate || 1; a.preservesPitch = true; b.audio = a;
+    a.play().catch(() => {});
+  };
+  const replayBtns = (m, url) => {
+    const p1 = el('button', 'ghost', '▶'); p1.type = 'button'; p1.title = '再聽一次'; p1.onclick = () => play(url, 1);
+    const p2 = el('button', 'ghost', '🐢'); p2.type = 'button'; p2.title = '慢速再聽'; p2.onclick = () => play(url, SLOW_RATE);
+    m.appendChild(p1); m.appendChild(p2);
+  };
+  const addLine = (who, text, zh) => {
+    const m = el('div', 'pb-msg ' + who); m.appendChild(el('span', null, text));
+    if(zh) m.appendChild(el('span', 'pb-zh', zh));
+    chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
+    return m;
+  };
+  const speak = async (text, m) => {   // 老師開口：文字轉語音，念完的那段可以再聽、慢速聽
+    try{
+      const u = await ttsUrl(text);
+      if(pronBox !== b){ URL.revokeObjectURL(u); return; }
+      b.urls.push(u); replayBtns(m, u);
+      if(!(b.rec && b.rec.state === 'recording')) play(u, 1);
+    }catch(err){ say('老師的聲音沒出來：' + ((err && err.message) || '網路連線錯誤')); }
+  };
+  const talkBtn = btn('● 說', () => b.talk());
+  b.el.appendChild(ctl);
+  b.el.appendChild(status);
+  b.talk = async () => {   // 「● 說」和空白鍵：開始念／念完了
+    if(b.busy) return;
+    if(b.rec && b.rec.state === 'recording'){ b.rec.stop(); return; }
+    let stream = micStream && micStream.getAudioTracks().some(t => t.readyState === 'live') ? micStream : null;
+    try{ if(!stream) stream = b.ownStream = b.ownStream || await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}}); }
+    catch(err){ say('拿不到麥克風：' + ((err && err.message) || '')); return; }
+    if(pronBox !== b) return;
+    if(b.audio) b.audio.pause();
+    const chunks = []; const rec = new MediaRecorder(stream); b.rec = rec;
+    rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      clearTimeout(b.recTimer); talkBtn.textContent = '● 說';
+      if(b.drop || pronBox !== b) return;
+      turn(new Blob(chunks, {type:rec.mimeType || 'audio/webm'}));
+    };
+    rec.start(); talkBtn.textContent = '■ 說完了'; say('在聽你說……念完按「■ 說完了」或空白鍵。');
+    b.recTimer = setTimeout(() => { if(rec.state === 'recording') rec.stop(); }, 10000);
+  };
+  const turn = async blob => {   // 你念完一次：老師聽、回你一句、開口說
+    b.busy = true; talkBtn.disabled = true;
+    const mu = URL.createObjectURL(blob); b.urls.push(mu);
+    const me = addLine('me', '🎤 第 ' + (++b.tries) + ' 次'); replayBtns(me, mu);
+    const wait = addLine('coach', '……'); say('老師在聽……');
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer()); ctx.close();
+      const wav = makeWav(buf.getChannelData(0), buf.sampleRate, 16000); URL.revokeObjectURL(wav.url);
+      const raw = await geminiGenerate({model:settings.noteModel, system:pronCoachPrompt(word, info.said), json:true, temperature:0.4, what:'發音教練',
+        parts:[{text:'The drill so far:\n' + b.history.join('\n') + '\n\nThe learner\'s latest try is attached.'}, {inlineData:{mimeType:'audio/wav', data:wav.b64}}]});
+      if(pronBox !== b) return;
+      const t = (raw || '').replace(/```json|```/g, ''); let o = null;
+      try{ o = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); }catch(e){}
+      if(!o) throw new Error('回覆格式看不懂。');
+      const reply = String(o.reply || '').trim() || 'Let\'s try that again.';
+      wait.textContent = ''; wait.appendChild(el('span', null, reply));
+      if(o.zh) wait.appendChild(el('span', 'pb-zh', String(o.zh)));
+      if(o.good) wait.classList.add('good');
+      chat.scrollTop = chat.scrollHeight;
+      b.history.push('Learner try ' + b.tries + ': ' + (o.heard || (o.good ? 'good' : 'not right yet')));
+      b.history.push('Coach: ' + reply);
+      say('老師開口中……');
+      await speak(reply, wait);
+      if(pronBox === b) say('再按「● 說」（或空白鍵）念一次；練夠了按「收起」。');
+    }catch(err){
+      if(pronBox === b){ wait.textContent = '（老師沒聽成：' + ((err && err.message) || '網路連線錯誤') + '）'; say('再按「● 說」試一次。'); }
+    }finally{ b.busy = false; talkBtn.disabled = false; }
+  };
+  anchor.appendChild(b.el);
+  // 開場：老師先念一次給你聽
+  const first = 'Listen. ' + word + '. ' + word + '. Now you say it.';
+  const m0 = addLine('coach', first); b.history.push('Coach: ' + first);
+  say((live ? '上課先暫停了，收起後自動繼續。' : '') + '聽老師念，然後按「● 說」（或空白鍵）跟著念。');
+  speak(first, m0);
+  b.el.scrollIntoView({block:'nearest'});
+}
+function wordAtPoint(span, e){
+  let node = null, off = 0;
+  if(document.caretPositionFromPoint){ const q = document.caretPositionFromPoint(e.clientX, e.clientY); if(q){ node = q.offsetNode; off = q.offset; } }
+  else if(document.caretRangeFromPoint){ const q = document.caretRangeFromPoint(e.clientX, e.clientY); if(q){ node = q.startContainer; off = q.startOffset; } }
+  if(!node || !span.contains(node)) return '';
+  const r = document.createRange(); r.setStart(span, 0); r.setEnd(node, off);
+  const text = span.textContent, i = r.toString().length, isW = c => /[A-Za-z'’-]/.test(c || '');
+  let a = i, z = i;
+  while(a > 0 && isW(text[a - 1])) a--;
+  while(z < text.length && isW(text[z])) z++;
+  return text.slice(a, z).replace(/^['’-]+|['’-]+$/g, '');
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('.pron-box')) return;
+  const note = e.target.closest('.note.pron-note');
+  if(note){
+    const n = notes.find(x => String(x.id) === note.dataset.nid);
+    if(n){ if(pronBox && pronBox.nid === note.dataset.nid) closePron(); else openPron(note, {word:n.meant, said:n.said, tip:n.tip, nid:note.dataset.nid}); }
+    return;
+  }
+  const span = e.target.closest('.msg.me .txt');
+  if(!span || (window.getSelection && String(window.getSelection()).length)) return;   // 正在反白選字就不開
+  const bubble = span.closest('.msg');
+  const mark = e.target.closest('.pron-mark');
+  const p = mark && mark._p;
+  const word = p ? p.meant : wordAtPoint(span, e);
+  if(!word) return;
+  openPron(bubble, {word, said:p ? p.said : '', tip:p ? p.tip : '', sentence:span._sentence || span.textContent});
+});
+
+/* ---------- 筆記員 ---------- */
+function setNoteStatus(text, isError){
+  $('noteStatus').textContent = text || '';
+  $('noteStatus').classList.toggle('error', !!isError);
+}
+function noteLangName(){ return settings.noteLang === 'zh' ? 'Traditional Chinese (Taiwan usage)' : 'simple English'; }
+// 習慣清單：老師不口頭糾正，筆記員另外回報（字幕標記、成功率用）
+const HABIT_TYPES = [
+  {code:'3s', zh:'第三人稱 -s', en:'third person -s on a present-tense verb other than be/have/do, missing or extra (She mean -> She means; does it means -> does it mean; they likes -> they like)'},
+  {code:'plural', zh:'複數 -s', en:'plural -s on a countable noun (two cat -> two cats)'},
+  {code:'past', zh:'過去式', en:'past tense, -ed or irregular (Yesterday I go -> went)'},
+  {code:'be', zh:'be 動詞多了或少了', en:"a be verb that is missing or extra (I'm prefer -> I prefer; She happy -> She is happy)"},
+  {code:'agree', zh:'主詞動詞一致', en:"subject-verb agreement of be/have/do (she have -> has, they is -> are, we was -> were, he don't -> doesn't)"},
+  {code:'heshe', zh:'he/she 混用', en:'mixing up he/she, his/her, him/her for the same person'},
+  {code:'a_an', zh:'a/an', en:'a vs an (a apple -> an apple, an book -> a book)'}
+];
+const HABIT_CODES = HABIT_TYPES.map(h => h.code);
+function cleanHabits(o){
+  const habits = (Array.isArray(o.habits) ? o.habits : []).filter(h => h && HABIT_CODES.includes(h.type) && h.words && h.fix)
+    .map(h => ({type:h.type, words:String(h.words), nth:Math.max(1, parseInt(h.nth, 10) || 1), fix:String(h.fix), status:'wrong'}));   // 2026-11-14 使用者決定：含糊和漏講分不出來，一律算確定錯
+  // 機會數以模型為準；用對的次數由程式算（機會 − 錯的次數）
+  const chances = {};
+  const raw = o.chances && typeof o.chances === 'object' ? o.chances : {};
+  for(const code of HABIT_CODES){
+    const wrong = habits.filter(h => h.type === code && h.status === 'wrong').length;
+    let n = Array.isArray(raw[code]) ? parseInt(raw[code][0], 10) || 0 : 0;
+    if(n < wrong) n = wrong;
+    if(n > 0) chances[code] = [n, n - wrong];
+  }
+  return {habits, chances};
+}
+function notesPrompt(){
+  const lang = noteLangName();
+  return `You are the same English tutor who is talking with the learner, now taking a careful second listen to the learner's latest turn to write their notebook. Your spoken reply is being given at the same time and only covers the most important points; the notebook is where every real mistake gets written down.
+The learner is a non-native speaker still improving their pronunciation. Their latest turn is attached as an audio recording (it may include a little of the previous audio at the start; focus on the learner's own latest sentence).
+${settings.aboutMe ? '\nAbout the learner: ' + settings.aboutMe + '\n' : ''}
+Steps:
+0. If the recording has no clear English speech from the learner (only silence, noise, a click, breathing, a cough, or a sound you cannot make into words), do NOT guess: return "heard": "", empty "corrections", empty "habits", empty "chances", "corrected": "" and "natural": null. Never use the conversation to make up what the learner might have answered: write only words you can actually hear in this recording.
+1. Listen carefully. "heard" = what the learner meant, with pronunciation slips resolved to the intended words, but real grammar and word-choice mistakes kept exactly. For the habit list in step 3b: write exactly the form you heard. If a needed ending (-s, -ed) or a small word (is, a/an) was not heard, even if it may have been swallowed, write it without it in "heard".
+2. (No tutor reply is given to you. Judge the learner's sentence on its own.)
+3. "corrections" for the notebook: list EVERY real grammar or word-choice mistake and every clearly unnatural phrasing, with no limit on how many, EXCEPT the habit mistakes in step 3b (those go only in "habits", never in "corrections"):
+- Only REAL grammar or word-choice mistakes the learner actually made. Keep "correct" as short as possible: just the few words that change, so it can be compared with what the tutor said.
+- A missing ending sound (-s, -ed, -ing, -'s) that could be a pronunciation slip is NOT a grammar mistake. If a word is unclear and could be heard either right or wrong, assume the learner said it correctly. Unknown new words or names are NOT mistakes. Never invent mistakes.
+- Fields: "wrong" (their exact words, as in "heard"), "correct", "why" (one accurate sentence in ${lang} that names the exact words that changed; if there is no clear rule, say it sounds more natural).
+- Before writing "why", check it is TRUE for these exact words: compare "wrong" and "correct" word by word and explain only the real difference (for example, a sentence structure problem is not a tense problem). If you are not sure, just say the new version sounds more natural.
+3b. Habit list. These types are reported separately (type codes):
+${HABIT_TYPES.map(h => '- "' + h.code + '": ' + h.en).join('\n')}
+"habits": one item for each habit mistake: {"type": code, "words": the exact word(s) as written in "heard", "nth": 1 for the first time those words appear in "heard", 2 for the second time, and so on, "fix": the correct word(s), "status"}.
+- "status" is always "wrong". For habit items the learner wants every slip flagged: if you did not hear the needed form (for example no -s or -ed sound, even if it might have been swallowed), it counts as a mistake. Only when you clearly heard the right form is it correct. (The "assume correct" rule in step 3 is for "corrections" only, not for habit items.)
+- "words" is the wrong form as kept in "heard" (She mean -> words "mean", fix "means").
+- When a word is MISSING (She happy), "words" is the word right before the gap ("She") and "fix" adds the missing word ("She is"). When a word is EXTRA (I'm prefer), "words" is the extra part ("I'm") and "fix" is what it should be ("I").
+- Report only real mistakes. Names, new words and things you cannot hear are not habit mistakes.
+"chances": for each type that had a chance in this sentence, [chances, used correctly]. A chance = one spot where that rule decides the form: "3s" each present-tense verb (not be/have/do) with a he/she/it or singular-noun subject, plus each verb where the learner wrongly added -s; "plural" each countable noun that needs the plural form; "past" each verb that should be past tense; "be" each spot that needs a form of be, plus each extra be that should not be there; "agree" each be/have/do form that must match its subject; "heshe" each he/she/his/her/him/hers; "a_an" each a or an. "used correctly" = chances minus the "wrong" items of that type. Leave out types with no chance.
+4. "pronunciation": ${settings.pronNotes
+  ? 'each word whose sound was clearly off from standard English, even if you could still understand it: a wrong vowel or consonant (th as s/f/t, v as b/w, r and l mixed up, short vs long vowel like live/leave, full/fool), a dropped final consonant (des for desk, wor for world), or clearly wrong word stress. A missing -s or -ed that changes grammar goes in step 3b, not here. Do not report a light accent that is still clear and natural. Each word at most once. At most 3, most important first. Fields: "said" (what it sounded like), "meant", "tip" (how to make the sound, max 15 words, in ' + lang + ').'
+  : 'disabled, return [].'}
+5. "corrected": the learner's whole sentence from "heard" with exactly your "corrections" and the "wrong" habit fixes applied, nothing else changed. If "corrections" is empty, "" (even when there are habit mistakes).
+6. "natural": ONLY if a native speaker would clearly say the learner's idea in a noticeably more natural or idiomatic way (even when it is not a mistake), give ONE suggestion: {"said": "their words", "better": "the more natural way", "why": "one short sentence in ${lang}"}. Do not repeat anything already in "corrections". Otherwise null. This is only for the learner's after-class review; the tutor will not mention it.
+
+Respond with ONLY a JSON object, no markdown fences, no extra text:
+{"heard": "...", "corrections": [{"wrong": "...", "correct": "...", "why": "..."}], "habits": [{"type": "3s", "words": "...", "nth": 1, "fix": "...", "status": "wrong"}], "chances": {"3s": [1, 0]}, "pronunciation": [{"said": "...", "meant": "...", "tip": "..."}], "corrected": "", "natural": null}`;
+}
+function parseNotesJson(text){
+  const t = (text || '').replace(/```json|```/g, '');
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if(a === -1 || b <= a) return null;
+  try{
+    const o = JSON.parse(t.slice(a, b + 1));
+    return {
+      heard:typeof o.heard === 'string' ? o.heard.trim() : '',
+      corrected:typeof o.corrected === 'string' ? o.corrected.trim() : '',
+      natural:o.natural && o.natural.said && o.natural.better ? o.natural : null,
+      corrections:Array.isArray(o.corrections) ? o.corrections : [],
+      ...cleanHabits(o),
+      pronunciation:Array.isArray(o.pronunciation) ? o.pronunciation : [],
+      followup:typeof o.followup === 'string' ? o.followup.trim() : ''
+    };
+  }catch(e){ return null; }
+}
+let reviewChain = Promise.resolve();   // 一次只審一輪，筆記才會照順序
+// 你一說完就開始重聽（和老師同時進行），不用等老師講完
+function startReview(u){
+  if(!u || !u.wav || u.reviewStarted) return;
+  // 很短、Google 也沒轉出任何字：多半只是按鍵聲或呼吸聲。等一下轉錄，還是沒字就標「沒聽到」，不送筆記員（不然它會照對話腦補一句）
+  if(!(u.transcript || '').trim() && (u.voiced || 0) < SHORT_VOICED_SECS){
+    if(!u.waitedText){ u.waitedText = true; setTimeout(() => startReview(u), 2500); return; }
+    u.reviewStarted = performance.now(); u.settled = true;
+    if(u.bubble) setText(u.bubble, '（沒聽到）', true);
+    log('這句很短又沒有轉錄文字，當作沒說話，不送筆記員');
+    return;
+  }
+  u.reviewStarted = performance.now();
+  const ctx = convo.filter(c => c !== u.convo).slice(-10).map(c => c.role + ': ' + c.text).join('\n');
+  const L = lesson;   // 這一輪屬於哪一堂課
+  u.lessonRef = L;
+  if(L){ L.turns++; saveLesson(L); }
+  reviewChain = reviewChain.then(() => judgeTurn(u, ctx)).then(out => { u.review = out || {failed:true}; settleTurn(u); });
+  // 老師一直沒回這句（例如你暫停了）：20 秒後就不等了，照樣記筆記
+  setTimeout(() => { if(!u.replyDone){ u.replyDone = -1; u.replyText = ''; u.replyInterrupted = true; settleTurn(u); } }, 20000);
+}
+/* ---------- 字幕標記：筆記員好了以後，字幕換成筆記員聽到的句子 ----------
+   習慣清單的錯用紅字：多出來的字刪除線、少掉的字尾紅色粗體（mean + s）、整個換掉就「刪除線舊字 新字」。發音提醒打開時，發音錯的字畫黃底。 */
+function escRe(t){ return String(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function findNth(text, words, nth){
+  const w = String(words || '').trim(); if(!w) return -1;
+  const re = new RegExp((/^\w/.test(w) ? '\\b' : '') + escRe(w).replace(/['’]/g, "['’]") + (/\w$/.test(w) ? '\\b' : ''), 'gi');
+  let m, k = 0;
+  while((m = re.exec(text))){ if(++k === (nth || 1)) return m.index; if(re.lastIndex === m.index) re.lastIndex++; }
+  return -1;
+}
+function habitPieces(words, fix){   // 回傳 [文字, 樣式] 的陣列：'' 一般、'add' 紅色粗體、'del' 紅色刪除線
+  const a = String(words), b = String(fix);
+  let i = 0; while(i < a.length && i < b.length && a[i].toLowerCase() === b[i].toLowerCase()) i++;
+  if(i === a.length) return [[a, ''], [b.slice(i), 'add']];   // 只是後面多加：mean → mean(s)、boss → boss( is)
+  if(i === b.length) return [[b, ''], [a.slice(i), 'del']];   // 只是後面多了：I'm → I('m)、an → a(n)
+  return [[a, 'del'], [' ', ''], [b, 'add']];                 // 整個換掉：go → went
+}
+function markText(span, heard, habits, pron){
+  if(!span) return;
+  const text = String(heard || '');
+  const marks = [];
+  for(const h of habits || []){
+    const at = findNth(text, h.words, h.nth);
+    if(at >= 0) marks.push({at, end:at + String(h.words).length, h});
+  }
+  for(const p of pron || []){
+    const at = findNth(text, p.meant, 1);
+    if(at >= 0) marks.push({at, end:at + String(p.meant).length, p});
+  }
+  marks.sort((x, y) => x.at - y.at);
+  span._sentence = fixedSentence(text, habits);   // 發音小窗「整句」用正確的句子
+  span.textContent = '';
+  let pos = 0;
+  for(const m of marks){
+    if(m.at < pos) continue;   // 重疊的跳過
+    span.appendChild(document.createTextNode(text.slice(pos, m.at)));
+    const orig = text.slice(m.at, m.end);
+    if(m.h){
+      const w = el('span', 'hab'); w.title = '你說「' + orig + '」，要說「' + m.h.fix + '」';
+      for(const [t, k] of habitPieces(orig, m.h.fix)) if(t) w.appendChild(k ? el('span', 'hab-' + k, t) : document.createTextNode(t));
+      span.appendChild(w);
+    }else{
+      const w = el('span', 'pron-mark', orig); w.title = '發音：' + (m.p.said ? '聽起來像「' + m.p.said + '」。' : '') + (m.p.tip || '') + '（點一下練習）'; w._p = m.p;
+      span.appendChild(w);
+    }
+    pos = m.end;
+  }
+  span.appendChild(document.createTextNode(text.slice(pos)));
+}
+function fixedSentence(heard, habits){   // 把清單內的錯改好的整句
+  const text = String(heard || ''); const list = [];
+  for(const h of habits || []){ const at = findNth(text, h.words, h.nth); if(at >= 0 && h.fix) list.push({at, end:at + String(h.words).length, fix:h.fix}); }
+  list.sort((x, y) => x.at - y.at);
+  let out = '', pos = 0;
+  for(const m of list){ if(m.at < pos) continue; out += text.slice(pos, m.at) + m.fix; pos = m.end; }
+  return out + text.slice(pos);
+}
+function markedPlain(heard, habits){   // 匯出用：~~刪掉~~ **加上**
+  const text = String(heard || ''); const list = [];
+  for(const h of habits || []){ const at = findNth(text, h.words, h.nth); if(at >= 0) list.push({at, end:at + String(h.words).length, h}); }
+  list.sort((x, y) => x.at - y.at);
+  let out = '', pos = 0;
+  for(const m of list){
+    if(m.at < pos) continue;
+    out += text.slice(pos, m.at) + habitPieces(text.slice(m.at, m.end), m.h.fix).map(([t, k]) => !t ? '' : k === 'add' ? '**' + t + '**' : k === 'del' ? '~~' + t + '~~' : t).join('');
+    pos = m.end;
+  }
+  return out + text.slice(pos);
+}
+// 在我說的那句下面，用紅字寫出正確說法
+function showFix(turn, corrected){
+  if(!turn.bubble || !corrected) return;
+  let f = turn.bubble.querySelector('.fix');
+  if(!f){ f = el('span', 'fix'); turn.bubble.querySelector('.txt').after(f); }
+  f.textContent = '✓ ' + corrected;
+  turn.fix = corrected; saveUserLine(turn);
+}
+/* ---------- Gemini API（筆記員、課堂整理、記憶都用這個） ----------
+   金鑰放在 x-goog-api-key 標頭，不放進網址 */
+async function geminiGenerate({model, system, parts, json, temperature = 0.2, what = 'Gemini', tools}){
+  const m = String(model || DEFAULT_NOTE_MODEL).replace(/^models\//, '');
+  const body = {contents:[{role:'user', parts}], generationConfig:{temperature}};
+  if(system) body.systemInstruction = {parts:[{text:system}]};
+  if(json) body.generationConfig.responseMimeType = 'application/json';
+  if(tools) body.tools = tools;
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(m) + ':generateContent', {
+    method:'POST',
+    headers:{'x-goog-api-key':settings.googleKey, 'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok){
+    const msg = (data.error && data.error.message) || ('HTTP ' + res.status);
+    log(what + ' 失敗 HTTP ' + res.status + '（模型 ' + m + '）', data.error);
+    if(/API key not valid|API_KEY_INVALID/i.test(msg)) throw new Error('Google 金鑰不正確，請到「設定」重新貼上。');
+    if(res.status === 402) throw new Error('Google 帳戶的儲值餘額用完了，請到 AI Studio 儲值。');
+    if(res.status === 404) throw new Error('找不到模型 ' + m + '（可能已停用或名稱打錯），請到「設定」換一個。');
+    if(res.status === 429) throw new Error('用量超過上限（免費版有每分鐘次數限制），等一下再試，或到 AI Studio 儲值。');
+    if(res.status === 403) throw new Error('這把金鑰沒有權限用 ' + m + '：' + msg);
+    throw new Error(msg);
+  }
+  const cand = data.candidates && data.candidates[0];
+  const text = cand && cand.content && cand.content.parts ? cand.content.parts.filter(p => p.text && !p.thought).map(p => p.text).join('') : '';
+  if(!text){
+    const why = (data.promptFeedback && data.promptFeedback.blockReason) || (cand && cand.finishReason) || '沒有內容';
+    log(what + ' 回覆是空的', data);
+    throw new Error('模型沒有回覆文字（' + why + '）');
+  }
+  return text;
+}
+async function judgeTurn(u, ctx){
+  if(!settings.googleKey){ setNoteStatus('沒有填 Google 金鑰，筆記員休息中。請到「設定」貼上。', true); return null; }
+  setNoteStatus('✎ 正在重聽你剛才那句，整理筆記……');
+  const intro = 'Conversation so far (text from automatic transcription, may contain misheard words):\n' + (ctx || '(this is the start)') +
+    '\n\nLatest turn: the learner\'s audio is attached.';
+  try{
+    const raw = await geminiGenerate({
+      model:settings.noteModel, system:notesPrompt(), json:true, what:'筆記員',
+      parts:[{text:intro}, {inlineData:{mimeType:'audio/wav', data:u.wav.b64}}]
+    });
+    const out = parseNotesJson(raw);
+    if(!out){ log('筆記員回覆看不懂', raw.slice(0, 400)); throw new Error('回覆格式看不懂，這一輪沒有記到筆記。'); }
+    u.reviewDone = performance.now();
+    log('筆記員（重聽 ' + secs(u.reviewDone - u.reviewStarted) + ' 秒）：' + JSON.stringify(out));
+    return out;
+  }catch(err){
+    setNoteStatus('筆記員失敗：' + ((err && err.message) || '網路連線錯誤'), true);
+    return null;
+  }
+}
+// 老師說過的話裡，有沒有講到這個更正
+function normWords(t){ return String(t || '').toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+function teacherCovered(c, reply){
+  const R = normWords(reply);
+  if(!R) return false;
+  const corr = normWords(c.correct);
+  if(corr && R.includes(corr)) return true;
+  const wrong = new Set(normWords(c.wrong).split(' '));
+  const diff = corr.split(' ').filter(w => w && !wrong.has(w));
+  const words = new Set(R.split(' '));
+  return diff.length > 0 && diff.every(w => words.has(w)) && /try saying|you said|instead|should|we say|use |say "/i.test(reply);
+}
+// 筆記員和老師都好了：寫筆記本。老師沒講到的錯只記在右欄，標「補充」（老師是上級，不遞紙條請老師補講）
+function settleTurn(u){
+  if(!u || u.settled || !u.review || !u.replyDone) return;
+  u.settled = true;
+  const out = u.review;
+  if(out.failed) return;
+  // 筆記員在錄音裡聽不到清楚的話：標「沒聽到」，不記筆記
+  if(!out.heard){
+    if(u.bubble && !(u.transcript || '').trim()) setText(u.bubble, '（沒聽到）', true);
+    log('筆記員：這句錄音裡沒有清楚的話，不記筆記');
+    setNoteStatus('✎ 這句沒聽到清楚的話，沒有記筆記');
+    return;
+  }
+  const real = out.corrections.filter(c => c && c.wrong && c.correct);
+  // 習慣清單的錯：不進右欄、不進錯誤分組，記在這一句和這堂課（字幕標記、成功率用）
+  u.heard = out.heard; u.habits = out.habits; u.chances = out.chances;
+  u.pron = settings.pronNotes ? out.pronunciation.filter(x => x && x.meant).map(x => ({said:String(x.said || ''), meant:String(x.meant), tip:String(x.tip || '')})) : [];
+  if(u.convo) u.convo.text = out.heard;
+  if(u.bubble){
+    const tx = u.bubble.querySelector('.txt');
+    markText(tx, out.heard, out.habits, u.pron);
+    if(real.length && out.corrected) tx._sentence = out.corrected;
+    u.bubble.classList.remove('pending');
+  }
+  saveUserLine(u);
+  if(out.habits.length) log('習慣清單：' + out.habits.map(h => h.type + ' ' + h.words + '→' + h.fix + '').join('；') + '　機會 ' + JSON.stringify(out.chances));
+  for(const c of real) c.source = teacherCovered(c, u.replyText) ? 'tutor' : 'added';
+  const missed = real.filter(c => c.source === 'added');
+  addNotes(real, out.pronunciation);
+  if(real.length) showFix(u, out.corrected);
+  const L = u.lessonRef;
+  if(L){   // 記進這堂課，掛斷後拿來做課堂整理
+    if(out.heard) L.sentences.push(out.heard);
+    if(!L.habits) L.habits = [];
+    if(out.habits.length || Object.keys(out.chances).length) L.habits.push({heard:out.heard, habits:out.habits, chances:out.chances});
+    for(const c of real) L.items.push({wrong:c.wrong, correct:c.correct, why:c.why || ''});
+    if(out.natural) L.natural.push({said:String(out.natural.said), better:String(out.natural.better), why:String(out.natural.why || '')});
+    saveLesson(L);
+  }
+  const wait = u.replyDone > 0 && u.reviewDone ? u.reviewDone - u.replyDone : null;
+  const timing = '重聽 ' + (u.reviewDone ? secs(u.reviewDone - u.reviewStarted) : '?') + ' 秒' +
+    (wait == null ? '' : wait > 0 ? '，老師講完後 ' + secs(wait) + ' 秒才好' : '，比老師早 ' + secs(-wait) + ' 秒好');
+  log('對照：' + real.length + ' 個錯，老師講到 ' + (real.length - missed.length) + ' 個，補充 ' + missed.length + ' 個（' + timing + '）');
+  setNoteStatus('✎ 筆記好了（' + timing + '）');
+  // 老師有開口糾正：把老師說出口、筆記員沒記到的糾正補進筆記本（以老師為準）
+  if(u.replyText && (real.length > missed.length || /try saying|you said|instead of|we say|should be|should say|the correct|better to say|you can say/i.test(u.replyText))) checkTeacher(u, out, real);
+}
+/* ---------- 檢查老師的糾正 ----------
+   筆記員重聽時看不到老師的話，所以老師講完後另外用文字檢查一次（不送錄音，比較快）：
+   老師說出口、筆記員沒記到的糾正，照老師的版本補進右欄。原因一律寫正確的（老師講錯原因也不標註、不請老師改口）。 */
+function checkTeacherPrompt(){
+  return `You help keep the learner's notebook consistent with what their English tutor said. You get:
+- the learner's sentence, as heard by a second listener from the audio,
+- the mistakes that listener already put in the notebook,
+- what the tutor said aloud in reply.
+
+The tutor's spoken corrections are FINAL: whatever mistake the tutor pointed out aloud must be in the notebook, even if the listener heard it differently or disagrees.
+
+"extra": list every mistake the tutor pointed out aloud that is NOT already covered by the listener's list (same change = covered, even if worded differently). Use the tutor's version: "wrong" = the learner's words as the tutor quoted them, "correct" = the tutor's fix (just the few words that change).
+"why" = a short, ACCURATE reason in ${noteLangName()} naming the exact words that changed. Check it yourself: if the tutor's own explanation was wrong (for example "went because the park is a place"), write the correct reason instead, with no comment about the tutor. If there is no clear rule, say it sounds more natural.
+If the tutor did not correct anything, or everything is already covered, return an empty list. Do not add anything the tutor did not say.
+If "extra" is not empty, "corrected" = the learner's whole sentence with both the listener's fixes and the tutor's fixes applied; else empty.
+
+Return JSON only:
+{"extra": [{"wrong": "...", "correct": "...", "why": "..."}], "corrected": "..."}`;
+}
+async function checkTeacher(u, out, real){
+  if(!settings.googleKey) return;
+  const input = "Learner's sentence: \"" + (out.heard || u.transcript || '') + "\"\n" +
+    'Mistakes the listener found:\n' + (real.map(c => '- "' + c.wrong + '" -> "' + c.correct + '"').join('\n') || '- none') +
+    '\n\nWhat the tutor said aloud: "' + u.replyText + '"';
+  const t0 = performance.now();
+  try{
+    const raw = await geminiGenerate({model:settings.noteModel, system:checkTeacherPrompt(), json:true, temperature:0.1, what:'檢查老師', parts:[{text:input}]});
+    const t = (raw || '').replace(/```json|```/g, ''); const a = t.indexOf('{'), b = t.lastIndexOf('}');
+    let o = null; try{ o = JSON.parse(t.slice(a, b + 1)); }catch(e){}
+    if(!o){ log('檢查老師：回覆看不懂', (raw || '').slice(0, 300)); return; }
+    // 老師說出口、筆記員沒記到的糾正：以老師為準，補進筆記本、課堂整理和紅字
+    const extra = (Array.isArray(o.extra) ? o.extra : []).filter(c => c && c.wrong && c.correct)
+      .map(c => ({wrong:String(c.wrong), correct:String(c.correct), why:String(c.why || ''), source:'tutor'}));
+    log('檢查老師（' + secs(performance.now() - t0) + ' 秒）：' + (extra.length ? '補記老師說的 ' + extra.map(c => c.wrong + ' → ' + c.correct + '（' + c.why + '）').join('；') : '沒有要補的'));
+    if(!extra.length) return;
+    addNotes(extra, []);
+    const L = u.lessonRef;
+    if(L){ for(const c of extra) L.items.push({wrong:c.wrong, correct:c.correct, why:c.why}); saveLesson(L); }
+    if(o.corrected) showFix(u, String(o.corrected));
+  }catch(err){ log('檢查老師失敗：' + ((err && err.message) || err)); }
+}
+let continuation = null;   // 下一個老師回覆要接在哪個泡泡後面（查好資料後老師接著說）
+let lastTeacher = null;    // 最近一個老師泡泡
+
+/* ---------- 筆記本 ---------- */
+function addNotes(grammar, pron){
+  const added = [];
+  const today = new Date().toISOString().slice(0, 10);
+  const exists = key => notes.some(n => n.key === key);
+  for(const c of grammar || []){
+    if(!c || !c.wrong || !c.correct) continue;
+    const key = ('g|' + c.wrong + '|' + c.correct).toLowerCase();
+    if(exists(key)) continue;
+    const n = {id:Date.now() + Math.random(), key, type:'grammar', wrong:c.wrong, correct:c.correct, why:c.why || '', source:c.source || 'tutor', date:today};
+    notes.unshift(n); added.push(n);
+  }
+  if(settings.pronNotes){
+    for(const p of pron || []){
+      if(!p || !p.meant) continue;
+      const key = ('p|' + (p.said || '') + '|' + p.meant).toLowerCase();
+      if(exists(key)) continue;
+      const n = {id:Date.now() + Math.random(), key, type:'pron', said:p.said || '', meant:p.meant, tip:p.tip || '', date:today};
+      notes.unshift(n); added.push(n);
+    }
+  }
+  if(added.length) store.set('sngm_notes', notes);
+  renderNotes(added.map(n => n.id));
+  return added;
+}
+function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
+function renderNotes(freshIds = []){
+  const box = $('notes');
+  box.innerHTML = '';
+  $('noteCount').textContent = notes.length ? notes.length + ' 則' : '';
+  if(!notes.length){
+    box.appendChild(el('p', 'empty', '老師糾正過的句子會自動記在這裡。按左下的麥克風開始聊天吧。'));
+    return;
+  }
+  for(const n of notes){
+    const item = el('div', 'note' + (freshIds.includes(n.id) ? ' fresh' : ''));
+    if(n.type === 'pron'){
+      item.classList.add('pron-note'); item.dataset.nid = String(n.id); item.title = '點一下練習這個字的發音';
+      const l = el('p', 'line');
+      l.appendChild(el('span', 'mark p', '🗣'));
+      if(n.said){ l.appendChild(el('span', 'said', n.said)); l.appendChild(document.createTextNode('  →  ')); }
+      l.appendChild(el('span', 'correct', n.meant));
+      item.appendChild(l);
+      item.appendChild(el('p', 'meaning', '發音提醒' + (n.tip ? '：' + n.tip : '')));
+    }else{
+      const l1 = el('p', 'line'); l1.appendChild(el('span', 'mark x', '✗')); l1.appendChild(el('span', 'wrong', n.wrong));
+      item.appendChild(l1);
+      const l2 = el('p', 'line'); l2.appendChild(el('span', 'mark ok', '✓')); l2.appendChild(el('span', 'correct', n.correct));
+      item.appendChild(l2);
+      if(n.why) item.appendChild(el('p', 'meaning', n.why));
+      if(n.source === 'added') item.appendChild(el('span', 'tag', '補充'));   // 老師沒講到、筆記員補記的
+    }
+    box.appendChild(item);
+  }
+  // 發音小窗開在右欄的某一則：重畫後接回去
+  if(pronBox && pronBox.nid){ const it = [...box.querySelectorAll('.note')].find(x => x.dataset.nid === pronBox.nid); if(it) it.appendChild(pronBox.el); }
+}
+$('exportNotes').onclick = () => {
+  if(!notes.length){ setNoteStatus('筆記本還是空的，沒有東西可以匯出。'); return; }
+  const lines = notes.map(n => n.type === 'pron'
+    ? `[${n.date}] 發音\n🗣 ${n.said} → ${n.meant}\n   ${n.tip}\n`
+    : `[${n.date}] 文法\n✗ ${n.wrong}\n✓ ${n.correct}\n   ${n.why}\n`);
+  const blob = new Blob(['My English notebook\n\n' + lines.join('\n')], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'english-notebook-' + new Date().toISOString().slice(0, 10) + '.txt';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  setNoteStatus('筆記已匯出到「下載」資料夾。');
+};
+$('clearNotes').onclick = () => {
+  if(!notes.length) return;
+  if(confirm('確定要清空全部筆記嗎？清空後無法復原。')){
+    notes = []; store.set('sngm_notes', notes); renderNotes(); setNoteStatus('筆記已清空。');
+  }
+};
+
+/* ---------- 課堂整理 ---------- */
+function saveLesson(L){
+  if(!lessons.includes(L)) lessons.unshift(L);
+  store.set('sngm_lessons', lessons);
+  if($('lessons').open) renderLessons();
+}
+function lessonPrompt(){
+  const lang = noteLangName();
+  return `You are the learner's English tutor writing an after-class review of today's speaking lesson. The learner will read it again and again, so keep it short and easy to scan: key points, not long lists.
+You get every mistake noted in the lesson (one per line: wrong -> correct (why)), more natural phrasings that were suggested, and the sentences the learner said.
+1. "groups": merge mistakes of the same kind into one group, for example forgetting the article a/an/the, past tense, wrong word or word form (like "effection" instead of "effectively"), word order, prepositions. Every mistake belongs to exactly one group; a one-off mistake can be its own group. Fields:
+   - "name": short group name in ${lang}
+   - "count": how many of the listed mistakes are in this group
+   - "rule": the point to remember, 1 or 2 short sentences in ${lang}, true for every mistake in the group
+   - "examples": at most 2 of the clearest ones, each {"wrong": "...", "correct": "..."}, trimmed to the few words that matter
+   Sort by count, largest first. Only use mistakes from the list; never invent new ones.
+2. "natural": the more natural phrasings, duplicates merged, at most 5, each {"said": "...", "better": "...", "why": "one short sentence in ${lang}"}.
+3. "title": what the lesson was about, at most 12 words, in ${lang}.
+4. "overview": 1 or 2 encouraging sentences in ${lang}: the most important thing to focus on next time.
+5. "topics": up to 8 short English keywords for what the learner talked about (people, places, events, plans, interests), for example ["Tainan trip", "beef soup", "AI class presentation"].
+Respond with ONLY a JSON object, no markdown fences:
+{"title": "", "overview": "", "topics": [], "groups": [{"name": "", "count": 1, "rule": "", "examples": [{"wrong": "", "correct": ""}]}], "natural": [{"said": "", "better": "", "why": ""}]}`;
+}
+async function summarizeLesson(L){
+  if(!L.items.length && !L.natural.length){
+    L.summary = {title:'', overview:'這堂課沒有記到需要改的地方，很棒！', groups:[], natural:[]};
+    L.status = 'done'; saveLesson(L); return;
+  }
+  if(!settings.googleKey){ L.status = 'error'; L.error = '沒有填 Google 金鑰，沒辦法整理。'; saveLesson(L); return; }
+  L.status = 'summarizing'; L.error = ''; saveLesson(L);
+  setNoteStatus('✎ 正在做課堂整理……');
+  const input = 'Mistakes:\n' + (L.items.map(i => i.wrong + ' -> ' + i.correct + (i.why ? ' (' + i.why + ')' : '')).join('\n') || '(none)') +
+    '\n\nMore natural phrasings:\n' + (L.natural.map(n => n.said + ' -> ' + n.better + (n.why ? ' (' + n.why + ')' : '')).join('\n') || '(none)') +
+    '\n\nWhat the learner said:\n' + (L.sentences.join('\n') || '(not available)');
+  try{
+    const raw = await geminiGenerate({model:settings.noteModel, system:lessonPrompt(), json:true, what:'課堂整理', parts:[{text:input}]});
+    const t =(raw || '').replace(/```json|```/g, ''); const a = t.indexOf('{'), b = t.lastIndexOf('}');
+    let o = null; try{ o = JSON.parse(t.slice(a, b + 1)); }catch(e){}
+    if(!o){ log('課堂整理看不懂', (raw || '').slice(0, 400)); throw new Error('回覆格式看不懂。'); }
+    L.summary = {
+      title:String(o.title || ''), overview:String(o.overview || ''),
+      topics:Array.isArray(o.topics) ? o.topics.map(String).slice(0, 8) : [],
+      groups:Array.isArray(o.groups) ? o.groups : [], natural:Array.isArray(o.natural) ? o.natural : []
+    };
+    L.status = 'done'; saveLesson(L);
+    setNoteStatus('✎ 課堂整理好了，按右上「課堂整理」查看。');
+  }catch(err){
+    L.status = 'error'; L.error = '整理失敗：' + ((err && err.message) || '網路連線錯誤'); saveLesson(L);
+    setNoteStatus(L.error, true);
+  }
+}
+/* ---------- 學生小檔案（記憶）：每堂課後「改寫」一次，不是一直往後加 ---------- */
+const PROFILE_MAX = 3000;   // 字元上限，大約 300 到 400 個英文字
+function profilePrompt(){
+  return `You are the learner's English tutor. You keep a short private profile of your student so that next lesson you remember them like a real tutor does. Rewrite the profile using the old profile and today's lesson.
+Rules:
+- Write in English, plain text, at most 300 words, using exactly these sections:
+Level: one or two sentences about their speaking level and progress.
+Usual mistakes: up to 6 bullet lines, most frequent first, each with a rough count and how recent, for example "- forgets articles a/the (about 14 times in the last 5 lessons)". Merge with the old counts; drop ones they have stopped making. Do NOT list these habit mistakes here (they are tracked separately): third person -s, plural -s, past tense (-ed or irregular), the verb be (I'm prefer, She happy), subject-verb agreement (has/have), mixing up he/she, a/an.
+Life and plans: up to 6 bullet lines about their life, work, interests and upcoming events, each with a date if known, for example "- presenting their app in an AI class on 2026-11-20". Remove plans that are clearly over, or turn them into something to ask about ("presented on 11/20, ask how it went").
+Recent lessons: one line per lesson, newest first, at most 8 lines, for example "- 2026-11-12: talked about the weekend trip to Tainan".
+- Keep only what helps you teach and chat with them next time. Prefer facts the learner said themselves. Never invent anything.
+- If something in the old profile conflicts with today's lesson, trust today's lesson.
+Respond with ONLY the new profile text.`;
+}
+async function updateProfile(L){
+  if(!settings.googleKey || !L) return;
+  try{
+    const lines = await chatDb.lesson(L.id);
+    let talk = lines.map(x => (x.role === 'me' ? 'Learner: ' : 'Tutor: ') + (x.text || '')).join('\n');
+    if(!talk) talk = (L.sentences || []).map(s => 'Learner: ' + s).join('\n');
+    if(talk.length > 9000) talk = talk.slice(-9000);
+    const s = L.summary || {};
+    const d0 = new Date(L.start);   // 用台灣當地日期，不用 UTC
+    const dt = d0.getFullYear() + '-' + String(d0.getMonth() + 1).padStart(2, '0') + '-' + String(d0.getDate()).padStart(2, '0');
+    const input = 'Today is ' + todayText() + '.\n\nOld profile:\n' + (profile.text || '(empty, this is the first lesson)') +
+      '\n\nToday\'s lesson (' + dt + ', ' + (L.turns || 0) + ' turns).\nMistakes noted today:\n' +
+      ((L.items || []).map(i => i.wrong + ' -> ' + i.correct).join('\n') || '(none)') +
+      (s.title ? '\nLesson title: ' + s.title : '') +
+      '\n\nConversation (automatic transcription, may contain misheard words):\n' + (talk || '(not available)');
+    setNoteStatus('✎ 正在更新老師對你的記憶……');
+    const raw = await geminiGenerate({model:settings.noteModel, system:profilePrompt(), what:'記憶更新', parts:[{text:input}]});
+    let text = raw.replace(/```[a-z]*|```/g, '').trim();
+    if(text.length < 20){ log('記憶更新回覆太短', text); throw new Error('回覆是空的'); }
+    if(text.length > PROFILE_MAX) text = text.slice(0, PROFILE_MAX);
+    profile = {text, updated:Date.now()};
+    store.set('sngm_profile', profile);
+    log('記憶已更新：' + text);
+    setNoteStatus('✎ 課堂整理和老師的記憶都更新好了，下次通話老師會記得。');
+  }catch(err){
+    setNoteStatus('記憶更新失敗：' + ((err && err.message) || '網路連線錯誤') + '（不影響課堂整理）', true);
+  }
+}
+
+/* ---------- 回想（recall）：老師翻以前的課 ----------
+   1. 老師說 "let me think…" 並叫用 recall(query)
+   2. 課不多：把每堂的整理＋聊天文字一次交給快模型找答案
+      課很多：先給快模型看「總目錄」（每堂一行），挑出最相關的幾堂，再讀那幾堂
+   3. 快模型寫成兩三句交回給老師，老師接著聊 */
+const RECALL_TOOL = {
+  name:'recall',
+  description:'Look through records of earlier lessons with this learner (what they said, topics, mistakes) and get a short answer. Takes a few seconds.',
+  parameters:{type:'OBJECT', properties:{query:{type:'STRING', description:'What you want to remember, in English, e.g. "the restaurant the learner talked about" or "what we talked about last week"'}}, required:['query']}
+};
+// 這次通話要給老師哪些工具（setup 送出後就不能改，下次通話才生效）
+function liveTools(){
+  const list = [];
+  if(TOOLS_ON && hasPastLessons()) list.push(RECALL_TOOL);
+  if(TOOLS_ON && settings.webSearch) list.push(WEB_TOOL);
+  return list.length ? {tools:[{functionDeclarations:list}]} : {};
+}
+function pastLessons(){ return lessons.filter(L => L.status !== 'live' && !(lesson && L.id === lesson.id)); }
+function hasPastLessons(){ return pastLessons().length > 0; }
+function ymd(t){ const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function indexLine(L){   // 總目錄的一行
+  const s = L.summary || {};
+  return '#' + L.id + ' | ' + ymd(L.start) + ' | ' + (s.title || '(no title)') +
+    ((s.topics || []).length ? ' | topics: ' + s.topics.join(', ') : '') +
+    ((s.groups || []).length ? ' | mistakes: ' + s.groups.map(g => g.name).join(', ') : '');
+}
+async function lessonDigest(L, max){   // 一堂課的內容：目錄那一行＋重點＋聊天文字
+  const lines = await chatDb.lesson(L.id);
+  let talk = lines.map(x => (x.role === 'me' ? 'Learner: ' : 'Tutor: ') + (x.text || '')).join('\n');
+  if(!talk) talk = (L.sentences || []).map(s => 'Learner: ' + s).join('\n');
+  if(talk.length > max) talk = talk.slice(0, max) + '\n…';
+  const s = L.summary || {};
+  return '=== Lesson ' + indexLine(L) + '\n' + (s.overview ? 'Summary: ' + s.overview + '\n' : '') + (talk || '(no transcript)');
+}
+// 回想、上網查用的文字模型：和筆記員同一個模型、同一把 Google 金鑰
+function fastChat(system, user, extra){
+  return geminiGenerate(Object.assign({model:settings.noteModel, system, parts:[{text:user}], temperature:0.1, what:'工具'}, extra || {})).then(t => String(t || '').trim());
+}
+async function runRecall(query){
+  const bubble = addBubble('sys', '🔎 老師在回想以前的課…', true);
+  setStatus('老師在翻以前的課，請等幾秒…');
+  const t0 = performance.now();
+  let answer;
+  try{
+    if(!settings.googleKey) throw new Error('沒有 Google 金鑰');
+    const past = pastLessons();
+    if(!past.length){ answer = {found:false, memory:'There are no earlier lessons yet.'}; }
+    else{
+      let picked = past.slice(0, 40);   // 最新的在前面
+      const all = await Promise.all(picked.map(L => lessonDigest(L, 4000)));
+      let docs = all.join('\n\n');
+      if(docs.length > 30000 || past.length > 40){
+        // 課太多：先看總目錄挑出最相關的 3 堂
+        const pick = await fastChat(
+          'You pick which earlier lessons are relevant to a question. Reply with ONLY a JSON object like {"ids": [123, 456]} with at most 3 lesson ids (the numbers after #), most relevant first. If none look relevant, pick the 2 most recent.',
+          'Today is ' + todayText() + '.\nQuestion: ' + query + '\n\nLessons (newest first):\n' + past.slice(0, 300).map(indexLine).join('\n'));
+        const m = pick.match(/\{[\s\S]*\}/); let ids = [];
+        try{ ids = (JSON.parse(m ? m[0] : '{}').ids || []).map(Number); }catch(e){}
+        picked = past.filter(L => ids.includes(L.id)).slice(0, 3);
+        if(!picked.length) picked = past.slice(0, 2);
+        docs = (await Promise.all(picked.map(L => lessonDigest(L, 8000)))).join('\n\n');
+        log('回想：從 ' + past.length + ' 堂挑出 ' + picked.map(L => ymd(L.start)).join(', '));
+      }
+      const text = await fastChat(
+        'You help an English tutor remember earlier lessons with their learner. Answer the tutor\'s question using ONLY the lesson records given (transcripts are automatic and may contain misheard words). Reply in English, at most 3 short sentences, mention the lesson date when useful. If the records do not contain the answer, reply exactly: NOT FOUND',
+        'Today is ' + todayText() + '.\nTutor\'s question: ' + query + '\n\n' + docs);
+      answer = /^NOT FOUND/i.test(text) || !text ? {found:false, memory:'Nothing about this in the records of earlier lessons.'} : {found:true, memory:text};
+    }
+    setText(bubble, '🔎 回想完成（' + secs(performance.now() - t0) + ' 秒）', false);
+    log('回想 "' + query + '"：' + answer.memory);
+  }catch(err){
+    log('回想失敗：' + (err && err.message));
+    answer = {found:false, memory:'Your lesson records could not be opened right now.'};
+    setText(bubble, '🔎 回想失敗：' + ((err && err.message) || '網路錯誤'), false);
+  }
+  setStatus('');
+  return JSON.stringify(answer);
+}
+/* ---------- 上網查（web_search）：老師聊時事 ---------- */
+const WEB_TOOL = {
+  name:'web_search',
+  description:'Search the web for recent news, events, products, people or new words, and get a short spoken-style summary. Takes a few seconds.',
+  parameters:{type:'OBJECT', properties:{query:{type:'STRING', description:'What to look up, in English, e.g. "latest Taiwan typhoon news" or "what is vibe coding"'}}, required:['query']}
+};
+async function runWebSearch(query){
+  const bubble = addBubble('sys', '🌐 老師在上網查：' + query + '…', true);
+  setStatus('老師在上網查，請等幾秒…');
+  const t0 = performance.now();
+  let answer;
+  try{
+    if(!settings.googleKey) throw new Error('沒有 Google 金鑰');
+    const sys = 'You look things up on the web for an English tutor who is chatting with a learner. Answer the question using the search results, in plain spoken English, at most 3 short sentences, with dates when they matter. No links, no markdown, no lists. If the results do not answer it, say so in one sentence.';
+    const user = 'Today is ' + todayText() + '.\nQuestion: ' + query;
+    let text = await fastChat(sys, user, {tools:[{googleSearch:{}}], what:'上網查'});   // Google 搜尋
+    text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/https?:\/\/\S+/g, '').replace(/[*#`]/g, '').trim();
+    if(!text) throw new Error('沒有查到內容');
+    answer = {found:true, result:text.slice(0, 1200)};
+    setText(bubble, '🌐 查好了（' + secs(performance.now() - t0) + ' 秒）：' + query, false);
+    log('上網查 "' + query + '"：' + text);
+  }catch(err){
+    log('上網查失敗：' + (err && err.message));
+    answer = {found:false, result:'The web search did not work right now. Tell the learner you could not look it up and ask them to tell you about it.'};
+    setText(bubble, '🌐 上網查失敗：' + ((err && err.message) || '網路錯誤'), false);
+  }
+  setStatus('');
+  return JSON.stringify(answer);
+}
+
+// 老師叫用工具：查好就用 toolResponse 交回去，Google 會讓老師自己接著說（接在同一個泡泡）
+let toolPending = 0;            // 還在查的工具數
+const toolCancelled = new Set();
+function onToolCall(tc){
+  for(const fc of (tc.functionCalls || [])){
+    const args = fc.args || {};
+    log('老師要用工具 ' + fc.name + '：' + JSON.stringify(args));
+    const sock = ws;
+    toolPending++;
+    const p = fc.name === 'recall' ? runRecall(String(args.query || ''))
+            : fc.name === 'web_search' ? runWebSearch(String(args.query || ''))
+            : Promise.resolve(JSON.stringify({error:'unknown tool'}));
+    p.then(out => {
+      toolPending = Math.max(0, toolPending - 1);
+      if(ws !== sock || toolCancelled.has(fc.id)){ log('工具 ' + fc.name + ' 查好了，但已經取消或換線，不交回'); return; }
+      let response; try{ response = JSON.parse(out); }catch(e){ response = {result:String(out)}; }
+      // 老師剛才那段已經講完：接著說的那段接在同一個泡泡
+      if(!cur && lastTeacher && lastTeacher.bubble) continuation = Object.assign({}, lastTeacher, {prefix:lastTeacher.text + ' '});
+      send({toolResponse:{functionResponses:[{id:fc.id, name:fc.name, response}]}});
+      log('工具結果交回老師（' + fc.name + '）');
+    });
+  }
+}
+
+function pairLines(box, wrong, correct){
+  const l1 = el('p', 'line'); l1.appendChild(el('span', 'mark x', '✗')); l1.appendChild(el('span', 'wrong', wrong)); box.appendChild(l1);
+  const l2 = el('p', 'line'); l2.appendChild(el('span', 'mark ok', '✓')); l2.appendChild(el('span', 'correct', correct)); box.appendChild(l2);
+}
+let lessonView = null;   // 目前打開哪一堂；null 就是在看目錄
+function lessonTitle(L){
+  if(L.summary && L.summary.title) return L.summary.title;
+  return {live:'（上課中）', waiting:'（整理中…）', summarizing:'（整理中…）', error:'（整理失敗）'}[L.status] || '（沒有標題）';
+}
+function lessonMeta(L){
+  const dt = new Date(L.start);
+  const mins = L.end ? Math.max(1, Math.round((L.end - L.start) / 60000)) + ' 分鐘｜' : '';
+  return (dt.getMonth() + 1) + '/' + dt.getDate() + ' ' + dt.toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'}) +
+    '｜' + mins + L.turns + ' 句｜' + L.items.length + ' 個錯誤';
+}
+/* ---------- 習慣清單成功率：從最早的課照順序重算，算到「這堂課結束時」為止 ----------
+   練習中：在 2 堂不同的課都犯過。畢業：最近 30 次 ≥ 90%、橫跨至少 3 堂課（只在畢業那堂顯示）。
+   畢業後最近 20 次 < 80%，或一堂課錯 3 次：安靜地回到練習中。不滿 10 次顯示「累積中」。 */
+function habitProgress(upTo){
+  const st = {};
+  for(const h of HABIT_TYPES) st[h.code] = {status:'none', outs:[], wrongLessons:new Set(), wrongHere:0, gradHere:false};
+  const list = lessons.filter(L => L.status !== 'live').slice().sort((a, b) => a.start - b.start);
+  for(const L of list){
+    for(const t in st){ st[t].wrongHere = 0; st[t].gradHere = false; }
+    for(const e of L.habits || []){
+      for(const [t, v] of Object.entries(e.chances || {})){
+        if(!st[t] || !Array.isArray(v)) continue;
+        const n = parseInt(v[0], 10) || 0, ok = Math.min(n, parseInt(v[1], 10) || 0);
+        for(let i = 0; i < n; i++) st[t].outs.push({ok:i < ok, lesson:L.id});
+        if(n > ok){ st[t].wrongHere += n - ok; st[t].wrongLessons.add(L.id); }
+      }
+    }
+    for(const t in st){
+      const x = st[t], last = n => x.outs.slice(-n), rate = a => a.filter(o => o.ok).length / a.length;
+      if(x.status === 'grad'){
+        const r20 = last(20);
+        if((r20.length && rate(r20) < 0.8) || x.wrongHere >= 3) x.status = 'practice';
+      }else{
+        if(x.wrongLessons.size >= 2) x.status = 'practice';
+        const r30 = last(30);
+        if(x.status === 'practice' && r30.length >= 30 && rate(r30) >= 0.9 && new Set(r30.map(o => o.lesson)).size >= 3){ x.status = 'grad'; x.gradHere = true; }
+      }
+    }
+    if(L.id === upTo) break;
+  }
+  return HABIT_TYPES.map(h => {
+    const x = st[h.code], r30 = x.outs.slice(-30);
+    return {code:h.code, zh:h.zh, status:x.status, gradHere:x.gradHere, wrongHere:x.wrongHere, wrongAll:x.outs.filter(o => !o.ok).length,
+      n:r30.length, pct:r30.length ? Math.round(100 * r30.filter(o => o.ok).length / r30.length) : 0};
+  });
+}
+function habitReport(L){   // 這堂課要顯示的：最多 3 項練習中（這堂錯最多的優先），加上這堂剛畢業的
+  const all = habitProgress(L.id);
+  const practice = all.filter(x => x.status === 'practice').sort((a, b) => b.wrongHere - a.wrongHere || b.wrongAll - a.wrongAll).slice(0, 3);
+  return {practice, grad:all.filter(x => x.gradHere)};
+}
+function habitRateText(x){ return x.n < 10 ? '累積中（' + x.n + '/10 次）' : '最近 ' + x.n + ' 次用對 ' + x.pct + '%'; }
+// 總目錄：一堂課一行，依月份分段，最新的在最上面
+function renderLessonIndex(box){
+  if(!lessons.length){ box.appendChild(el('p', 'empty', '還沒有課堂整理。通話結束後，這堂課的重點會出現在這裡。')); return; }
+  box.appendChild(el('p', 'hint', '共 ' + lessons.length + ' 堂課，點一堂看整理。'));
+  let month = '';
+  for(const L of lessons){
+    const dt = new Date(L.start);
+    const m = dt.getFullYear() + ' 年 ' + (dt.getMonth() + 1) + ' 月';
+    if(m !== month){ month = m; box.appendChild(el('h3', null, m)); }
+    const b = el('button', 'lesson-row'); b.type = 'button';
+    b.appendChild(el('b', null, lessonTitle(L)));
+    b.appendChild(el('span', 'hint', lessonMeta(L)));
+    b.onclick = () => { lessonView = L.id; renderLessons(); $('lessonList').scrollIntoView(); };
+    box.appendChild(b);
+  }
+}
+let lessonUrls = [];   // 重聽用的暫時網址，換頁時釋放
+async function exportLesson(L){
+  const s = L.status === 'done' && L.summary;
+  const out = ['# ' + lessonTitle(L), '', lessonMeta(L), ''];
+  if(s){
+    if(s.overview) out.push(s.overview, '');
+    if(s.groups.length){
+      out.push('## 錯誤重點', '');
+      for(const g of s.groups){
+        out.push('### ' + (g.name || '') + (g.count ? '（×' + g.count + '）' : ''));
+        if(g.rule) out.push(g.rule);
+        for(const e of (Array.isArray(g.examples) ? g.examples : []).slice(0, 2)) if(e && e.wrong) out.push('- ✗ ' + e.wrong + '  ', '  ✓ ' + (e.correct || ''));
+        out.push('');
+      }
+    }
+    if(s.natural.length){
+      out.push('## 更道地的說法', '');
+      for(const n of s.natural) out.push('- ' + (n.said || '') + ' → **' + (n.better || '') + '**' + (n.why ? '：' + n.why : ''));
+      out.push('');
+    }
+  }
+  if(L.status !== 'live'){
+    const hr = habitReport(L);
+    if(hr.practice.length || hr.grad.length){
+      out.push('## 習慣清單', '');
+      for(const x of hr.grad) out.push('- 🎓 畢業：' + x.zh + '　' + habitRateText(x));
+      for(const x of hr.practice) out.push('- ' + x.zh + '　' + habitRateText(x));
+      out.push('');
+    }
+  }
+  const lines = await chatDb.lesson(L.id);
+  if(lines.length){
+    out.push('## 聊天紀錄', '');
+    for(const x of lines){
+      out.push('**' + (x.role === 'me' ? '我' : '老師') + '**：' + (x.role === 'me' && x.heard ? markedPlain(x.heard, x.habits) : (x.text || '')));
+      if(x.fix) out.push('　✓ ' + x.fix);
+      out.push('');
+    }
+  }
+  const dt = new Date(L.start);
+  const name = 'lesson-' + dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0') + '_' +
+    String(dt.getHours()).padStart(2, '0') + String(dt.getMinutes()).padStart(2, '0') + '.md';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([out.join('\n')], {type:'text/markdown;charset=utf-8'}));
+  a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function renderLessons(){
+  const box = $('lessonList');
+  box.innerHTML = '';
+  lessonUrls.forEach(u => URL.revokeObjectURL(u)); lessonUrls = [];
+  const L = lessons.find(x => x.id === lessonView);
+  if(!L){ lessonView = null; renderLessonIndex(box); return; }
+  const back = el('button', 'ghost', '← 回目錄'); back.type = 'button';
+  back.onclick = () => { lessonView = null; renderLessons(); };
+  box.appendChild(back);
+  {
+    const d = el('div', 'lesson');
+    d.appendChild(el('h3', null, lessonTitle(L)));
+    d.appendChild(el('p', 'hint', lessonMeta(L)));
+    if(L.status === 'live') d.appendChild(el('p', 'meaning', '這堂課還在進行中。'));
+    else if(L.status === 'waiting' || L.status === 'summarizing') d.appendChild(el('p', 'meaning', '✎ 筆記員正在整理這堂課……'));
+    else if(L.status === 'error') d.appendChild(el('p', 'meaning', L.error || '整理失敗。'));
+    if(L.status === 'done' && L.summary){
+      const s = L.summary;
+      if(s.overview) d.appendChild(el('p', null, s.overview));
+      if(s.groups.length){
+        d.appendChild(el('h3', null, '錯誤重點'));
+        for(const g of s.groups){
+          const gb = el('div', 'grp');
+          const h = el('p', 'line'); h.appendChild(el('b', null, g.name || '')); if(g.count) h.appendChild(document.createTextNode('　×' + g.count));
+          gb.appendChild(h);
+          if(g.rule) gb.appendChild(el('p', 'meaning', g.rule));
+          for(const ex of (Array.isArray(g.examples) ? g.examples : []).slice(0, 2)) if(ex && ex.wrong) pairLines(gb, ex.wrong, ex.correct || '');
+          d.appendChild(gb);
+        }
+      }
+      if(s.natural.length){
+        d.appendChild(el('h3', null, '更道地的說法'));
+        for(const n of s.natural){
+          const gb = el('div', 'grp');
+          const l = el('p', 'line'); l.appendChild(el('span', 'said', n.said || '')); l.appendChild(document.createTextNode('  →  ')); l.appendChild(el('span', 'correct', n.better || ''));
+          gb.appendChild(l);
+          if(n.why) gb.appendChild(el('p', 'meaning', n.why));
+          d.appendChild(gb);
+        }
+      }
+    }
+    if(L.status !== 'live'){
+      const hr = habitReport(L);
+      if(hr.practice.length || hr.grad.length){
+        d.appendChild(el('h3', null, '習慣清單'));
+        for(const x of hr.grad){
+          const gb = el('div', 'grp'); const l = el('p', 'line');
+          l.appendChild(el('b', null, '🎓 畢業：' + x.zh)); l.appendChild(document.createTextNode('　' + habitRateText(x)));
+          gb.appendChild(l); d.appendChild(gb);
+        }
+        for(const x of hr.practice){
+          const gb = el('div', 'grp'); const l = el('p', 'line');
+          l.appendChild(el('b', null, x.zh)); l.appendChild(document.createTextNode('　' + habitRateText(x)));
+          gb.appendChild(l); d.appendChild(gb);
+        }
+      }
+    }
+    // 整堂聊天紀錄（從本機資料庫讀出來，你的每一句都可以按 ▶ 重聽）
+    d.appendChild(el('h3', null, '整堂聊天紀錄'));
+    const chatBox = el('div', 'chat'); chatBox.style.cssText = 'overflow:visible;padding:4px 0 8px';
+    chatBox.appendChild(el('p', 'hint', '讀取中…'));
+    d.appendChild(chatBox);
+    chatDb.lesson(L.id).then(lines => {
+      if(lessonView !== L.id || !chatBox.isConnected) return;
+      chatBox.innerHTML = '';
+      if(!lines.length){ chatBox.appendChild(el('p', 'hint', 'v13 以前的課沒有存聊天紀錄。')); return; }
+      for(const x of lines){
+        const b = el('div', 'msg ' + (x.role === 'me' ? 'me' : 'teacher'));
+        const tx = el('span', 'txt', x.text || '（沒有文字）');
+        if(x.role === 'me' && x.heard) markText(tx, x.heard, x.habits, x.pron);
+        if(x.role === 'me' && x.fix) tx._sentence = x.fix;
+        b.appendChild(tx);
+        if(x.wav){
+          const url = URL.createObjectURL(x.wav); lessonUrls.push(url);
+          const p = el('button', 'play', '▶'); p.type = 'button'; p.title = '重聽這一句'; p.setAttribute('aria-label', '重聽這一句');
+          p.onclick = () => playWav(url);
+          b.appendChild(p);
+        }
+        if(x.fix) b.appendChild(el('span', 'fix', '✓ ' + x.fix));
+        const when = new Date(x.t).toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'});
+        b.appendChild(el('span', 'meta', when + (x.meta ? '｜' + x.meta : '')));
+        chatBox.appendChild(b);
+      }
+    });
+    const act = el('div', 'note-actions'); act.style.padding = '8px 0 0'; act.style.borderTop = 'none';
+    const ex = el('button', 'ghost', '匯出這堂（Markdown）'); ex.type = 'button'; ex.onclick = () => exportLesson(L); act.appendChild(ex);
+    if(L.status === 'done' || L.status === 'error'){
+      const re = el('button', 'ghost', '重新整理'); re.type = 'button'; re.onclick = () => summarizeLesson(L); act.appendChild(re);
+    }
+    if(L.status !== 'live'){
+      const del = el('button', 'ghost danger', '刪除這堂'); del.type = 'button';
+      del.onclick = () => { if(confirm('確定刪除這堂課嗎？整理、聊天紀錄和錄音都會刪掉，無法復原。')){ lessons = lessons.filter(x => x !== L); store.set('sngm_lessons', lessons); chatDb.remove(L.id); renderLessons(); } };
+      act.appendChild(del);
+    }
+    d.appendChild(act);
+    box.appendChild(d);
+  }
+}
+$('openLessons').onclick = () => { lessonView = null; renderLessons(); $('lessons').showModal(); };
+
+/* ---------- 筆記員模型選單（有金鑰就向 Google 拿這把金鑰能用的模型清單） ---------- */
+const NOTE_FALLBACK = [
+  {id:'gemini-3.8-flash', name:'Gemini 3.8 Flash（推薦）'},
+  {id:'gemini-3-flash-preview', name:'Gemini 3 Flash Preview'},
+  {id:'gemini-3.1-flash-lite', name:'Gemini 3.1 Flash-Lite（便宜）'},
+  {id:'gemini-3.1-pro-preview', name:'Gemini 3.1 Pro Preview（付費版才有）'}
+];
+let audioModels = NOTE_FALLBACK.slice(), modelsLoaded = false;
+async function loadAudioModels(){
+  if(modelsLoaded || !settings.googleKey) return;
+  try{
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000', {headers:{'x-goog-api-key':settings.googleKey}});
+    const data = await res.json();
+    // 只留「能寫文字」的 gemini 模型；拿掉語音、圖片、向量、Live 這些不適合當筆記員的
+    const list = (data.models || [])
+      .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+      .map(m => ({id:m.name.replace(/^models\//, ''), name:m.displayName || m.name}))
+      .filter(m => /^gemini-/.test(m.id) && !/live|tts|image|embedding|audio|transcribe|translate|robotics|computer/i.test(m.id))
+      .sort((a, b) => b.id.localeCompare(a.id));
+    if(list.length){
+      const fav = list.find(m => m.id === DEFAULT_NOTE_MODEL);
+      if(fav) fav.name += '（推薦）';
+      audioModels = list; modelsLoaded = true;
+    }
+  }catch(e){ $('noteModelHint').textContent = '暫時抓不到 Google 的模型清單，先顯示常用的幾個。'; }
+}
+// 測試金鑰：用目前選的筆記員模型送一句話
+$('testKey').onclick = async () => {
+  const key = $('googleKey').value.trim(), model = pickedNoteModel() || DEFAULT_NOTE_MODEL;
+  const out = $('testKeyResult');
+  if(!key){ out.textContent = '請先貼上金鑰。'; return; }
+  out.textContent = '測試中（' + model + '）…';
+  const saved = settings.googleKey; settings.googleKey = key;
+  const t0 = performance.now();
+  try{
+    const text = await geminiGenerate({model, what:'測試金鑰', temperature:0, parts:[{text:'Reply with exactly: OK, the notebook is ready.'}]});
+    out.textContent = '✓ 成功（' + model + '，' + secs(performance.now() - t0) + ' 秒）：' + text.trim().slice(0, 80);
+    log('測試金鑰成功：' + model + ' → ' + text.trim());
+    modelsLoaded = false; await loadAudioModels(); fillNotePicker(model);
+  }catch(err){
+    out.textContent = '✗ ' + ((err && err.message) || '網路連線錯誤');
+  }finally{ settings.googleKey = saved; }
+};
+function fillNotePicker(current){
+  const sel = $('noteModelSelect');
+  sel.innerHTML = '';
+  for(const m of audioModels){
+    const o = document.createElement('option');
+    o.value = m.id; o.textContent = m.name + '（' + m.id + '）'; sel.appendChild(o);
+  }
+  const other = document.createElement('option');
+  other.value = '__custom'; other.textContent = '其他（自己輸入名稱）'; sel.appendChild(other);
+  if(audioModels.some(m => m.id === current)){ sel.value = current; $('noteCustomWrap').hidden = true; }
+  else{ sel.value = '__custom'; $('noteCustomWrap').hidden = false; $('noteModelCustom').value = current; }
+}
+function pickedNoteModel(){
+  return $('noteModelSelect').value === '__custom' ? $('noteModelCustom').value.trim() : $('noteModelSelect').value;
+}
+function showSpeed(){ $('speedVal').textContent = Number($('speed').value).toFixed(2) + ' 倍'; }
+$('speed').addEventListener('input', showSpeed);
+$('noteModelSelect').addEventListener('change', () => { $('noteCustomWrap').hidden = $('noteModelSelect').value !== '__custom'; });
+
+/* 老師提示詞模板 */
+(function(){
+  const sel = $('teacherTemplate');
+  for(const [id, t] of Object.entries(TEACHER_TEMPLATES)){
+    const o = document.createElement('option'); o.value = id; o.textContent = t.name; sel.appendChild(o);
+  }
+  const o = document.createElement('option'); o.value = 'custom'; o.textContent = '自訂（我改過的）'; sel.appendChild(o);
+})();
+let templateShown = 'tutor';   // 下拉選單目前顯示的選項，用來在使用者取消時還原
+$('teacherTemplate').addEventListener('change', () => {
+  const id = $('teacherTemplate').value;
+  if(id === 'custom'){ templateShown = id; return; }
+  const cur = $('teacherStyle').value.trim();
+  const isTemplate = !cur || Object.values(TEACHER_TEMPLATES).some(t => t.text === cur);
+  if(!isTemplate && !confirm('換模板會蓋掉你改過的提示詞，確定嗎？')){ $('teacherTemplate').value = templateShown; return; }
+  $('teacherStyle').value = TEACHER_TEMPLATES[id].text;
+  templateShown = id;
+  showFixedRules();
+});
+$('teacherStyle').addEventListener('input', () => {
+  const cur = $('teacherStyle').value.trim();
+  const match = Object.entries(TEACHER_TEMPLATES).find(([, t]) => t.text === cur);
+  templateShown = match ? match[0] : 'custom';
+  $('teacherTemplate').value = templateShown;
+});
+function showFixedRules(){
+  // 用目前畫面上的糾正程度和關於我，算出會自動加上的部分給使用者看
+  const saved = {strict:settings.strict, aboutMe:settings.aboutMe, teacherStyle:settings.teacherStyle, teacherTemplate:settings.teacherTemplate};
+  settings.strict = $('strict').value; settings.aboutMe = $('aboutMe').value.trim(); settings.teacherStyle = 'X'; settings.teacherTemplate = $('teacherTemplate').value;
+  $('fixedRules').textContent = teacherPrompt().replace(/^X\n\n/, '');
+  Object.assign(settings, saved);
+}
+$('strict').addEventListener('change', showFixedRules);
+$('aboutMe').addEventListener('input', showFixedRules);
+
+/* ---------- 設定 ---------- */
+function openSettings(){
+  fillNotePicker(settings.noteModel);
+  loadAudioModels().then(() => { if($('settings').open) fillNotePicker(pickedNoteModel() || settings.noteModel); });
+  $('noteLang').value = settings.noteLang;
+  $('pronNotes').checked = settings.pronNotes;
+  $('showFix').checked = settings.showFix;
+  $('webSearch').checked = settings.webSearch;
+  $('talkMode').value = settings.talkMode;
+  $('speed').value = settings.speed; showSpeed();
+  $('googleKey').value = settings.googleKey;
+  $('testKeyResult').textContent = '';
+  $('teacherModel').value = settings.teacherModel;
+  $('strict').value = settings.strict;
+  $('aboutMe').value = settings.aboutMe;
+  $('profileText').value = profile.text || '';
+  $('teacherStyle').value = teacherStyleText();
+  templateShown = TEACHER_TEMPLATES[settings.teacherTemplate] || settings.teacherTemplate === 'custom' ? settings.teacherTemplate : 'tutor';
+  $('teacherTemplate').value = templateShown;
+  showFixedRules();
+  $('settings').showModal();
+}
+$('settings').addEventListener('close', () => {
+  if($('settings').returnValue !== 'save') return;
+  settings.googleKey = $('googleKey').value.trim();
+  settings.teacherModel = $('teacherModel').value;
+  settings.strict = $('strict').value;
+  settings.aboutMe = $('aboutMe').value.trim();
+  const pt = $('profileText').value.trim().slice(0, PROFILE_MAX);
+  if(pt !== (profile.text || '')){ profile = {text:pt, updated:Date.now()}; store.set('sngm_profile', profile); }
+  settings.teacherStyle = $('teacherStyle').value.trim();
+  settings.teacherTemplate = settings.teacherStyle ? $('teacherTemplate').value : 'tutor';
+  settings.noteModel = pickedNoteModel() || DEFAULT_NOTE_MODEL;
+  settings.noteLang = $('noteLang').value;
+  settings.pronNotes = $('pronNotes').checked;
+  settings.showFix = $('showFix').checked;
+  settings.webSearch = $('webSearch').checked;
+  document.body.classList.toggle('nofix', !settings.showFix);
+  settings.talkMode = $('talkMode').value;
+  settings.speed = Number($('speed').value);
+  store.set('sngm_settings', settings);
+  updateModeLabel();
+  if(ws || callState !== 'off'){
+    setStatus('設定已儲存。說話方式馬上換；老師模型、提示詞、速度要等這堂課結束、下次開始上課才生效。');
+    switchMode(settings.talkMode);
+  }
+  else setStatus('設定已儲存。');
+});
+$('clearKeys').onclick = () => {
+  settings.googleKey = '';
+  store.set('sngm_settings', settings);
+  $('googleKey').value = '';
+  $('settings').close('cancel');
+  setStatus('金鑰已從這台電腦清除。');
+};
+$('openSettings').onclick = openSettings;
+
+$('call').onclick = () => {
+  if(connecting) return;
+  if(callState === 'off') startCall();
+  else if(callState === 'auto') pauseCall();
+  else if(callState === 'paused') resumeCall();
+  else if(callState === 'ready') startTalking();
+  else if(callState === 'talking') finishTalking();
+};
+$('hangup').onclick = () => sayGoodbye();
+$('cancelTalk').onclick = cancelTalking;
+$('newChat').onclick = () => {
+  if(ws || callState !== 'off') endCall(false);
+  chatEl.innerHTML = ''; userBubbles.clear(); replies.clear(); turns.length = 0; convo.length = 0;
+  lastStop = 0; waitingTurn = null; pttTurn = null; commitTurn = null; activeResponse = null;
+  renderStats(); setStatus('已開新對話，筆記本保留。按麥克風開始。');
+};
+window.addEventListener('beforeunload', () => {
+  endCall(false);
+  if(micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  stopCapture();
+});
+
+updateModeLabel();
+renderNotes();
+document.body.classList.toggle('nofix', !settings.showFix);
+// 上次關網頁時還在等整理的課，改成「可以重新整理」
+for(const L of lessons) if(L.status === 'live' || L.status === 'waiting' || L.status === 'summarizing'){ L.status = 'error'; L.error = '上次網頁關掉時還沒整理完，按「重新整理」再做一次。'; }
+store.set('sngm_lessons', lessons);
+setCallUI('off');
+if(!settings.googleKey) setStatus('第一次使用：請先到「設定」貼上 Google AI Studio 金鑰，再按「測試金鑰」。');
+</script>
+</body>
+</html>
