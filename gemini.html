@@ -6,148 +6,403 @@
 <title>Speak & Note Gemini｜英文口說練習</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Turret+Road:wght@700;800&family=Sofia+Sans:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* 設計變數：只能用 design/DESIGN.md 裡的（美化規則 2）。定案樣稿 design/mockups/final.html */
+@font-face{font-family:'Glow Sans TC Condensed';src:url(fonts/GlowSansTC-Condensed-Regular.woff2) format('woff2');font-weight:400;font-display:fallback}
+@font-face{font-family:'Glow Sans TC Condensed';src:url(fonts/GlowSansTC-Condensed-Bold.woff2) format('woff2');font-weight:700;font-display:fallback}
 :root{
-  --bg:#E6ECF1; --panel:#FFFFFF; --paper:#FBFCFE; --rule:#DCE6EF; --margin:#F2B8B3;
-  --ink:#1C2A39; --muted:#5B6B7B; --red:#C4372E; --green:#2F7D5B; --violet:#6A4BA8;
-  --hl:#FBE38E; --accent:#2B4C7E; --accent-ink:#FFFFFF; --me:#DCE8F5;
-  --font:"Lexend","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
-  --hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
+  /* 有意思的顏色（一個顏色只代表一件事） */
+  --ink:#16252E; --muted:#465962;
+  --user:#F2D2CD; --listen:#E3A69C; --listen-ink:#B5665B; --teacher:#BFDCEF;
+  --mic:#34566A; --on-mic:#FFFFFF; --pause:#8953A1; --pause-hover:#74468A; --pause-active:#633B76;
+  --fix:#A8355A; --pron:#B58200; --pron-strong:#966C00;
+  /* 底色和線 */
+  --chatbg:#FFFFFF; --nbbg:#F2FAFF; --practice-bg:#F1F5F8; --line:#B9BEC8;
+  --scroll:#8698A2; --scroll-hover:#687C87;
+  --hover:rgba(52,86,106,.08); --hover-soft:rgba(52,86,106,.05); --pron-hover:rgba(123,91,0,.12);
+  --hairline:rgba(0,0,0,.14); --scrim:rgba(22,37,46,.5);
+  /* 天空和背景圖（只給 banner 和頁面底色） */
+  --sky1:#2F5B78; --sky-low:#7FAEC4; --land3:#F0DFDB; --on-sky:#F5F2F8;
+  --on-sky-line:rgba(255,255,255,.5); --on-sky-fill:rgba(255,255,255,.16);
+  --planet:#DDB3B6; --band:#C99AA6; --lit:#FFF8ED; --shade:#7890A6;
+  --land1:#98CEE0; --land15:#96B2D5; --land2:#D3A6AA; --star:#FFFFFF; --orbit:#E9DCDD;
+  /* 字 */
+  --f-title:'Turret Road','Glow Sans TC Condensed','Noto Sans TC',sans-serif;
+  --f-body:'Sofia Sans','Glow Sans TC Condensed','Noto Sans TC',sans-serif;
+  --fs-xs:14px; --fs-sm:16px; --fs-md:18px; --fs-lg:24px; --fs-state:26px; --fs-xl:30px; --fs-xxl:38px;
+  /* 間距 */
+  --s1:2px; --s2:4px; --s3:6px; --s4:8px; --s5:10px; --s6:14px; --s7:18px; --pad:22px; --s8:26px;
+  /* 圓角、陰影、動態 */
+  --r0:2px; --r1:4px; --r2:6px; --r3:8px;
+  --shadow-sheet:0 -3px 10px rgba(20,35,45,.16); --shadow-dialog:0 8px 30px rgba(20,35,45,.3);
+  --ring-focus:inset 0 0 0 2px var(--ink);
+  --t-hand:.25s ease-out; --t-content:.5s cubic-bezier(.2,.7,.2,1);
+  /* 固定尺寸 */
+  --bh:200px; --page-w:1120px; --mic-size:68px; --bar-h:99px; --hit:44px; --icon-btn:32px;
+  --top-btn-h:40px; --strip-lab:58px; --sheet-h:62vh;
   color-scheme:light;
 }
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#141B23; --panel:#1C2530; --paper:#1A222C; --rule:#2A3542; --margin:#6B3A38;
-    --ink:#E3EAF1; --muted:#93A3B3; --red:#F0766B; --green:#6CC79B; --violet:#B59BEA;
-    --hl:rgba(251,227,142,.28); --accent:#6E9BE0; --accent-ink:#0F1620; --me:#24364D;
-    color-scheme:dark;
-  }
+@media (max-width:700px){
+  :root{--fs-md:17px; --fs-lg:22px; --fs-state:22px; --fs-xl:24px; --fs-xxl:20px; --pad:14px; --mic-size:58px; --bh:112px; --icon-btn:var(--hit)}
 }
+/* 未來熒黑沒載入：Noto 排版（DESIGN.md 2.1） */
+:root.noglow{--f-body:'Sofia Sans','Noto Sans TC',sans-serif;--f-title:'Turret Road','Noto Sans TC',sans-serif}
+.noglow .ghost,.noglow .call-text,.noglow .tag,.noglow .meaning,.noglow .hint,.noglow .note-status,.noglow .count,.noglow .send{letter-spacing:-.02em}
+@media (max-width:420px){.noglow .top h1{font-size:var(--fs-xxl)}.noglow .top-actions button{padding:0 var(--s3)}}
+
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.5;display:flex;flex-direction:column}
+body{color:var(--ink);font-family:var(--f-body);font-size:var(--fs-md);line-height:1.5;display:flex;flex-direction:column;overflow:hidden;position:relative;
+  background:linear-gradient(180deg,var(--sky1) 0,var(--sky-low) calc(var(--bh) - 45px),var(--sky-low) var(--bh),var(--land3) var(--bh),var(--land3) 100%)}
 button,textarea,input,select{font:inherit;color:inherit}
+button,select{font-size:var(--fs-sm)}
 button{cursor:pointer}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+/* 捲軸（DESIGN.md 8.6） */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--scroll);background-clip:padding-box;border:2px solid transparent;border-radius:var(--r1)}
+::-webkit-scrollbar-thumb:hover{background-color:var(--scroll-hover)}
+::-webkit-scrollbar-corner{background:transparent}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-width:thin;scrollbar-color:var(--scroll) transparent}}
 
-.top{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:12px;flex-wrap:wrap}
-.top h1{font-family:var(--hand);font-size:2rem;font-weight:700;margin:0;line-height:1}
-.badge{font-size:.75rem;font-weight:600;background:var(--accent);color:var(--accent-ink);border-radius:6px;padding:2px 7px;margin-left:8px;vertical-align:middle}
-.mode{font-size:.85rem;color:var(--muted);margin-left:12px}
-.top-actions{display:flex;gap:8px}
-.ghost{background:transparent;border:1px solid var(--rule);border-radius:8px;padding:6px 12px}
-.ghost:hover{background:var(--panel)}
-.danger{color:var(--red)}
+/* ---- 天空 banner（背景圖是示意，終稿另外一輪做） ---- */
+.scene{position:absolute;left:0;top:0;width:100%;height:var(--bh);pointer-events:none}
+.star{fill:var(--star)}.planet{fill:var(--planet)}.band{fill:var(--band)}.lit{fill:var(--lit)}.shade{fill:var(--shade)}
+.land1{fill:var(--land1)}.land15{fill:var(--land15)}.land2{fill:var(--land2)}
+.orbit{fill:var(--orbit);opacity:.7}.moonlet{fill:var(--orbit)}
 
-.layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,400px);gap:16px;padding:0 20px 20px}
-.chat-col,.note-col{min-height:0;display:flex;flex-direction:column;border-radius:14px;overflow:hidden}
-.chat-col{background:var(--panel)}
+/* ---- 頂端：標題和三顆按鈕，左右對齊內容線 ---- */
+.top{position:relative;flex:none;width:100%;max-width:var(--page-w);height:var(--bh);margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s4);padding:var(--s7) var(--pad) 0}
+.top h1{margin:0;font:800 var(--fs-xxl)/1 var(--f-title);letter-spacing:.02em;color:var(--on-sky);white-space:nowrap}
+.top-actions{display:flex;gap:var(--s4);flex:none}
+.top-actions button{background:none;border:1px solid var(--on-sky-line);color:var(--on-sky);border-radius:var(--r1);padding:var(--s3) var(--s6);font-size:var(--fs-sm);white-space:nowrap}
+.top-actions button.main{background:var(--on-sky-fill)}
+.top-actions button:hover{background:var(--on-sky-fill)}
+.top-actions button:focus-visible{outline:2px solid var(--on-sky);outline-offset:2px;box-shadow:none}
+.mode{color:var(--ink)}
 
-.chat{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
-.msg{max-width:min(560px,85%);padding:10px 14px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
-.msg.teacher{align-self:flex-start;background:var(--bg);border-bottom-left-radius:4px}
-.msg.me{align-self:flex-end;background:var(--me);border-bottom-right-radius:4px}
+/* ---- 兩欄 ---- */
+.layout{position:relative;flex:1;min-height:0;width:100%;max-width:var(--page-w);margin:0 auto var(--s8);display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);column-gap:var(--s7)}
+.chat-col,.note-col{min-height:0;display:flex;flex-direction:column;border-radius:var(--r2);overflow:hidden}
+.chat-col{background:var(--chatbg)}
+.chat-head{flex:none;padding:var(--s7) var(--pad) var(--s5);background:var(--chatbg)}
+.chat-head h2{margin:0;font:700 var(--fs-xl)/1 var(--f-title)}
+
+/* ---- 聊天泡泡 ---- */
+.chat{flex:1;min-height:0;overflow-y:auto;padding:var(--s2) var(--pad) var(--pad);display:flex;flex-direction:column;gap:var(--s6);background:var(--chatbg)}
+.chat > :first-child{margin-top:auto}
+.msg{max-width:78%;padding:var(--s5) var(--s6);border-radius:var(--r2);white-space:pre-wrap;overflow-wrap:anywhere;display:flex;flex-direction:column;align-items:flex-start}
+.msg > *{max-width:100%}
+.msg.teacher{align-self:flex-start;background:var(--teacher)}
+.msg.me{align-self:flex-end;background:var(--user)}
 .msg.pending .txt{color:var(--muted);font-style:italic}
-.msg .meta{display:block;margin-top:4px;font-size:.75rem;color:var(--muted);white-space:normal}
-.msg.sys{align-self:center;background:none;color:var(--muted);font-size:.85rem;padding:2px 8px}
-
-.composer{border-top:1px solid var(--rule);padding:12px 16px 16px}
-.status{min-height:1.4em;font-size:.85rem;color:var(--muted);margin-bottom:6px}
-.status.error{color:var(--red)}
-.composer-row{display:flex;gap:14px;align-items:center}
-.mic{flex:none;width:64px;height:64px;border-radius:50%;border:none;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;position:relative}
-.mic svg{width:28px;height:28px}
-.mic.on{background:var(--red)}
-.mic.on::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--red);animation:pulse 1.4s ease-out infinite}
-.mic.hearing::after{animation-duration:.6s}
-.mic:disabled{opacity:.5;cursor:not-allowed}
-@keyframes pulse{from{transform:scale(.9);opacity:.9}to{transform:scale(1.25);opacity:0}}
-.call-text{flex:1;font-size:.95rem}
-.call-text b{display:block}
-.call-text span{color:var(--muted);font-size:.85rem}
-.stats{font-size:.85rem;color:var(--muted);text-align:right}
-.stats b{color:var(--ink);font-size:1.05rem}
-
-.note-col{background:var(--paper);border:1px solid var(--rule);
-  background-image:linear-gradient(to right,transparent 34px,var(--margin) 34px,var(--margin) 36px,transparent 36px)}
-.note-head{display:flex;align-items:baseline;justify-content:space-between;padding:16px 18px 8px 50px}
-.note-head h2{font-family:var(--hand);font-size:1.8rem;margin:0;line-height:1}
-.notes{flex:1;overflow-y:auto;padding:0 18px 12px 50px}
-.empty{color:var(--muted);font-size:.95rem;padding-top:24px}
-.count{font-size:.85rem;color:var(--muted)}
-.note-status{padding:0 18px 8px 50px;font-size:.82rem;color:var(--muted)}
-.note-status:empty{display:none}
-.note-status.error{color:var(--red)}
-.note{padding:12px 0;border-bottom:1px solid var(--rule)}
-.note.fresh{animation:land .9s ease-out}
-@keyframes land{from{background:var(--hl)}to{background:transparent}}
-.line{margin:0}
-.wrong{color:var(--red);text-decoration:underline wavy;text-decoration-thickness:1px;text-underline-offset:4px}
-.correct{background:var(--hl);padding:0 3px;border-radius:3px;font-weight:500}
-.said{color:var(--violet)}
-.mark{display:inline-block;width:1.4em;font-weight:600}
-.mark.x{color:var(--red)}.mark.ok{color:var(--green)}.mark.p{color:var(--violet)}
-.meaning{margin:2px 0 6px 1.4em;color:var(--muted);font-size:.92rem}
-.tag{display:inline-block;margin-left:1.4em;font-size:.72rem;border:1px solid var(--violet);color:var(--violet);border-radius:5px;padding:0 5px}
-.note-actions{display:flex;gap:8px;padding:10px 18px 14px 50px;border-top:1px solid var(--rule)}
-.msg .fix{display:block;color:var(--red);margin-top:4px}
+.msg .meta{display:block;margin-top:var(--s2);font-size:var(--fs-xs);color:var(--muted);white-space:normal}
+.msg.sys{align-self:center;display:block;background:none;color:var(--muted);font-size:var(--fs-xs);padding:var(--s1) var(--s4)}
+/* 老師回想／上網查：細線圖示＋一行小字，等待時圖示一明一暗 */
+.msg.sys.tool{display:flex;flex-direction:row;align-items:center;gap:var(--s2)}
+.msg.sys.tool .ico{flex:none;width:1.25em;height:1.25em}
+.msg.sys.tool.pending .txt{font-style:normal}
+.msg.sys.tool.pending .ico{animation:tool-wait 1.2s ease-in-out infinite alternate}
+.msg.sys.tool.failed{color:var(--ink)}
+@keyframes tool-wait{from{opacity:1}to{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.msg.sys.tool.pending .ico{animation:none}}
+.msg .fix{display:block;color:var(--muted);margin-top:var(--s2)}
 body.nofix .msg .fix{display:none}
-.hab-add{color:var(--red);font-weight:700}
-.hab-del{color:var(--red);text-decoration:line-through}
-.pron-mark{background:var(--hl);border-radius:3px;padding:0 2px}
-.msg.me .txt,.note.pron-note{cursor:pointer}
-.pron-box{display:block;margin-top:8px;padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:var(--panel);color:var(--ink);white-space:normal;cursor:default}
-.pron-box .pb-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.pron-box .pb-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
-.pron-box .pb-row > span{min-width:3.5em;font-size:.85rem;color:var(--muted)}
-.pron-box button{padding:4px 10px;font-size:.85rem}
-.pron-box .pb-status{font-size:.8rem;color:var(--muted);margin:6px 0 0}
-.pron-box .pb-chat{display:flex;flex-direction:column;gap:6px;margin-top:6px;max-height:280px;overflow:auto}
-.pron-box .pb-msg{padding:6px 10px;border-radius:10px;max-width:92%}
-.pron-box .pb-msg.coach{align-self:flex-start;background:var(--paper);border:1px solid var(--rule)}
-.pron-box .pb-msg.coach.good{border-color:var(--green)}
-.pron-box .pb-msg.me{align-self:flex-end;background:var(--me)}
-.pron-box .pb-msg button{padding:0 6px;margin-left:6px;font-size:.8rem}
-.pron-box .pb-zh{display:block;font-size:.82rem;color:var(--muted);margin-top:2px}
-.lesson{border-bottom:1px solid var(--rule);padding:10px 0}
-.lesson-row{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--rule);padding:10px 6px}
-.lesson-row:hover{background:var(--bg)}
-.lesson h3{font-size:1rem;margin:14px 0 4px}
-.lesson .grp{margin:8px 0 12px}
-.msg .play{border:none;background:none;padding:0 0 0 6px;font-size:.85rem;opacity:.7}
-.msg .play:hover{opacity:1}
-label.check{flex-direction:row;align-items:center;gap:8px}
-label[hidden]{display:none}
+.msg .play{border:none;background:none;padding:0;font:inherit;color:var(--muted);cursor:pointer}
+.msg .meta-t:not(:empty) + .play::before{content:'·';margin:0 var(--s3)}
+.msg .play:hover{color:var(--ink)}
+.msg .play:focus-visible{outline:none;box-shadow:var(--ring-focus);border-radius:var(--r0)}
+.hab-add{color:var(--fix);font-weight:700}
+.hab-del{color:var(--fix);text-decoration:line-through}
+.pron-mark{color:var(--pron);font-weight:700;border-radius:var(--r0);padding:0 var(--s1)}
+.pron-mark:hover{background:var(--pron-hover)}
+.note.pron-note{cursor:pointer}
+.msg.me .pron-mark{cursor:pointer}
 
-details.log{border-top:1px solid var(--rule);padding:8px 16px;font-size:.8rem;color:var(--muted)}
-details.log pre{max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0 0}
+/* ---- 麥克風列 ---- */
+.composer{flex:none;border-top:1px solid var(--line);padding:var(--s6) var(--pad) var(--s7);background:var(--nbbg);min-height:var(--bar-h);display:flex;flex-direction:column;justify-content:center}
+.composer-row{display:flex;gap:var(--s7);align-items:center}
+.call-text{flex:1;min-width:0}
+.call-text b{display:block;font:600 var(--fs-state)/1.15 var(--f-title);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.composer-row .ghost{flex:none;white-space:nowrap}
+.stats{font-size:var(--fs-xs);color:var(--muted);text-align:right}
+.stats[hidden]{display:none}
 
-dialog{border:none;border-radius:14px;padding:0;background:var(--panel);color:var(--ink);width:min(460px,92vw)}
-dialog::backdrop{background:rgba(10,16,24,.45)}
-dialog form{padding:20px 22px;display:flex;flex-direction:column;gap:14px;max-height:88vh;overflow-y:auto}
-dialog h2{margin:0;font-size:1.15rem}
-label{display:flex;flex-direction:column;gap:4px;font-size:.92rem}
-input[type=text],input[type=password],select,textarea{border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--paper)}
-.hint{font-size:.8rem;color:var(--muted)}
-.dialog-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.send{border:none;border-radius:10px;padding:8px 18px;background:var(--ink);color:var(--panel);font-weight:500}
+/* ---- 筆記本 ---- */
+.note-col{background:var(--nbbg)}
+.nb-toggle{position:absolute;opacity:0;pointer-events:none}
+.note-head{flex:none;display:flex;flex-direction:row;align-items:baseline;gap:var(--s5);padding:var(--s7) var(--pad) var(--s5);font-size:var(--fs-md)}
+.note-head h2{margin:0;font:700 var(--fs-xl)/1 var(--f-title)}
+.note-head .chev{display:none}
+.count{font-size:var(--fs-xs);color:var(--muted)}
+.note-status{padding:0 var(--pad) var(--s5);font-size:var(--fs-xs);color:var(--muted)}
+.note-status:empty{display:none}
+.note-status.error{color:var(--ink);font-weight:700}
+.notes{flex:1;min-height:0;overflow-y:auto;margin:0 var(--pad);border-left:2px solid var(--line)}
+.empty{color:var(--muted);font-size:var(--fs-sm);padding:var(--s5) 0 0 var(--s6);margin:0}
+.note{display:flex;flex-direction:column;padding:var(--s5) 0 var(--s6) var(--s6);border-bottom:1px solid var(--line)}
+.note.fresh{animation:land .9s ease-out}
+@keyframes land{from{background:var(--hover)}to{background:transparent}}
+.line{margin:0}
+.mark{display:none}
+.wrong{color:var(--muted)}
+.correct{color:var(--fix);font-weight:700}
+.said{color:var(--muted)}
+.meaning{margin:var(--s1) 0 0;color:var(--muted);font-size:var(--fs-xs)}
+.tag{order:-1;display:block;margin:0 0 var(--s1);font-size:var(--fs-xs);font-weight:700;color:var(--muted)}
+.note.pron-note:hover{background:var(--hover-soft)}
+.note.pron-note .correct{color:var(--pron)}
+.note.pron-note .said{color:var(--ink)}
+.note-actions{flex:none;display:flex;justify-content:space-between;align-items:center;gap:var(--s4);padding:var(--s6) var(--pad);min-height:var(--bar-h)}
+
+/* ---- 發音練習小窗（新排法是功能那一輪，PENDING 1–9；這裡只換顏色） ---- */
+.pron-box{display:block;margin:var(--s5) 0 var(--s1);padding:var(--s6) var(--s6) var(--s5);border-radius:var(--r2);background:var(--practice-bg);color:var(--ink);white-space:normal;cursor:default;font-size:var(--fs-sm)}
+.pron-box .pb-chat{display:flex;flex-direction:column;gap:var(--s4);margin:0 0 var(--s6);max-height:40vh;overflow:auto}
+.pron-box .pb-chat:empty{display:none}
+.pron-box .pb-msg{align-self:flex-start;max-width:92%;padding:var(--s3) var(--s5);border-radius:var(--r2);background:var(--teacher);line-height:1.45}
+.pron-box .pb-msg.coach.good{box-shadow:var(--ring-focus)}
+.pron-box .pb-msg.me{align-self:flex-end;background:var(--user)}
+.pron-box .pb-msg .again{border:none;background:none;padding:0 0 0 var(--s4);font-size:var(--fs-xs);color:var(--muted)}
+.pron-box .pb-msg .again:hover{color:var(--ink)}
+.pron-box .pb-zh{display:block;font-size:var(--fs-xs);color:var(--muted);margin-top:var(--s1)}
+.pron-box .pb-row{display:flex;justify-content:center}
+.pron-box .pb-status{margin:var(--s4) 0 0;font-size:var(--fs-xs);color:var(--ink);text-align:center}
+.pron-box .pb-status:empty{display:none}
+.say{display:grid;place-items:center;width:var(--hit);height:var(--hit);padding:0;border:none;border-radius:50%;background:var(--mic);color:var(--on-mic)}
+.say svg{width:22px;height:22px}
+.say.rec{box-shadow:0 0 0 4px var(--listen)}
+.say:disabled{opacity:.45;cursor:default}
+.say:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+/* ---- 按鈕只有三種（DESIGN.md 8.1）：主要＝.mic（墨色實心圓）、次要＝.ghost（細框）、文字＝.ghost.danger（底線小字，危險動作用） ---- */
+.ghost{background:transparent;border:1px solid var(--line);border-radius:var(--r1);padding:var(--s3) var(--s6);font-size:var(--fs-sm);line-height:1.5;color:var(--ink)}
+.ghost:hover{background:var(--hover)}
+.ghost:active{background:var(--hover);border-color:var(--muted)}
+.ghost:disabled{opacity:.45;cursor:default;background:transparent}
+.ghost:focus-visible,.send:focus-visible,.dlg-head .x:focus-visible{outline:none;box-shadow:var(--ring-focus)}
+.ghost.danger{border-color:transparent;background:none;padding:var(--s3) 0;font-size:var(--fs-xs);color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.ghost.danger:hover,.ghost.danger:active{color:var(--ink);background:none;border-color:transparent}
+.mic{flex:none;width:var(--mic-size);height:var(--mic-size);border-radius:50%;border:none;background:var(--mic);color:var(--on-mic);display:grid;place-items:center;position:relative}
+.mic svg{width:28px;height:28px}
+.mic.on::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:3px solid var(--listen);animation:pulse 1.4s ease-out infinite}
+.mic.hearing::after{animation-duration:.6s}
+.mic:disabled{opacity:.45;cursor:not-allowed}
+.mic:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+/* 暫停中：紫色（程式本來就會加 paused；圖示換成播放鍵是功能那一輪，PENDING S2） */
+.mic.paused{background:var(--pause)}
+.mic.paused:hover{background:var(--pause-hover)}
+.mic.paused:active{background:var(--pause-active)}
+@keyframes pulse{from{transform:scale(.9);opacity:.9}to{transform:scale(1.25);opacity:0}}
+.send{border:none;border-radius:var(--r1);padding:var(--s4) var(--s7);background:var(--mic);color:var(--on-mic);font-weight:700}
+.dlg-head .x{flex:none;display:grid;place-items:center;width:var(--icon-btn);height:var(--icon-btn);padding:0;border:1px solid var(--line);border-radius:var(--r1);background:none;color:var(--ink)}
+.dlg-head .x:hover{background:var(--hover)}
+
+/* ---- 彈窗（課堂整理、設定） ---- */
+dialog{border:none;border-radius:var(--r2);padding:0;background:var(--nbbg);color:var(--ink);width:min(460px,92vw);box-shadow:var(--shadow-dialog)}
+#lessons{width:min(720px,94vw)}
+dialog::backdrop{background:var(--scrim)}
+dialog form{padding:var(--s7) var(--pad);display:flex;flex-direction:column;gap:var(--s6);max-height:88vh;overflow-y:auto}
+dialog h2{margin:0;font-size:var(--fs-lg)}
+.dlg-head{display:flex;justify-content:space-between;align-items:center;gap:var(--s6)}
+/* 課堂整理：標題列和 × 捲動時固定在最上面（背景蓋住捲上去的內容） */
+#lessons .dlg-head{position:sticky;top:calc(var(--s7) * -1);z-index:1;background:var(--nbbg);margin:calc(var(--s7) * -1) calc(var(--pad) * -1) calc(var(--s4) * -1);padding:var(--s7) var(--pad) var(--s4)}
+label{display:flex;flex-direction:column;gap:var(--s2);font-size:var(--fs-sm)}
+input[type=text],input[type=password],select,textarea{border:1px solid var(--line);border-radius:var(--r1);padding:var(--s4) var(--s5);background:var(--chatbg);font-size:var(--fs-sm)}
+input[type=range],input[type=checkbox]{accent-color:var(--mic)}
+.hint{font-size:var(--fs-xs);color:var(--muted)}
+p.hint{margin:0}
+.dialog-actions{display:flex;justify-content:flex-end;gap:var(--s4);flex-wrap:wrap}
 .dialog-actions .danger{margin-right:auto}
+label.check{flex-direction:row;align-items:center;gap:var(--s4)}
+label[hidden]{display:none}
+details.log{border-top:1px solid var(--line);padding:var(--s4) 0 0;font-size:var(--fs-xs);color:var(--muted)}
+details.log pre{max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:var(--s3) 0 0}
+#fixedRules{white-space:pre-wrap;font-size:var(--fs-xs);max-height:240px;overflow:auto}
 
-@media (max-width:800px){
-  .layout{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(0,30%)}
+/* 課堂整理：目錄 */
+#lessonList > h3{margin:var(--s7) 0 var(--s2);font-size:var(--fs-xs);font-weight:700;color:var(--muted)}
+.lesson-row{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s1);width:100%;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--line);padding:var(--s5) var(--s3);font-size:var(--fs-md)}
+.lesson-row b{font-weight:700}
+.lesson-row:hover{background:var(--hover)}
+/* 課堂整理：內頁 */
+.lesson{padding:var(--s5) 0 0}
+.lesson > h3:first-child{margin:var(--s5) 0 var(--s1);padding:0;border:none;font-size:var(--fs-lg)}
+.lesson h3{margin:var(--pad) 0 var(--s4);padding-bottom:var(--s3);border-bottom:1px solid var(--line);font-size:var(--fs-md)}
+.lesson > p{margin:var(--s2) 0}
+.lesson .grp{margin:var(--s4) 0 var(--s6)}
+.lesson .grp .line b{font-weight:700}
+.chat.record{flex:none;overflow:visible;padding:var(--s2) var(--s6) var(--s4);border-radius:var(--r2)}
+.chat.record > :first-child{margin-top:0}
+.lesson-acts{display:flex;align-items:center;gap:var(--s4);padding:var(--s4) 0 0}
+.lesson-acts .danger{margin-left:auto}
+
+/* ---- 手機（700px 以下） ---- */
+@media (max-width:700px){
+  .scene{top:44px;height:68px}
+  .top{padding:var(--s5) var(--pad) 0}
+  .top-actions{gap:var(--s3)}
+  .top-actions button{min-height:var(--top-btn-h);padding:0 var(--s4);font-size:var(--fs-xs)}
+  .layout{margin:0;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto}
+  .chat-col{display:contents}
+  .chat-head{grid-row:1;padding:var(--s5) var(--pad) var(--s3)}
+  .chat{grid-row:2;gap:var(--s5);padding-top:var(--s2)}
+  .msg{max-width:88%}
+  .composer{grid-row:4;min-height:0;padding:var(--s5) var(--pad) calc(var(--s6) + env(safe-area-inset-bottom))}
+  .composer-row{gap:var(--s6)}
+  /* 筆記本收起：一條「N 則＋最新一則＋^」，點一下展開 */
+  .note-col{grid-row:3;position:relative;border-radius:var(--r3) var(--r3) 0 0;box-shadow:var(--shadow-sheet);margin-top:calc(-1 * var(--s4))}
+  .note-head{min-height:64px;align-items:center;gap:var(--s6);padding:var(--s4) var(--pad);cursor:pointer;user-select:none}
+  .note-head h2{display:none}
+  .note-head .count{width:var(--strip-lab);flex:none;text-align:center;font:700 var(--fs-md)/1.2 var(--f-body);color:var(--ink)}
+  .note-head .chev{display:block;margin-left:auto;flex:none;color:var(--ink)}
+  .nb-toggle:focus-visible + .note-head{box-shadow:var(--ring-focus)}
+  .note-status,.note-actions{display:none}
+  .notes{display:none}
+  .note-head{touch-action:none}
+  .strip-latest{display:block;flex:1;min-width:0;overflow:hidden;transition:height var(--t-content)}
+  .strip-latest .roll{display:flex;flex-direction:column}
+  .strip-latest .roll.go{transition:transform var(--t-content)}
+  .strip-latest .sl{display:block}
+  .strip-latest p{margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--fs-sm);line-height:1.35}
+  .strip-latest .meaning{font-size:var(--fs-xs)}
+  .nb-toggle:checked + .note-head .strip-latest{display:none}
+  .wide{display:none}
+  /* 筆記本展開：蓋住下方約六成，聊天擠扁、天空收起 */
+  .layout:has(.nb-toggle:checked){grid-template-rows:0 minmax(0,1fr) var(--sheet-drag,var(--sheet-h)) auto}
+  body:has(.nb-toggle:checked) .scene,.layout:has(.nb-toggle:checked) .chat-head{display:none}
+  body:has(.nb-toggle:checked) .top{height:auto;padding-bottom:var(--s5)}
+  body:has(.nb-toggle:checked) .chat{padding-top:var(--pad)}
+  .note-col:has(.nb-toggle:checked){display:flex;flex-direction:column}
+  .nb-toggle:checked + .note-head{border-bottom:1px solid var(--line)}
+  .nb-toggle:checked + .note-head h2{display:block}
+  .nb-toggle:checked + .note-head .count{width:auto;font:400 var(--fs-xs) var(--f-body);color:var(--muted)}
+  .nb-toggle:checked + .note-head .chev{transform:rotate(180deg)}
+  .note-col:has(.nb-toggle:checked) .note-status{display:block;padding-top:var(--s5)}
+  .note-col:has(.nb-toggle:checked) .note-actions{display:flex;min-height:0;padding:var(--s5) var(--pad);border-top:1px solid var(--line)}
+  .note-col:has(.nb-toggle:checked) .notes{flex:1;min-height:0;display:block}
+  /* 課堂整理在手機整頁蓋滿 */
+  dialog,#lessons{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;border-radius:0}
+  dialog form{max-height:100dvh;padding-bottom:calc(var(--s7) + env(safe-area-inset-bottom))}
 }
+@media (max-width:380px){.top h1{font-size:var(--fs-xxl)}.top-actions button{padding:0 var(--s3)}}
+
+/* 清空對話：存好的那堂課縮小飛進「課堂整理」按鈕 */
+.chat-ghost{position:fixed;margin:0;overflow:hidden;pointer-events:none;z-index:50;background:var(--chatbg);border-radius:var(--r2);box-shadow:var(--shadow-dialog);transform-origin:top left}
+@keyframes lesson-got{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+.got-lesson{animation:lesson-got .35s ease-out;border-color:var(--on-sky);color:var(--on-sky)}
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important}
   .mic.on::after{opacity:.6}
 }
+
+/* ==== 功能那一輪（2026-11-18）：麥克風跟著狀態換圖示、音量條、說話方式晶片、錯誤卡片、筆記只劃錯字、手機筆記條、發音練習 ==== */
+.mic.on{box-shadow:0 0 0 4px var(--listen)}
+.mic.on::after{content:none}
+.mic .spin-ico{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bars{display:inline-flex;align-items:flex-end;gap:var(--s1);height:var(--s7);margin-right:var(--s4)}
+.bars i{display:block;width:var(--s2);height:100%;background:var(--mic);border-radius:var(--r0);transform-origin:bottom;--b:.35;transform:scaleY(calc(var(--b) + var(--lv,0) * (1 - var(--b))));transition:transform .08s linear}
+.bars i:nth-child(2){--b:.6}.bars i:nth-child(3){--b:.45}.bars i:nth-child(4){--b:.25}
+.bars.me i{background:var(--listen-ink)}
+/* 說話方式晶片：只在「開始上課」和「暫停中」出現 */
+.call-box{flex:1;min-width:0;position:relative}
+.chip{display:inline-flex;align-items:center;gap:var(--s1);margin-top:var(--s2);padding:0 var(--s2) 0 var(--s4);border:1px solid var(--line);border-radius:var(--r1);background:none;font-size:var(--fs-xs);line-height:1.6;color:var(--muted)}
+.chip:hover{background:var(--hover);color:var(--ink)}
+.chip svg{width:1em;height:1em}
+.chip[hidden]{display:none}
+.chip:focus-visible{outline:none;box-shadow:var(--ring-focus)}
+.mode-menu{position:absolute;left:0;bottom:calc(100% + var(--s4));z-index:20;display:flex;flex-direction:column;width:max-content;max-width:86vw;padding:var(--s2);background:var(--chatbg);border:1px solid var(--line);border-radius:var(--r2);box-shadow:var(--shadow-dialog)}
+.mode-menu[hidden]{display:none}
+.mode-menu button{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s1);text-align:left;background:none;border:none;border-radius:var(--r1);padding:var(--s4) var(--s5)}
+.mode-menu button:hover{background:var(--hover)}
+.mode-menu button:focus-visible{outline:none;box-shadow:var(--ring-focus)}
+.mode-menu b{font-size:var(--fs-sm)}
+.mode-menu button[aria-checked=true] b::after{content:"　✓"}
+.mode-menu span{font-size:var(--fs-xs);color:var(--muted);white-space:normal}
+/* 錯誤卡片：對話欄最上面，墨色細框＋驚嘆號（DESIGN.md 8.3） */
+.err-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--s5);align-items:center;margin-top:var(--s5);padding:var(--s5) var(--s6);border:1px solid var(--ink);border-radius:var(--r2);background:var(--chatbg)}
+.err-card[hidden]{display:none}
+.err-ico{width:1.25em;height:1.25em;fill:var(--ink)}
+.err-hole{fill:var(--chatbg)}
+.err-card b{display:block;font-size:var(--fs-md)}
+.err-card p{margin:0;font-size:var(--fs-xs);color:var(--muted)}
+.err-acts{display:flex;align-items:center;gap:var(--s4)}
+.err-card .x{display:grid;place-items:center;width:var(--icon-btn);height:var(--icon-btn);padding:0;border:none;border-radius:var(--r1);background:none;color:var(--ink)}
+.err-card .x:hover{background:var(--hover)}
+.err-card .x svg{width:18px;height:18px}
+/* 筆記員在忙：轉圈圖示 */
+.note-status.busy::before{content:"";display:inline-block;width:.9em;height:.9em;margin-right:var(--s3);vertical-align:-.1em;border:2px solid var(--line);border-top-color:var(--mic);border-radius:50%;animation:spin 1s linear infinite}
+/* 筆記只劃錯的字：刪掉的字劃玫瑰色線、改的字玫瑰色粗體 */
+.line del{color:inherit;text-decoration-color:var(--fix);text-decoration-thickness:2px}
+.line .add{color:var(--fix);font-weight:700}
+@media (min-width:701px){.strip-latest{display:none}}
+.strip-latest .pron-word{color:var(--pron);font-weight:700}
+/* 筆記數字：新筆記時變的那一位往上捲 */
+.count .num{display:inline-block;white-space:nowrap}
+.count .dg{display:inline-block;height:1.2em;line-height:1.2;overflow:hidden;vertical-align:bottom}
+.count .dg > span{display:block;height:1.2em}
+.count .dg.roll2 > span{transition:transform var(--t-content)}
+.count .dg.go > span{transform:translateY(-100%)}
+.count .ze{margin-left:var(--s1)}
+/* 發音提醒：右上 ⌄／^ 收合鈕和「發音」標籤頂端對齊；展開後大字＋念／慢速 */
+.note.pron-note{position:relative;padding-right:calc(var(--icon-btn) + var(--s4))}
+.note.pron-note.open{cursor:default}
+.note.pron-note.open:hover{background:none}
+.note.pron-note.open .pron-box{margin-right:calc(-1 * (var(--icon-btn) + var(--s4)))}
+.fold{position:absolute;top:var(--s5);right:0;display:grid;place-items:center;width:var(--icon-btn);height:var(--icon-btn);padding:0;border:1px solid var(--line);border-radius:var(--r1);background:none;color:var(--mic)}
+.fold:hover{background:var(--hover)}
+.fold svg{width:18px;height:18px}
+.hw{display:flex;align-items:center;gap:var(--s4);margin:var(--s1) 0 var(--s3)}
+.pw{border:none;background:none;padding:0 var(--s1);margin-right:var(--s3);border-radius:var(--r0);font:700 var(--fs-state)/1.2 var(--f-body);color:var(--pron)}
+.pw:hover{background:var(--pron-hover)}
+.spk{display:inline-grid;place-items:center;width:var(--icon-btn);height:var(--icon-btn);padding:0;border:1px solid var(--line);border-radius:var(--r1);background:none;color:var(--mic)}
+.spk:hover{background:var(--hover)}
+.spk svg{width:18px;height:18px}
+.heard{margin:0;font-size:var(--fs-sm)}
+.heard b{font-weight:700}
+.note.pron-note .correct.pw-inline{border-radius:var(--r0);padding:0 var(--s1);margin-left:calc(-1 * var(--s1))}
+.note.pron-note .correct.pw-inline:hover{background:var(--pron-hover)}
+@media (prefers-reduced-motion:reduce){
+  .mic .spin-ico,.note-status.busy::before{animation-duration:3s}
+  .bars i,.count .dg.roll2 > span,.strip-latest,.strip-latest .roll.go{transition:none}
+}
+@media (max-width:700px){
+  .layout{transition:grid-template-rows var(--t-hand)}
+  .layout.dragging{transition:none}
+  .err-card{margin-top:var(--s3)}
+  .composer{position:relative}
+  .call-box{position:static}
+  .mode-menu{left:var(--pad);right:var(--pad);width:auto;max-width:none}
+}
 </style>
+<script>
+/* 偵測未來熒黑：3 秒內沒載入成功就切成 Noto 排版（<html class="noglow">），之後不再換回，畫面不跳 */
+(function(){var d=document.documentElement,fin=false;
+function done(ok){if(fin)return;fin=true;d.classList.add(ok?'glow':'noglow')}
+if(/nofont/.test(location.search)||!document.fonts||!document.fonts.load){done(false);return}
+setTimeout(function(){done(false)},3000);
+document.fonts.load('400 16px "Glow Sans TC Condensed"','中').then(function(f){done(f.length>0&&document.fonts.check('400 16px "Glow Sans TC Condensed"','中'))},function(){done(false)});
+})();
+</script>
 </head>
 <body>
+<svg class="scene" viewBox="0 0 1280 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+<defs><clipPath id="pl"><circle cx="560" cy="160" r="205"/></clipPath></defs>
+<circle class="star" cx="533" cy="100" r="1" opacity=".75"/><circle class="star" cx="1095" cy="9" r="1" opacity=".3"/><circle class="star" cx="116" cy="26" r=".8" opacity=".5"/><circle class="star" cx="970" cy="117" r=".8" opacity=".5"/><circle class="star" cx="1123" cy="19" r="1.3" opacity=".3"/><circle class="star" cx="36" cy="99" r=".8" opacity=".5"/><circle class="star" cx="582" cy="29" r="1" opacity=".3"/><circle class="star" cx="157" cy="23" r="1.3" opacity=".75"/><circle class="star" cx="921" cy="22" r=".8" opacity=".3"/><circle class="star" cx="20" cy="32" r=".8" opacity=".3"/><circle class="star" cx="350" cy="43" r="1" opacity=".3"/><circle class="star" cx="1114" cy="118" r="1.3" opacity=".75"/><circle class="star" cx="429" cy="29" r="1.3" opacity=".3"/><circle class="star" cx="794" cy="44" r=".8" opacity=".5"/><circle class="star" cx="859" cy="27" r=".8" opacity=".5"/><circle class="star" cx="143" cy="48" r="1" opacity=".75"/><circle class="star" cx="1210" cy="6" r="1.3" opacity=".75"/><circle class="star" cx="702" cy="14" r="1" opacity=".5"/><circle class="star" cx="636" cy="67" r="1.3" opacity=".5"/><circle class="star" cx="388" cy="67" r="1" opacity=".75"/><circle class="star" cx="370" cy="13" r="1" opacity=".3"/><circle class="star" cx="742" cy="114" r="1" opacity=".3"/><circle class="star" cx="1134" cy="106" r="1" opacity=".5"/><circle class="star" cx="780" cy="80" r=".8" opacity=".5"/><circle class="star" cx="105" cy="96" r=".8" opacity=".75"/><circle class="star" cx="412" cy="21" r=".8" opacity=".5"/><circle class="star" cx="715" cy="71" r="1" opacity=".75"/><circle class="star" cx="523" cy="105" r="1" opacity=".3"/><circle class="star" cx="1217" cy="101" r="1" opacity=".5"/><circle class="star" cx="85" cy="61" r=".8" opacity=".3"/><circle class="star" cx="707" cy="71" r="1.3" opacity=".5"/><circle class="star" cx="313" cy="49" r="1" opacity=".75"/><circle class="star" cx="1126" cy="17" r="1" opacity=".75"/><circle class="star" cx="658" cy="45" r=".8" opacity=".3"/><circle class="star" cx="314" cy="98" r="1.3" opacity=".5"/><circle class="star" cx="1000" cy="26" r="1.3" opacity=".3"/><circle class="star" cx="175" cy="82" r="1.3" opacity=".5"/><circle class="star" cx="75" cy="36" r="1.3" opacity=".75"/><circle class="star" cx="714" cy="111" r="1" opacity=".5"/><circle class="star" cx="873" cy="24" r=".8" opacity=".75"/><circle class="star" cx="77" cy="108" r="1" opacity=".5"/><circle class="star" cx="434" cy="22" r="1.3" opacity=".75"/><circle class="star" cx="281" cy="86" r="1" opacity=".3"/><circle class="star" cx="355" cy="61" r="1" opacity=".3"/><circle class="star" cx="130" cy="114" r="1" opacity=".5"/><circle class="star" cx="299" cy="64" r="1.3" opacity=".3"/>
+<circle class="planet" cx="560" cy="160" r="205"/>
+<g clip-path="url(#pl)"><rect class="band" x="300" y="34" width="560" height="10"/><rect class="band" x="300" y="62" width="560" height="26"/><rect class="band" x="300" y="112" width="560" height="6"/></g>
+<rect class="orbit" x="0" y="96" width="1280" height="1.5"/><circle class="moonlet" cx="286" cy="96.7" r="5"/><circle class="moonlet" cx="930" cy="96.7" r="8"/>
+<polygon class="land1" points="0,200 0,170 180,165 330,148 420,141 900,141 1000,151 1160,159 1280,155 1280,200"/>
+<polygon class="lit" points="250.0,158.0 260.8,158.0 272.3,132.0 261.8,132.0"/><polygon class="shade" points="260.8,158.0 268.0,158.0 279.3,132.0 272.3,132.0"/><polygon class="lit" points="444.0,141.0 478.0,141.0 486.9,95.0 454.7,95.0"/><polygon class="lit" points="486.0,141.0 496.2,141.0 501.3,111.0 491.5,111.0"/><polygon class="shade" points="496.2,141.0 520.0,141.0 524.3,111.0 501.3,111.0"/><polygon class="lit" points="528.0,141.0 542.7,141.0 551.0,69.0 537.6,69.0"/><polygon class="shade" points="542.7,141.0 574.0,141.0 579.7,69.0 551.0,69.0"/><polygon class="lit" points="580.0,141.0 628.0,141.0 628.9,75.0 584.7,75.0"/><polygon class="lit" points="634.0,141.0 659.1,141.0 656.9,43.0 634.7,43.0"/><polygon class="shade" points="659.1,141.0 700.0,141.0 693.0,43.0 656.9,43.0"/><polygon class="lit" points="724.0,141.0 750.0,141.0 745.0,103.0 720.2,103.0"/><polygon class="lit" points="764.0,141.0 774.5,141.0 764.9,81.0 755.2,81.0"/><polygon class="shade" points="774.5,141.0 806.0,141.0 794.2,81.0 764.9,81.0"/><polygon class="lit" points="810.0,141.0 840.4,141.0 825.1,77.0 797.1,77.0"/><polygon class="shade" points="840.4,141.0 848.0,141.0 832.2,77.0 825.1,77.0"/><polygon class="lit" points="856.0,141.0 864.0,141.0 856.5,113.0 848.8,113.0"/><polygon class="shade" points="864.0,141.0 876.0,141.0 868.1,113.0 856.5,113.0"/><polygon class="lit" points="1108.0,157.0 1122.0,157.0 1110.8,137.0 1097.1,137.0"/>
+<polygon class="land15" points="0,200 0,178 220,170 470,180 760,166 1010,180 1280,170 1280,200"/>
+<polygon class="land2" points="0,200 0,190 260,182 540,192 820,180 1090,193 1280,185 1280,200"/>
+</svg>
 <header class="top">
-  <div><h1 style="display:inline">Speak & Note</h1><span class="badge">Gemini</span><span id="modeLabel" class="mode"></span></div>
+  <h1>Speak & Note</h1>
   <div class="top-actions">
-    <button id="openLessons" class="ghost">課堂整理</button>
+    <button id="openLessons" class="ghost main">課堂整理</button>
     <button id="newChat" class="ghost">新對話</button>
     <button id="openSettings" class="ghost">設定</button>
   </div>
@@ -155,24 +410,38 @@ input[type=text],input[type=password],select,textarea{border:1px solid var(--rul
 
 <main class="layout">
   <section class="chat-col" aria-label="對話">
+    <div class="chat-head"><h2>Conversation</h2>
+      <div id="errCard" class="err-card" role="alert" hidden>
+        <svg class="err-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><rect class="err-hole" x="11" y="6.5" width="2" height="7"/><rect class="err-hole" x="11" y="15.5" width="2" height="2"/></svg>
+        <div><b id="errTitle"></b><p id="errText"></p></div>
+        <div class="err-acts"><button id="errSettings" class="ghost" type="button" hidden>打開設定</button><button id="errClose" class="x" type="button" aria-label="關閉" title="關閉"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
+      </div>
+    </div>
     <div id="chat" class="chat" aria-live="polite"></div>
     <div class="composer">
-      <div id="status" class="status" role="status"></div>
       <div class="composer-row">
         <button id="call" class="mic" aria-label="開始通話" title="開始通話">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>
         </button>
-        <div class="call-text" id="callText"><b>按麥克風開始通話</b><span>接通後直接用英文說話，說完停一下，老師就會回你。</span></div>
-        <button id="cancelTalk" class="ghost" hidden title="不送出這句（Esc）">取消這句</button>
-        <button id="hangup" class="ghost danger" hidden>結束課堂</button>
-        <div class="stats" id="stats"></div>
+        <div class="call-box">
+          <div class="call-text" id="callText"><b>開始上課</b></div>
+          <button id="modeChip" class="chip" type="button" aria-haspopup="true" aria-expanded="false" title="換說話方式"><span id="modeChipText"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></button>
+          <div id="modeMenu" class="mode-menu" role="menu" hidden>
+            <button type="button" role="menuitemradio" data-mode="ptt"><b>按一下說</b><span>想好再講：按一下開始，再按一下送出（空白鍵也可以）</span></button>
+            <button type="button" role="menuitemradio" data-mode="auto"><b>耐心自動</b><span>直接講，停比較久（約 2 秒）老師才接</span></button>
+            <button type="button" role="menuitemradio" data-mode="fast"><b>一般自動</b><span>直接講，停一下老師就接，反應最快</span></button>
+          </div>
+        </div>
+        <button id="cancelTalk" class="ghost" hidden title="不送出這句（Esc）">取消<span class="wide">這句</span></button>
+        <button id="hangup" class="ghost" hidden>結束課堂</button>
+        <div class="stats" id="stats" hidden></div>
       </div>
     </div>
-    <details class="log"><summary>連線紀錄（出問題時打開，整段貼給 Claude）</summary><pre id="log"></pre></details>
   </section>
 
   <aside class="note-col" aria-label="筆記本">
-    <div class="note-head"><h2>My notebook</h2><span id="noteCount" class="count"></span></div>
+    <input type="checkbox" id="nbOpen" class="nb-toggle" aria-label="展開筆記本">
+    <label class="note-head" for="nbOpen"><h2>My notebook</h2><span id="noteCount" class="count"></span><span id="stripLatest" class="strip-latest" aria-hidden="true"></span><svg class="chev" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 15l7-7 7 7"/></svg></label>
     <div id="noteStatus" class="note-status" role="status"></div>
     <div id="notes" class="notes"></div>
     <div class="note-actions">
@@ -182,24 +451,24 @@ input[type=text],input[type=password],select,textarea{border:1px solid var(--rul
   </aside>
 </main>
 
-<dialog id="lessons" style="width:min(720px,94vw)">
+<dialog id="lessons">
   <form method="dialog">
-    <h2>課堂整理</h2>
+    <div class="dlg-head"><h2>課堂整理</h2><button value="close" class="x" aria-label="關閉" title="關閉"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
     <span class="hint">一次通話算一堂課。掛斷後筆記員會把這堂課的錯誤分類、合併成重點。以前的課都留在目錄裡，最新的在最上面。</span>
     <div id="lessonList"></div>
-    <div class="dialog-actions"><button value="close" class="send">關閉</button></div>
   </form>
 </dialog>
 
 <dialog id="settings">
   <form method="dialog">
     <h2>設定</h2>
+    <p class="hint">目前使用的模型：<span id="modeLabel" class="mode"></span></p>
     <label>Google AI Studio 金鑰（老師和筆記員共用）
       <input type="password" id="googleKey" autocomplete="off" placeholder="AIza...">
       <span class="hint">到 aistudio.google.com 的「Get API key」申請。金鑰只存在這台電腦的瀏覽器裡。錄影時別打開這個視窗；用公用電腦的話，用完按「清除金鑰」。</span>
       <span><button type="button" class="ghost" id="testKey">測試金鑰</button> <span class="hint" id="testKeyResult"></span></span>
     </label>
-    <label>說話方式
+    <label hidden>說話方式
       <select id="talkMode">
         <option value="ptt">按一下說：按一下開始、再按一下送出（空白鍵也可以）</option>
         <option value="auto">耐心自動：直接講，你停比較久（約 2 秒）老師才接</option>
@@ -236,7 +505,7 @@ input[type=text],input[type=password],select,textarea{border:1px solid var(--rul
     </label>
     <details class="hint">
       <summary>另外一定會自動加上的規則（不能改，保護「發音不清楚不算文法錯」和筆記本一致）</summary>
-      <pre id="fixedRules" style="white-space:pre-wrap;font-size:12px;max-height:240px;overflow:auto"></pre>
+      <pre id="fixedRules"></pre>
     </details>
     <label>筆記員的模型（Google，要能聽錄音）
       <select id="noteModelSelect"></select>
@@ -260,6 +529,7 @@ input[type=text],input[type=password],select,textarea{border:1px solid var(--rul
         <option value="strict">嚴格：文法和不自然的說法都改</option>
       </select>
     </label>
+    <details class="log"><summary>連線紀錄（出問題時打開，整段貼給 Claude）</summary><pre id="log"></pre></details>
     <div class="dialog-actions">
       <button type="button" class="ghost danger" id="clearKeys">清除金鑰</button>
       <button type="button" class="ghost" onclick="document.getElementById('settings').close('cancel')">取消</button>
@@ -340,6 +610,9 @@ let settings = Object.assign({
 let lessons = store.get('sngm_lessons', []);   // 課堂整理：一次通話一堂課
 let lesson = null;                             // 正在上的這一堂
 let notes = store.get('sngm_notes', []);   // 筆記本，和 v6 的筆記分開
+// 右欄只顯示「這堂課」的筆記：每則記下是哪一堂（lesson），開新課就換成新的一堂。舊筆記不刪，只是不顯示（課堂整理裡看得到）
+let noteLesson = store.get('sngm_noteLesson', null);
+function shownNotes(){ return noteLesson ? notes.filter(n => n.lesson === noteLesson) : notes; }
 let profile = store.get('sngm_profile', {text:'', updated:0});   // 學生小檔案：老師對你的記憶，每堂課後改寫
 function todayText(){ return new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric', weekday:'long'}); }
 /* gemini-2：老師換成 Gemini Live。之前存的 OpenAI 模型名稱和金鑰清掉 */
@@ -371,9 +644,35 @@ const chatEl = $('chat');
 
 /* ---------- 小工具 ---------- */
 function setStatus(text, isError){
-  $('status').textContent = text || '';
-  $('status').classList.toggle('error', !!isError);
+  // 錯誤改成對話欄最上面的卡片（標題＋說明＋需要時「打開設定」）。
+  // 一般訊息放進對話裡當置中的灰色小字（像聊天軟體的系統訊息），跟著對話往上捲，麥克風列不會跳動。
+  // 對話最後一個就是提示的話直接改它，不要一直疊；空字串只收掉還在最後的那一行
+  $('errCard').hidden = true;
+  if(isError){ showError(String(text || '')); return; }
+  const last = chatEl.lastElementChild;
+  const line = last && last.classList.contains('status-line') ? last : null;
+  if(!text){ if(line) line.remove(); return; }
+  if(line){ setText(line, text); return; }
+  addBubble('sys', text).classList.add('status-line');
 }
+function errTitle(t){
+  if(/金鑰不正確/.test(t)) return '金鑰不能用';
+  if(/金鑰/.test(t) && /貼上|沒有填|還沒/.test(t)) return '還沒填 Google 金鑰';
+  if(/找不到麥克風/.test(t)) return '找不到麥克風';
+  if(/麥克風權限/.test(t)) return '瀏覽器不讓網頁用麥克風';
+  if(/找不到老師的模型/.test(t)) return '找不到老師的模型';
+  if(/用量|餘額|額度/.test(t)) return '額度不夠';
+  if(/這堂課還在/.test(t)) return '連線中斷';
+  return '出了點問題';
+}
+function showError(t){
+  $('errTitle').textContent = errTitle(t);
+  $('errText').textContent = t;
+  $('errSettings').hidden = !/設定/.test(t);
+  $('errCard').hidden = false;
+}
+$('errSettings').onclick = () => { $('errCard').hidden = true; openSettings(); };
+$('errClose').onclick = () => { $('errCard').hidden = true; };
 function log(msg, obj){
   const t = new Date().toLocaleTimeString('zh-TW', {hour12:false});
   let line = '[' + t + '] ' + msg;
@@ -401,10 +700,28 @@ function setText(div, text, pending){
   div.classList.toggle('pending', !!pending);
   chatEl.scrollTop = chatEl.scrollHeight;
 }
-function setMeta(div, text){
+// 美化：回想／上網查的小泡泡前面放細線圖示（取代原本的 🔎 🌐）
+const TOOL_ICONS = {
+  recall:'<path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>',
+  web:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c3.5 3.2 3.5 14.8 0 18"/><path d="M12 3c-3.5 3.2-3.5 14.8 0 18"/>'
+};
+function toolBubble(kind, text){
+  const div = addBubble('sys', text, true);
+  div.classList.add('tool');
+  div.insertAdjacentHTML('afterbegin', '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true">' + TOOL_ICONS[kind] + '</svg>');
+  return div;
+}
+// 泡泡最下面一行：秒數（.meta-t）＋你的泡泡還有「▶ 重聽」接在後面
+function metaRow(div){
   let m = div.querySelector('.meta');
   if(!m){ m = document.createElement('span'); m.className = 'meta'; div.appendChild(m); }
-  m.textContent = text;
+  return m;
+}
+function setMeta(div, text){
+  const m = metaRow(div);
+  let t = m.querySelector('.meta-t');
+  if(!t){ t = document.createElement('span'); t.className = 'meta-t'; m.prepend(t); }
+  t.textContent = text;
 }
 function renderStats(){
   const s = turns.filter(t => t.start != null);
@@ -420,24 +737,115 @@ function setCallUI(state){
   if(state !== 'switching' && state !== 'ready' && state !== 'auto') talkQueued = false;
   if(state === 'ready' && talkQueued){ talkQueued = false; setTimeout(() => { if(callState === 'ready') startTalking(); }, 0); }
   const btn = $('call');
-  btn.classList.toggle('on', state === 'auto' || state === 'talking');
   btn.disabled = state === 'connecting' || state === 'switching' || state === 'ending';
   btn.classList.toggle('paused', state === 'paused');
   const labels = {off:'開始上課', connecting:'連線中', switching:'切換中', ending:'下課中', auto:'暫停', paused:'繼續上課', ready:'開始說話', talking:'說完了，送出'};
   btn.setAttribute('aria-label', labels[state]); btn.title = labels[state];
   $('hangup').hidden = !(state === 'ready' || state === 'talking' || state === 'auto' || state === 'paused' || state === 'switching' || state === 'ending');
   $('cancelTalk').hidden = state !== 'talking';
-  const text = {
-    off:'<b>按麥克風開始上課</b><span>接通後老師會先跟你打招呼。</span>',
-    connecting:'<b>連線中…</b><span>第一次會問你能不能用麥克風，請按允許。</span>',
-    switching:'<b>切換成「' + modeName(modeSwitch || talkMode()) + '」…</b><span>老師回完這句就換好，請稍等一下。</span>',
-    auto:'<b>上課中（' + modeName(talkMode()) + '）</b><span>直接用英文說話，講完老師就會回你。想停一下就按麥克風暫停；要下課按「結束課堂」。</span>',
-    paused:'<b>暫停中</b><span>你的聲音沒有送出，老師在等你。按麥克風繼續；要下課按「結束課堂」。</span>',
-    ready:'<b>按一下開始說話</b><span>或按空白鍵。想停頓多久都可以，說完再按一次送出。</span>',
-    talking:'<b>正在聽你說…</b><span>說完再按一次（或空白鍵），老師才會回答。講不好想重來：按 Esc 或「取消這句」。</span>'
-  };
-  $('callText').innerHTML = text[state];
+  // 說話方式晶片：只在「開始上課」和「暫停中」出現（IDEAS.md 選 B）。
+  // 按一下說沒有暫停，所以「等你開口」（ready）時也要出現，不然換不回自動
+  $('modeChip').hidden = !(state === 'off' || state === 'paused' || state === 'ready');
+  if($('modeChip').hidden) closeModeMenu();
+  updateModeChip();
+  showCallState(true);
+  if(state === 'auto' || state === 'ready' || state === 'talking' || state === 'switching') startMeter();
 }
+/* 麥克風旁的狀態：一行字＋音量條，麥克風圖示跟著換（PENDING S2–S4）。
+   「回覆中」只是顯示：老師正在出聲時蓋過「聆聽中／按一下開始說」，不改 callState */
+const MIC_ICONS = {
+  mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="1"/><path d="M5 11v1a7 7 0 0 0 14 0v-1M12 19v3M8 22h8"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6.5" y="5" width="4" height="14"/><rect x="13.5" y="5" width="4" height="14"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
+  stop:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/></svg>',
+  spin:'<svg class="spin-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M12 3a9 9 0 1 1-9 9"/></svg>'
+};
+const BARS = me => '<span class="bars' + (me ? ' me' : '') + '" aria-hidden="true"><i></i><i></i><i></i><i></i></span>';
+let shownState = '';
+function displayState(){
+  if((callState === 'auto' || callState === 'ready') && teacherSpeaking()) return 'reply';
+  return callState;
+}
+function showCallState(force){
+  const d = displayState();
+  if(!force && d === shownState) return;
+  shownState = d;
+  const text = {off:'開始上課', connecting:'連線中…', switching:'切換成「' + modeName(modeSwitch || talkMode()) + '」…', ending:'下課中…',
+    auto:'聆聽中', paused:'暫停中', ready:'按一下開始說', talking:'聆聽中', reply:'回覆中'};
+  const bars = d === 'auto' || d === 'talking' ? BARS(true) : d === 'reply' ? BARS(false) : '';
+  $('callText').innerHTML = '<b>' + bars + text[d] + '</b>';
+  const icon = {off:'mic', ready:'mic', auto:'mic', talking:'stop', paused:'play', reply:callState === 'auto' ? 'pause' : 'mic',
+    connecting:'spin', switching:'spin', ending:'spin'}[d] || 'mic';
+  const btn = $('call');
+  if(btn.dataset.icon !== icon){ btn.innerHTML = MIC_ICONS[icon]; btn.dataset.icon = icon; }
+  btn.classList.toggle('on', d === 'auto' || d === 'talking');
+}
+// 音量條：你的聲音（粉）接麥克風，老師的聲音（藍）接播放
+let micAn = null, outGain = null, outAn = null, meterOn = false;
+const meterBuf = new Float32Array(1024);
+function level(an){
+  if(!an) return 0;
+  an.getFloatTimeDomainData(meterBuf);
+  let sum = 0; for(let i = 0; i < meterBuf.length; i++) sum += meterBuf[i] * meterBuf[i];
+  return Math.min(1, Math.sqrt(sum / meterBuf.length) * 7);
+}
+function meterLoop(){
+  if(!(inCall() || callState === 'switching')){ meterOn = false; showCallState(false); return; }
+  showCallState(false);
+  const b = $('callText').querySelector('.bars');
+  if(b){
+    const lv = level(b.classList.contains('me') ? micAn : outAn);
+    const k = [0.7, 1, 0.85, 0.55];
+    b.querySelectorAll('i').forEach((x, i) => x.style.setProperty('--lv', Math.min(1, lv * k[i] * (0.8 + Math.random() * 0.4)).toFixed(2)));
+  }
+  requestAnimationFrame(meterLoop);
+}
+function startMeter(){ if(!meterOn){ meterOn = true; requestAnimationFrame(meterLoop); } }
+function outNode(){
+  if(!outGain || outGain.context !== pctx){
+    outGain = pctx.createGain(); outGain.connect(pctx.destination);
+    outAn = pctx.createAnalyser(); outAn.fftSize = 1024; outGain.connect(outAn);
+  }
+  return outGain;
+}
+// 說話方式晶片和小選單
+function updateModeChip(){
+  const inCallChip = callState === 'paused' || callState === 'ready' || callState === 'switching';
+  const m = inCallChip ? (callState === 'switching' && modeSwitch ? modeSwitch : talkMode()) : settings.talkMode;
+  $('modeChipText').textContent = modeName(m);
+  $('modeMenu').querySelectorAll('button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.mode === m)));
+}
+function closeModeMenu(){ $('modeMenu').hidden = true; $('modeChip').setAttribute('aria-expanded', 'false'); }
+$('modeChip').onclick = e => {
+  e.stopPropagation();
+  const open = $('modeMenu').hidden;
+  if(!open){ closeModeMenu(); return; }
+  updateModeChip();
+  $('modeMenu').hidden = false; $('modeChip').setAttribute('aria-expanded', 'true');
+  const cur_ = $('modeMenu').querySelector('[aria-checked=true]'); if(cur_) cur_.focus();
+};
+$('modeMenu').onclick = e => {
+  const b = e.target.closest('button[data-mode]'); if(!b) return;
+  e.stopPropagation();
+  const m = b.dataset.mode;
+  closeModeMenu(); $('modeChip').focus();
+  const live = callState === 'paused' || callState === 'ready';   // 上課中（暫停中、或按一下說等你開口）：真的換線
+  const changed = m !== (live ? talkMode() : settings.talkMode);
+  settings.talkMode = m; store.set('sngm_settings', settings);
+  if(live) switchMode(m);
+  updateModeChip();
+  if(changed && callState !== 'switching') setStatus('說話方式改成「' + modeName(m) + '」' + (callState === 'paused' ? '，按麥克風繼續就用新的方式。' : '。'));
+};
+document.addEventListener('click', e => { if(!$('modeMenu').hidden && !e.target.closest('#modeMenu')) closeModeMenu(); });
+document.addEventListener('keydown', e => {
+  if($('modeMenu').hidden) return;
+  if(e.key === 'Escape'){ e.preventDefault(); closeModeMenu(); $('modeChip').focus(); return; }
+  if(e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+    e.preventDefault();
+    const items = [...$('modeMenu').querySelectorAll('button')], i = items.indexOf(document.activeElement);
+    items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus();
+  }
+}, true);
 function inCall(){ return callState === 'auto' || callState === 'ready' || callState === 'talking'; }
 let micSending = false;   // 自動模式才用：要不要把麥克風聲音即時送給老師（麥克風本身一直開著，錄音才不會斷）
 function setMicOn(on){ micSending = !!on; }
@@ -636,7 +1044,12 @@ function friendlyClose(code, reason){
 async function startCall(){
   if(!settings.googleKey){ setStatus('請先到「設定」貼上 Google AI Studio 金鑰。', true); openSettings(); return; }
   connecting = true; setCallUI('connecting'); setStatus('');
-  lesson = {id:Date.now(), start:Date.now(), end:null, turns:0, sentences:[], items:[], natural:[], status:'live'};
+  clearChat();   // 每次開始上課都從空白的對話開始（上一堂存好的會飛進「課堂整理」）
+  if(navigator.permissions && navigator.permissions.query) navigator.permissions.query({name:'microphone'}).then(q => {
+    if(q.state === 'prompt' && callState === 'connecting') addBubble('sys', '第一次會問麥克風權限，請按「允許」。');
+  }).catch(() => {});
+  lesson = chatLesson = {id:Date.now(), start:Date.now(), end:null, turns:0, sentences:[], items:[], natural:[], status:'live'};
+  noteLesson = lesson.id; store.set('sngm_noteLesson', noteLesson); renderNotes();   // 右欄筆記本從 0 則開始
   resumeHandle = ''; rejoin = false; autoRetries = 0;
   callMode = null; callMode = talkMode();
   // 錄音和播放的音訊引擎要在「按下按鈕的當下」建立，不然 Chrome 可能不讓它啟動。掛斷後會保留，下次直接沿用。
@@ -650,6 +1063,13 @@ async function startCall(){
     }
     actx && actx.resume(); pctx && pctx.resume();
     setMicOn(false);
+    if(memoryJob){   // 上一堂的記憶還沒更新好：先等（最多 30 秒），新課的老師才記得上一堂
+      setStatus('正在整理上一堂課，請稍等…');
+      log('上一堂的記憶還在更新，等它好再開始');
+      await Promise.race([memoryJob, new Promise(r => setTimeout(r, 30000))]);
+      if(callState !== 'connecting'){ return; }   // 等的時候按了取消
+      setStatus('');
+    }
     openSocket();
   }catch(err){
     log('錯誤：' + (err && err.message));
@@ -688,6 +1108,7 @@ function openSocket(){
       return;
     }
     const wasConnecting = connecting || swapping;
+    resumeAfterSwap = false;   // 換線失敗：等你再按一次麥克風
     ws = null; wsReady = false;
     swapping = false; swapBuf = []; clearInterval(swapWatch);
     if(callState === 'off') return;
@@ -727,6 +1148,7 @@ let swapBuf = [];         // 換線時先存著的麥克風聲音
 let swapWatch = null;
 let autoRetries = 0;      // 斷線後自動重連了幾次（接通就歸零）
 let swapTries = 0;        // 換線時 Google 說舊連線還在，重試了幾次
+let resumeAfterSwap = false;   // 暫停中換線、還沒接好就按了繼續：接好後自動繼續
 function quietForSwap(){
   if(cur || serverBusy || toolPending || autoTurn || pttTurn || pttSending || callState === 'talking' || callState === 'connecting' || teacherSpeaking()) return false;
   if(waitingTurn && performance.now() - (waitingTurn.tStop || 0) < 8000) return false;   // 剛說完，老師快要回了
@@ -861,6 +1283,10 @@ function pauseCall(){
 // 繼續：連線還在就直接繼續；斷掉了就重新連線，同一堂課接著上
 function resumeCall(){
   actx && actx.resume(); pctx && pctx.resume();
+  if(swapping && callState === 'paused'){   // 暫停中換說話方式、新連線還在接：不要關掉重開，接好就繼續
+    resumeAfterSwap = true; setStatus('換線中，接好就繼續…'); log('換線中按了繼續：接好就繼續');
+    return;
+  }
   if(ws && wsReady){
     setMicOn(talkMode() !== 'ptt');
     setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
@@ -895,6 +1321,7 @@ function sayGoodbye(){
     if((said && !serverBusy && !cur && playing_.size === 0) || performance.now() - t0 > 15000) endCall(true);
   }, 300);
 }
+let memoryJob = null;   // 上一堂課的課堂整理＋記憶更新還在做：開新課要等它，老師才會用到最新的記憶
 function endCall(say){
   connecting = false;
   clearInterval(byeWatch); byeWatch = null;
@@ -908,7 +1335,8 @@ function endCall(say){
     const L = lesson; lesson = null;
     if(L.turns > 0){
       L.end = Date.now(); L.status = 'waiting'; saveLesson(L);
-      reviewChain.then(() => summarizeLesson(L)).then(() => updateProfile(L));
+      const job = reviewChain.then(() => summarizeLesson(L)).then(() => updateProfile(L)).catch(() => {});
+      memoryJob = job; job.then(() => { if(memoryJob === job) memoryJob = null; });
     }else setTimeout(() => chatDb.remove(L.id), 3000);   // 沒說到話的通話不算一堂課，只有招呼的紀錄就丟掉
   }
 }
@@ -929,7 +1357,7 @@ function playChunk(b64, mime){
   const ch = buf.getChannelData(0);
   for(let i = 0; i < n; i++) ch[i] = view.getInt16(i * 2, true) / 32768;
   const src = pctx.createBufferSource();
-  src.buffer = buf; src.connect(pctx.destination);
+  src.buffer = buf; src.connect(outNode());   // 經過分析器：麥克風旁的藍色音量條
   // 接在上一段後面播；如果已經播完了（中間有空檔），就稍微留 0.05 秒緩衝再開始
   const now = pctx.currentTime;
   if(playHead < now + 0.02) playHead = now + 0.05;
@@ -1009,6 +1437,7 @@ function onServer(m, t0){
       const buf = swapBuf; swapBuf = [];
       for(const b64 of buf) send({realtimeInput:{audio:{mimeType:'audio/pcm;rate=16000', data:b64}}});
       log('換線完成（' + secs(performance.now() - (window.swapT0 || t0)) + ' 秒），' + (usedHandle ? '接回同一段對話' : '已附上目前的對話') + (buf.length ? '，補送 ' + buf.length + ' 段聲音' : ''));
+      if(resumeAfterSwap){ resumeAfterSwap = false; if(callState === 'paused') resumeCall(); }
       return;
     }
     setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
@@ -1207,6 +1636,7 @@ function finishTalking(){
       setText(u.bubble, '（沒聽到你說話，這句沒有送出）', false);
       const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
       u.wav = null;
+      log('太安靜，當作沒說話，這句沒有送出');
       setStatus('沒聽到聲音，這句沒有送給老師。請靠近麥克風再說一次。');
       return;
     }
@@ -1250,6 +1680,7 @@ function cancelTalking(){
   u.bubble.remove(); const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
   setCallUI('ready');
   setStatus('已取消這句，沒有送出。準備好再按一下重新說。');
+  log('已取消這句（按了「取消這句」），沒有送出');
 }
 document.addEventListener('keydown', e => {
   if(e.code === 'Escape' && callState === 'talking' && !$('settings').open && !$('lessons').open){ e.preventDefault(); cancelTalking(); return; }
@@ -1293,11 +1724,13 @@ function startCapture(stream){
       if(micSending) onMicChunk(t, d, actx.sampleRate);
     };
     src.connect(proc); proc.connect(actx.destination);   // 輸出是靜音，只是讓它持續運作
+    micAn = actx.createAnalyser(); micAn.fftSize = 1024; src.connect(micAn);   // 麥克風旁的音量條
   }catch(e){ log('錄音引擎啟動失敗：' + e.message); }
 }
 function stopCapture(){
   if(proc){ try{ proc.disconnect(); }catch(e){} proc = null; }
   if(actx){ try{ actx.close(); }catch(e){} actx = null; }
+  micAn = null;
   ring = [];
 }
 function cutTurnAudio(tStart, tStop, pad){
@@ -1344,10 +1777,10 @@ function playWav(url){
 function addPlayButton(div, wav){
   if(div.querySelector('.play')) return;
   const b = document.createElement('button');
-  b.className = 'play'; b.textContent = '▶'; b.title = '重聽這一句（' + wav.secs.toFixed(1) + ' 秒）';
+  b.className = 'play'; b.type = 'button'; b.textContent = '▶ 重聽'; b.title = '重聽這一句（' + wav.secs.toFixed(1) + ' 秒）';
   b.setAttribute('aria-label', '重聽這一句');
   b.onclick = () => playWav(wav.url);
-  div.querySelector('.txt').after(b);
+  metaRow(div).appendChild(b);   // 接在秒數後面，同一行
 }
 
 /* ---------- 發音練習小窗：小小的對話練習 ----------
@@ -1409,9 +1842,19 @@ function closePron(){
   if(window.speechSynthesis) speechSynthesis.cancel();
   b.urls.forEach(u => URL.revokeObjectURL(u));
   b.el.remove();
+  renderNotes();   // 那則發音提醒變回收著的樣子
   if(b.paused && callState === 'paused') resumeCall();
 }
-function openPron(anchor, info){
+// 念一個字（瀏覽器內建的聲音，馬上開口）：筆記裡的黃字、念／慢速鈕，聊天泡泡裡的黃字
+function sayWord(word, rate){
+  if(!window.speechSynthesis || !word) return;
+  if(pronBox && pronBox.audio) pronBox.audio.pause();
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word); u.lang = 'en-US'; u.rate = rate || 1;
+  const v = pronVoice(); if(v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+function openPron(info){
   closePron();
   const word = String(info.word || '').trim(); if(!word) return;
   const live = ['ready', 'talking', 'auto'].includes(callState);
@@ -1419,15 +1862,9 @@ function openPron(anchor, info){
   const b = {el:el('div', 'pron-box'), paused:live, nid:info.nid || '', urls:[], audio:null, history:[], tries:0, busy:false, rec:null};
   pronBox = b;
   b.el.onclick = e => e.stopPropagation();
-  const head = el('div', 'pb-head');
-  head.appendChild(el('b', null, '🗣 練習：' + word));
-  const x = el('button', 'ghost', '收起'); x.type = 'button'; x.onclick = closePron; head.appendChild(x);
-  b.el.appendChild(head);
-  if(info.said || info.tip) b.el.appendChild(el('p', 'meaning', (info.said ? '剛才聽起來像「' + info.said + '」。' : '') + (info.tip || '')));
   const chat = el('div', 'pb-chat'); b.el.appendChild(chat);
   const ctl = el('div', 'pb-row');
-  const btn = (t, fn) => { const k = el('button', 'ghost', t); k.type = 'button'; k.onclick = fn; ctl.appendChild(k); return k; };
-  const status = el('p', 'pb-status', live ? '上課先暫停了，收起後自動繼續。' : '');
+  const status = el('p', 'pb-status', '');   // 平常不寫操作說明，只在出錯時寫一行
   const say = t => { status.textContent = t; };
   const hush = () => { if(b.audio) b.audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); };
   const play = (url, rate) => {
@@ -1442,23 +1879,23 @@ function openPron(anchor, info){
     const v = pronVoice(); if(v) u.voice = v;
     speechSynthesis.speak(u);
   };
-  const replayBtns = (m, fn) => {   // fn(速度)：▶ 正常、🐢 慢速
-    const p1 = el('button', 'ghost', '▶'); p1.type = 'button'; p1.title = '再聽一次'; p1.onclick = () => fn(1);
-    const p2 = el('button', 'ghost', '🐢'); p2.type = 'button'; p2.title = '慢速再聽'; p2.onclick = () => fn(SLOW_RATE);
-    m.appendChild(p1); m.appendChild(p2);
-  };
   const addLine = (who, text, zh) => {
     const m = el('div', 'pb-msg ' + who); m.appendChild(el('span', null, text));
     if(zh) m.appendChild(el('span', 'pb-zh', zh));
     chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
     return m;
   };
-  const speak = (text, m) => {   // 老師開口：用瀏覽器內建的聲音（不用等轉檔），可以再聽、慢速聽
+  const speak = text => {   // 老師開口：用瀏覽器內建的聲音（不用等轉檔），念一次就好，不能重聽
     if(pronBox !== b) return;
-    replayBtns(m, r => voice(text, r));
     if(!(b.rec && b.rec.state === 'recording')) voice(text, 1);
   };
-  const talkBtn = btn('● 說', () => b.talk());
+  // 「說」：右邊圓形麥克風，沒有字；錄音中換成方形停止＋粉色外圈
+  const talkBtn = el('button', 'say'); talkBtn.type = 'button';
+  const talkLook = rec => {
+    talkBtn.innerHTML = MIC_ICONS[rec ? 'stop' : 'mic']; talkBtn.classList.toggle('rec', rec);
+    talkBtn.title = rec ? '念完了（空白鍵）' : '開始念（空白鍵）'; talkBtn.setAttribute('aria-label', talkBtn.title);
+  };
+  talkLook(false); talkBtn.onclick = () => b.talk(); ctl.appendChild(talkBtn);
   b.el.appendChild(ctl);
   b.el.appendChild(status);
   b.talk = async () => {   // 「● 說」和空白鍵：開始念／念完了
@@ -1471,19 +1908,21 @@ function openPron(anchor, info){
     hush();
     const chunks = []; const rec = new MediaRecorder(stream); b.rec = rec;
     rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+    say('');
     rec.onstop = () => {
-      clearTimeout(b.recTimer); talkBtn.textContent = '● 說';
+      clearTimeout(b.recTimer); talkLook(false);
       if(b.drop || pronBox !== b) return;
       turn(new Blob(chunks, {type:rec.mimeType || 'audio/webm'}));
     };
-    rec.start(); talkBtn.textContent = '■ 說完了'; say('在聽你說……念完按「■ 說完了」或空白鍵。');
+    rec.start(); talkLook(true);
     b.recTimer = setTimeout(() => { if(rec.state === 'recording') rec.stop(); }, 10000);
   };
   const turn = async blob => {   // 你念完一次：老師聽、回你一句、開口說
     b.busy = true; talkBtn.disabled = true;
     const mu = URL.createObjectURL(blob); b.urls.push(mu);
-    const me = addLine('me', '🎤 第 ' + (++b.tries) + ' 次'); replayBtns(me, r => play(mu, r));
-    const wait = addLine('coach', '……'); say('老師在聽……');
+    const me = addLine('me', '第 ' + (++b.tries) + ' 次');
+    const again = el('button', 'again', '▶'); again.type = 'button'; again.title = '聽自己念的'; again.setAttribute('aria-label', again.title); again.onclick = () => play(mu, 1); me.appendChild(again);
+    const wait = addLine('coach', '……');
     try{
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const buf = await ctx.decodeAudioData(await blob.arrayBuffer()); ctx.close();
@@ -1503,55 +1942,44 @@ function openPron(anchor, info){
       chat.scrollTop = chat.scrollHeight;
       b.history.push('Learner try ' + b.tries + ': ' + (o.heard || (o.good ? 'good' : 'not right yet')));
       b.history.push('Coach: ' + reply);
-      say('老師開口中……');
-      await speak(reply, wait);
-      if(pronBox === b) say('再按「● 說」（或空白鍵）念一次；練夠了按「收起」。');
+      speak(reply);
     }catch(err){
-      if(pronBox === b){ wait.textContent = '（老師沒聽成：' + ((err && err.message) || '網路連線錯誤') + '）'; say('再按「● 說」試一次。'); }
+      if(pronBox === b) wait.textContent = '（老師沒聽成：' + ((err && err.message) || '網路連線錯誤') + '）';
     }finally{ b.busy = false; talkBtn.disabled = false; }
   };
-  anchor.appendChild(b.el);
+  // 放進右欄那則發音提醒（重畫成展開的樣子）；手機先把筆記本拉開
+  if(PHONE.matches && !$('nbOpen').checked) $('nbOpen').checked = true;
+  renderNotes();
   // 開場：老師先念一次給你聽
   const first = 'Listen. ' + word + '. ' + word + '. Now you say it.';
-  const m0 = addLine('coach', first); b.history.push('Coach: ' + first);
-  say((live ? '上課先暫停了，收起後自動繼續。' : '') + '聽老師念，然後按「● 說」（或空白鍵）跟著念。');
-  speak(first, m0);
-  b.el.scrollIntoView({block:'nearest'});
-}
-function wordAtPoint(span, e){
-  let node = null, off = 0;
-  if(document.caretPositionFromPoint){ const q = document.caretPositionFromPoint(e.clientX, e.clientY); if(q){ node = q.offsetNode; off = q.offset; } }
-  else if(document.caretRangeFromPoint){ const q = document.caretRangeFromPoint(e.clientX, e.clientY); if(q){ node = q.startContainer; off = q.startOffset; } }
-  if(!node || !span.contains(node)) return '';
-  const r = document.createRange(); r.setStart(span, 0); r.setEnd(node, off);
-  const text = span.textContent, i = r.toString().length, isW = c => /[A-Za-z'’-]/.test(c || '');
-  let a = i, z = i;
-  while(a > 0 && isW(text[a - 1])) a--;
-  while(z < text.length && isW(text[z])) z++;
-  return text.slice(a, z).replace(/^['’-]+|['’-]+$/g, '');
+  addLine('coach', first); b.history.push('Coach: ' + first);
+  speak(first);
+  const item = b.el.closest('.note'); if(item) item.scrollIntoView({block:'nearest'});
 }
 document.addEventListener('click', e => {
   if(e.target.closest('.pron-box')) return;
   const note = e.target.closest('.note.pron-note');
   if(note){
-    const n = notes.find(x => String(x.id) === note.dataset.nid);
-    if(n){ if(pronBox && pronBox.nid === note.dataset.nid) closePron(); else openPron(note, {word:n.meant, said:n.said, tip:n.tip, nid:note.dataset.nid}); }
+    const n = notes.find(x => String(x.id) === note.dataset.nid); if(!n) return;
+    const isOpen = !!(pronBox && pronBox.nid === note.dataset.nid);
+    const info = {word:n.meant, said:n.said, tip:n.tip, nid:note.dataset.nid};
+    if(e.target.closest('.fold')){ if(isOpen) closePron(); else openPron(info); return; }
+    const r = e.target.closest('[data-rate]');
+    if(r){ sayWord(n.meant, Number(r.dataset.rate) || 1); return; }   // 展開後：黃字、念、慢速＝再念一次，不會收起
+    if(!isOpen) openPron(info);   // 收著時點哪裡都打開（打開時老師會先念）
     return;
   }
-  const span = e.target.closest('.msg.me .txt');
-  if(!span || (window.getSelection && String(window.getSelection()).length)) return;   // 正在反白選字就不開
-  const bubble = span.closest('.msg');
-  const mark = e.target.closest('.pron-mark');
-  const p = mark && mark._p;
-  const word = p ? p.meant : wordAtPoint(span, e);
-  if(!word) return;
-  openPron(bubble, {word, said:p ? p.said : '', tip:p ? p.tip : '', sentence:span._sentence || span.textContent});
+  const mark = e.target.closest('.msg.me .pron-mark');
+  if(!mark || (window.getSelection && String(window.getSelection()).length)) return;   // 正在反白選字就不念
+  sayWord(mark._p ? mark._p.meant : mark.textContent.trim(), 1);
 });
 
 /* ---------- 筆記員 ---------- */
 function setNoteStatus(text, isError){
-  $('noteStatus').textContent = text || '';
+  const t = String(text || '').replace(/^✎\s*/, '');
+  $('noteStatus').textContent = t;
   $('noteStatus').classList.toggle('error', !!isError);
+  $('noteStatus').classList.toggle('busy', !isError && /^正在/.test(t));   // 忙的時候前面轉圈
 }
 function noteLangName(){ return settings.noteLang === 'zh' ? 'Traditional Chinese (Taiwan usage)' : 'simple English'; }
 // 習慣清單：老師不口頭糾正，筆記員另外回報（字幕標記、成功率用）
@@ -1722,7 +2150,7 @@ function showFix(turn, corrected){
   if(!turn.bubble || !corrected) return;
   let f = turn.bubble.querySelector('.fix');
   if(!f){ f = el('span', 'fix'); turn.bubble.querySelector('.txt').after(f); }
-  f.textContent = '✓ ' + corrected;
+  f.textContent = corrected;
   turn.fix = corrected; saveUserLine(turn);
 }
 /* ---------- Gemini API（筆記員、課堂整理、記憶都用這個） ----------
@@ -1819,7 +2247,8 @@ function settleTurn(u){
   if(out.habits.length) log('習慣清單：' + out.habits.map(h => h.type + ' ' + h.words + '→' + h.fix + '').join('；') + '　機會 ' + JSON.stringify(out.chances));
   for(const c of real) c.source = teacherCovered(c, u.replyText) ? 'tutor' : 'added';
   const missed = real.filter(c => c.source === 'added');
-  addNotes(real, out.pronunciation);
+  const nat = out.natural ? [{wrong:String(out.natural.said), correct:String(out.natural.better), why:String(out.natural.why || ''), source:'added'}] : [];
+  addNotes(real.concat(nat), out.pronunciation);
   if(real.length) showFix(u, out.corrected);
   const L = u.lessonRef;
   if(L){   // 記進這堂課，掛斷後拿來做課堂整理
@@ -1886,12 +2315,12 @@ let lastTeacher = null;    // 最近一個老師泡泡
 function addNotes(grammar, pron){
   const added = [];
   const today = new Date().toISOString().slice(0, 10);
-  const exists = key => notes.some(n => n.key === key);
+  const exists = key => shownNotes().some(n => n.key === key);   // 同一堂課不重複記；不同堂可以再記
   for(const c of grammar || []){
     if(!c || !c.wrong || !c.correct) continue;
     const key = ('g|' + c.wrong + '|' + c.correct).toLowerCase();
     if(exists(key)) continue;
-    const n = {id:Date.now() + Math.random(), key, type:'grammar', wrong:c.wrong, correct:c.correct, why:c.why || '', source:c.source || 'tutor', date:today};
+    const n = {id:Date.now() + Math.random(), key, type:'grammar', wrong:c.wrong, correct:c.correct, why:c.why || '', source:c.source || 'tutor', date:today, lesson:noteLesson};
     notes.unshift(n); added.push(n);
   }
   if(settings.pronNotes){
@@ -1899,7 +2328,7 @@ function addNotes(grammar, pron){
       if(!p || !p.meant) continue;
       const key = ('p|' + (p.said || '') + '|' + p.meant).toLowerCase();
       if(exists(key)) continue;
-      const n = {id:Date.now() + Math.random(), key, type:'pron', said:p.said || '', meant:p.meant, tip:p.tip || '', date:today};
+      const n = {id:Date.now() + Math.random(), key, type:'pron', said:p.said || '', meant:p.meant, tip:p.tip || '', date:today, lesson:noteLesson};
       notes.unshift(n); added.push(n);
     }
   }
@@ -1908,29 +2337,204 @@ function addNotes(grammar, pron){
   return added;
 }
 function el(tag, cls, text){ const e = document.createElement(tag); if(cls) e.className = cls; if(text != null) e.textContent = text; return e; }
+/* ---------- 筆記只劃錯的字（PENDING E1、E2） ----------
+   比對原句和正確句（一個字一個字比），刪掉的字劃線、加的字紅色粗體，組成一句。
+   改動超過一半（或比對不出來）就改回兩行：灰色原句＋下一行紅色正確句。 */
+function wordDiff(a, b){
+  const A = String(a).trim().split(/\s+/).filter(Boolean), B = String(b).trim().split(/\s+/).filter(Boolean);
+  const norm = w => w.toLowerCase().replace(/[^a-z0-9']/g, '');
+  const n = A.length, m = B.length;
+  if(!n || !m || n * m > 40000) return null;
+  const L = Array.from({length:n + 1}, () => new Array(m + 1).fill(0));
+  for(let i = n - 1; i >= 0; i--) for(let j = m - 1; j >= 0; j--)
+    L[i][j] = norm(A[i]) === norm(B[j]) ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const ops = []; let i = 0, j = 0;
+  while(i < n || j < m){
+    if(i < n && j < m && norm(A[i]) === norm(B[j])){ ops.push({t:'=', w:B[j]}); i++; j++; }
+    else if(i < n && (j >= m || L[i + 1][j] >= L[i][j + 1])){ ops.push({t:'-', w:A[i]}); i++; }
+    else { ops.push({t:'+', w:B[j]}); j++; }
+  }
+  return ops;
+}
+function grammarLines(wrong, correct){
+  const ops = wordDiff(wrong, correct);
+  const changed = ops ? ops.filter(o => o.t !== '=').length : 0;
+  // 字的順序換掉（刪掉的字又在別處加回來）也算太亂，用兩行
+  const nrm = w => w.toLowerCase().replace(/[^a-z0-9']/g, '');
+  const dels = new Set(ops ? ops.filter(o => o.t === '-').map(o => nrm(o.w)) : []);
+  const moved = ops && ops.some(o => o.t === '+' && dels.has(nrm(o.w)));
+  const nW = ops ? ops.filter(o => o.t !== '+').length : 0, mW = ops ? ops.filter(o => o.t !== '-').length : 0;
+  const tooMany = ops && (ops.filter(o => o.t === '-').length > Math.max(1, nW / 2) || ops.filter(o => o.t === '+').length > Math.max(1, mW / 2));
+  if(ops && changed && !tooMany && !moved){
+    const p = el('p', 'line diff'), parts = [];
+    for(let k = 0; k < ops.length;){
+      if(ops[k].t === '='){ parts.push(document.createTextNode(ops[k].w)); k++; continue; }
+      const del = [], add = [];
+      while(k < ops.length && ops[k].t !== '='){ (ops[k].t === '-' ? del : add).push(ops[k].w); k++; }
+      if(del.length) parts.push(el('del', null, del.join(' ')));
+      if(add.length) parts.push(el('span', 'add', add.join(' ')));
+    }
+    parts.forEach((x, k) => { if(k) p.appendChild(document.createTextNode(' ')); p.appendChild(x); });
+    return [p];
+  }
+  const l1 = el('p', 'line'); l1.appendChild(el('span', 'mark x', '✗')); l1.appendChild(el('span', 'wrong', wrong));
+  const l2 = el('p', 'line'); l2.appendChild(el('span', 'mark ok', '✓')); l2.appendChild(el('span', 'correct', correct));
+  return [l1, l2];
+}
+const ICON_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 15l7-7 7 7"/></svg>';
+const ICON_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>';
+const ICON_SPK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+const ICON_TURTLE = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M3 16a8.5 8.5 0 0 1 17 0z"/><circle cx="21.3" cy="12.8" r="2.4"/><path d="M5 16h3v3H5zM15 16h3v3h-3zM3.5 15L1 16.8h2.5z"/></svg>';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const PHONE = matchMedia('(max-width:700px)');
+function phoneStrip(){ return PHONE.matches && !$('nbOpen').checked; }
+// 筆記數字：新筆記時變的那一位往上捲（手機筆記條，PENDING N2）
+let shownCount = 0;
+function setNoteCount(v, animate){
+  const c = $('noteCount');
+  if(!v){ c.innerHTML = ''; shownCount = 0; return; }
+  const cell = (x, y) => '<span class="dg"><span>' + x + '</span>' + (y == null ? '' : '<span>' + y + '</span>') + '</span>';
+  const a = String(shownCount || ''), b = String(v);
+  const roll = animate && shownCount && shownCount < v && !RM && phoneStrip();
+  shownCount = v;
+  if(!roll){ c.innerHTML = '<span class="num">' + b.split('').map(d => cell(d)).join('') + '</span><span class="ze">則</span>'; return; }
+  const A = a.padStart(b.length, ' ');
+  c.innerHTML = '<span class="num">' + b.split('').map((d, i) => A[i] === d ? cell(d) : cell(A[i] === ' ' ? '&nbsp;' : A[i], d)).join('') + '</span><span class="ze">則</span>';
+  const gs = [...c.querySelectorAll('.dg')].filter(g => g.children.length > 1);
+  gs.forEach(g => g.classList.add('roll2'));
+  requestAnimationFrame(() => requestAnimationFrame(() => gs.forEach(g => g.classList.add('go'))));
+  setTimeout(() => { if(shownCount === v) setNoteCount(v, false); }, 560);
+}
+// 手機筆記條：最新一則（只顯示正確的那一行＋原因），新筆記時往上捲進來
+function stripLines(n){
+  const out = [];
+  if(n.type === 'pron'){
+    const l = el('p', 'line'); l.appendChild(el('span', 'pron-word', n.meant));
+    if(n.said) l.appendChild(document.createTextNode('　聽起來像 ' + n.said));
+    out.push(l); if(n.tip) out.push(el('p', 'meaning', n.tip));
+  }else{
+    const ls = grammarLines(n.wrong, n.correct);
+    out.push(ls.length === 1 ? ls[0] : ls[1]);
+    if(n.why) out.push(el('p', 'meaning', n.why));
+  }
+  return out;
+}
+let stripTimer = null;
+function renderStrip(animate){
+  const box = $('stripLatest');
+  const sl = el('span', 'sl');
+  const first = shownNotes()[0];
+  if(first) stripLines(first).forEach(x => sl.appendChild(x));
+  else sl.appendChild(el('p', 'meaning', '老師糾正過的句子會自動記在這裡。按左下的麥克風開始聊天吧。'));
+  const roll = box.querySelector('.roll'), old = roll && roll.querySelector('.sl:last-child');
+  if(!animate || !old || RM || !phoneStrip()){
+    clearTimeout(stripTimer);
+    box.innerHTML = ''; box.style.height = '';
+    const r = el('span', 'roll'); r.appendChild(sl); box.appendChild(r); fitLine(sl);
+    return;
+  }
+  [...roll.querySelectorAll('.sl')].slice(0, -1).forEach(x => x.remove());
+  roll.appendChild(sl); fitLine(sl);
+  const h = old.offsetHeight;
+  box.style.height = h + 'px';
+  requestAnimationFrame(() => { roll.classList.add('go'); roll.style.transform = 'translateY(-' + h + 'px)'; box.style.height = sl.offsetHeight + 'px'; });
+  clearTimeout(stripTimer);
+  stripTimer = setTimeout(() => { roll.classList.remove('go'); roll.style.transform = ''; if(old.parentNode) old.remove(); box.style.height = ''; }, 560);
+}
+// 句子太長：從錯字附近開始顯示，前面用「…」代替，讓紅色的字一定看得到
+function fitLine(sl){
+  const p = sl.querySelector('p.diff'); if(!p || !phoneStrip()) return;
+  if(p._o == null) p._o = p.innerHTML; else p.innerHTML = p._o;
+  if(p.scrollWidth <= p.clientWidth) return;
+  const mark = p.querySelector('.add') || p.querySelector('del'), first = p.querySelector('del,.add');
+  if(!mark) return;
+  const ell = el('span', 'ell', '… '); p.insertBefore(ell, p.firstChild);
+  const room = parseFloat(getComputedStyle(p).fontSize) * 1.5;
+  for(let k = 0; k < 200; k++){
+    if(mark.getBoundingClientRect().right <= p.getBoundingClientRect().right - room) break;   // 句尾的「…」也要佔位置
+    let x = ell.nextSibling;
+    while(x && x.nodeType === 3 && !x.textContent.trim()){ const y = x.nextSibling; x.remove(); x = y; }
+    if(!x || x === first) break;
+    x.remove();
+  }
+  while(ell.nextSibling && ell.nextSibling.nodeType === 3 && !ell.nextSibling.textContent.trim()) ell.nextSibling.remove();
+}
+function fitStrip(){ $('stripLatest').querySelectorAll('.sl').forEach(fitLine); }
+window.addEventListener('resize', fitStrip);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitStrip);
+$('nbOpen').addEventListener('change', () => setTimeout(fitStrip, 0));
+// 手機筆記本像抖音留言區：頂端那條可以拖，放開自動彈開或收起（PENDING N1）
+(() => {
+  const head = document.querySelector('.note-head'), lay = document.querySelector('.layout'), col = document.querySelector('.note-col'), cb = $('nbOpen'), MIN = 64;
+  let y0 = 0, t0 = 0, h0 = 0, down = false, moved = false, skip = false;
+  head.addEventListener('pointerdown', e => {
+    if(!PHONE.matches || e.button) return;
+    y0 = e.clientY; t0 = e.timeStamp; h0 = col.getBoundingClientRect().height; down = true; moved = false;
+  });
+  head.addEventListener('pointermove', e => {
+    if(!down) return;
+    const dy = e.clientY - y0;
+    if(!moved && Math.abs(dy) > 6){ moved = true; try{ head.setPointerCapture(e.pointerId); }catch(err){} }
+    if(!moved || !cb.checked) return;
+    lay.classList.add('dragging');
+    lay.style.setProperty('--sheet-drag', Math.max(MIN, Math.min(h0, h0 - dy)) + 'px');
+  });
+  const end = e => {
+    if(!down) return;
+    down = false;
+    lay.classList.remove('dragging');
+    if(!moved){ lay.style.removeProperty('--sheet-drag'); return; }
+    skip = true; setTimeout(() => { skip = false; }, 400);   // 拖完放開不算點一下
+    const dy = e.clientY - y0, v = dy / Math.max(1, e.timeStamp - t0);
+    if(!cb.checked){ if(dy < -20){ cb.checked = true; setTimeout(fitStrip, 0); } return; }
+    const h = col.getBoundingClientRect().height;
+    lay.style.removeProperty('--sheet-drag');
+    if(v > 0.5 || h < (h0 + MIN) / 2){ cb.checked = false; setTimeout(fitStrip, 0); }
+  };
+  head.addEventListener('pointerup', end);
+  head.addEventListener('pointercancel', () => { down = false; lay.classList.remove('dragging'); lay.style.removeProperty('--sheet-drag'); });
+  head.addEventListener('click', e => { if(skip){ e.preventDefault(); skip = false; } });
+})();
 function renderNotes(freshIds = []){
   const box = $('notes');
   box.innerHTML = '';
-  $('noteCount').textContent = notes.length ? notes.length + ' 則' : '';
-  if(!notes.length){
+  const fresh = freshIds.length > 0;
+  const list = shownNotes();
+  setNoteCount(list.length, fresh);
+  renderStrip(fresh);
+  if(!list.length){
     box.appendChild(el('p', 'empty', '老師糾正過的句子會自動記在這裡。按左下的麥克風開始聊天吧。'));
     return;
   }
-  for(const n of notes){
+  for(const n of list){
     const item = el('div', 'note' + (freshIds.includes(n.id) ? ' fresh' : ''));
     if(n.type === 'pron'){
-      item.classList.add('pron-note'); item.dataset.nid = String(n.id); item.title = '點一下練習這個字的發音';
-      const l = el('p', 'line');
-      l.appendChild(el('span', 'mark p', '🗣'));
-      if(n.said){ l.appendChild(el('span', 'said', n.said)); l.appendChild(document.createTextNode('  →  ')); }
-      l.appendChild(el('span', 'correct', n.meant));
-      item.appendChild(l);
-      item.appendChild(el('p', 'meaning', '發音提醒' + (n.tip ? '：' + n.tip : '')));
+      // 發音提醒：收著時一行「think　聽起來像 sink」＋右上 ⌄；展開時大字＋念／慢速＋練習小窗（PENDING 發音 1–9）
+      const open = !!(pronBox && pronBox.nid === String(n.id));
+      item.classList.add('pron-note'); item.classList.toggle('open', open); item.dataset.nid = String(n.id);
+      if(!open) item.title = '點一下練習這個字的發音';
+      item.appendChild(el('span', 'tag', '發音'));
+      const fold = el('button', 'fold'); fold.type = 'button';
+      fold.innerHTML = open ? ICON_UP : ICON_DOWN;
+      fold.title = open ? '收起練習' : '展開練習'; fold.setAttribute('aria-label', fold.title); fold.setAttribute('aria-expanded', String(open));
+      item.appendChild(fold);
+      if(open){
+        const hw = el('div', 'hw');
+        // 點黃字就是正常速度念，所以不另外放喇叭，只留慢速（烏龜）
+        const pw = el('button', 'pw', n.meant); pw.type = 'button'; pw.dataset.rate = '1'; pw.title = '點一下念（正常速度）';
+        const s2 = el('button', 'spk'); s2.type = 'button'; s2.innerHTML = ICON_TURTLE; s2.dataset.rate = String(SLOW_RATE); s2.title = '慢速念'; s2.setAttribute('aria-label', s2.title);
+        hw.appendChild(pw); hw.appendChild(s2); item.appendChild(hw);
+        if(n.said){ const h = el('p', 'heard', '你念的聽起來像 '); h.appendChild(el('b', null, n.said)); item.appendChild(h); }
+        if(n.tip) item.appendChild(el('p', 'meaning', n.tip));
+      }else{
+        const l = el('p', 'line');
+        l.appendChild(el('span', 'correct pw-inline', n.meant));
+        if(n.said){ l.appendChild(document.createTextNode('　聽起來像 ')); l.appendChild(el('span', 'said', n.said)); }
+        item.appendChild(l);
+        if(n.tip) item.appendChild(el('p', 'meaning', n.tip));
+      }
     }else{
-      const l1 = el('p', 'line'); l1.appendChild(el('span', 'mark x', '✗')); l1.appendChild(el('span', 'wrong', n.wrong));
-      item.appendChild(l1);
-      const l2 = el('p', 'line'); l2.appendChild(el('span', 'mark ok', '✓')); l2.appendChild(el('span', 'correct', n.correct));
-      item.appendChild(l2);
+      grammarLines(n.wrong, n.correct).forEach(x => item.appendChild(x));
       if(n.why) item.appendChild(el('p', 'meaning', n.why));
       if(n.source === 'added') item.appendChild(el('span', 'tag', '補充'));   // 老師沒講到、筆記員補記的
     }
@@ -1940,8 +2544,9 @@ function renderNotes(freshIds = []){
   if(pronBox && pronBox.nid){ const it = [...box.querySelectorAll('.note')].find(x => x.dataset.nid === pronBox.nid); if(it) it.appendChild(pronBox.el); }
 }
 $('exportNotes').onclick = () => {
-  if(!notes.length){ setNoteStatus('筆記本還是空的，沒有東西可以匯出。'); return; }
-  const lines = notes.map(n => n.type === 'pron'
+  const list = shownNotes();
+  if(!list.length){ setNoteStatus('筆記本還是空的，沒有東西可以匯出。'); return; }
+  const lines = list.map(n => n.type === 'pron'
     ? `[${n.date}] 發音\n🗣 ${n.said} → ${n.meant}\n   ${n.tip}\n`
     : `[${n.date}] 文法\n✗ ${n.wrong}\n✓ ${n.correct}\n   ${n.why}\n`);
   const blob = new Blob(['My English notebook\n\n' + lines.join('\n')], {type:'text/plain;charset=utf-8'});
@@ -1953,9 +2558,10 @@ $('exportNotes').onclick = () => {
   setNoteStatus('筆記已匯出到「下載」資料夾。');
 };
 $('clearNotes').onclick = () => {
-  if(!notes.length) return;
-  if(confirm('確定要清空全部筆記嗎？清空後無法復原。')){
-    notes = []; store.set('sngm_notes', notes); renderNotes(); setNoteStatus('筆記已清空。');
+  const list = shownNotes();
+  if(!list.length) return;
+  if(confirm('確定要清空這堂課的筆記嗎？清空後無法復原。（課堂整理裡的紀錄不受影響）')){
+    notes = notes.filter(n => !list.includes(n)); store.set('sngm_notes', notes); renderNotes(); setNoteStatus('筆記已清空。');
   }
 };
 
@@ -2092,7 +2698,7 @@ function fastChat(system, user, extra){
   return geminiGenerate(Object.assign({model:settings.noteModel, system, parts:[{text:user}], temperature:0.1, what:'工具'}, extra || {})).then(t => String(t || '').trim());
 }
 async function runRecall(query){
-  const bubble = addBubble('sys', '🔎 老師在回想以前的課…', true);
+  const bubble = toolBubble('recall', '老師在回想以前的課…');
   setStatus('老師在翻以前的課，請等幾秒…');
   const t0 = performance.now();
   let answer;
@@ -2121,12 +2727,12 @@ async function runRecall(query){
         'Today is ' + todayText() + '.\nTutor\'s question: ' + query + '\n\n' + docs);
       answer = /^NOT FOUND/i.test(text) || !text ? {found:false, memory:'Nothing about this in the records of earlier lessons.'} : {found:true, memory:text};
     }
-    setText(bubble, '🔎 回想完成（' + secs(performance.now() - t0) + ' 秒）', false);
+    setText(bubble, '回想完成（' + secs(performance.now() - t0) + ' 秒）', false);
     log('回想 "' + query + '"：' + answer.memory);
   }catch(err){
     log('回想失敗：' + (err && err.message));
     answer = {found:false, memory:'Your lesson records could not be opened right now.'};
-    setText(bubble, '🔎 回想失敗：' + ((err && err.message) || '網路錯誤'), false);
+    setText(bubble, '回想失敗：' + ((err && err.message) || '網路錯誤'), false); bubble.classList.add('failed');
   }
   setStatus('');
   return JSON.stringify(answer);
@@ -2138,7 +2744,7 @@ const WEB_TOOL = {
   parameters:{type:'OBJECT', properties:{query:{type:'STRING', description:'What to look up, in English, e.g. "latest Taiwan typhoon news" or "what is vibe coding"'}}, required:['query']}
 };
 async function runWebSearch(query){
-  const bubble = addBubble('sys', '🌐 老師在上網查：' + query + '…', true);
+  const bubble = toolBubble('web', '老師在上網查：' + query + '…');
   setStatus('老師在上網查，請等幾秒…');
   const t0 = performance.now();
   let answer;
@@ -2150,12 +2756,12 @@ async function runWebSearch(query){
     text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/https?:\/\/\S+/g, '').replace(/[*#`]/g, '').trim();
     if(!text) throw new Error('沒有查到內容');
     answer = {found:true, result:text.slice(0, 1200)};
-    setText(bubble, '🌐 查好了（' + secs(performance.now() - t0) + ' 秒）：' + query, false);
+    setText(bubble, '查好了（' + secs(performance.now() - t0) + ' 秒）：' + query, false);
     log('上網查 "' + query + '"：' + text);
   }catch(err){
     log('上網查失敗：' + (err && err.message));
     answer = {found:false, result:'The web search did not work right now. Tell the learner you could not look it up and ask them to tell you about it.'};
-    setText(bubble, '🌐 上網查失敗：' + ((err && err.message) || '網路錯誤'), false);
+    setText(bubble, '上網查失敗：' + ((err && err.message) || '網路錯誤'), false); bubble.classList.add('failed');
   }
   setStatus('');
   return JSON.stringify(answer);
@@ -2186,8 +2792,7 @@ function onToolCall(tc){
 }
 
 function pairLines(box, wrong, correct){
-  const l1 = el('p', 'line'); l1.appendChild(el('span', 'mark x', '✗')); l1.appendChild(el('span', 'wrong', wrong)); box.appendChild(l1);
-  const l2 = el('p', 'line'); l2.appendChild(el('span', 'mark ok', '✓')); l2.appendChild(el('span', 'correct', correct)); box.appendChild(l2);
+  grammarLines(wrong, correct).forEach(x => box.appendChild(x));
 }
 let lessonView = null;   // 目前打開哪一堂；null 就是在看目錄
 function lessonTitle(L){
@@ -2352,7 +2957,7 @@ function renderLessons(){
         d.appendChild(el('h3', null, '習慣清單'));
         for(const x of hr.grad){
           const gb = el('div', 'grp'); const l = el('p', 'line');
-          l.appendChild(el('b', null, '🎓 畢業：' + x.zh)); l.appendChild(document.createTextNode('　' + habitRateText(x)));
+          l.appendChild(el('b', null, '畢業：' + x.zh)); l.appendChild(document.createTextNode('　' + habitRateText(x)));
           gb.appendChild(l); d.appendChild(gb);
         }
         for(const x of hr.practice){
@@ -2364,7 +2969,7 @@ function renderLessons(){
     }
     // 整堂聊天紀錄（從本機資料庫讀出來，你的每一句都可以按 ▶ 重聽）
     d.appendChild(el('h3', null, '整堂聊天紀錄'));
-    const chatBox = el('div', 'chat'); chatBox.style.cssText = 'overflow:visible;padding:4px 0 8px';
+    const chatBox = el('div', 'chat record');
     chatBox.appendChild(el('p', 'hint', '讀取中…'));
     d.appendChild(chatBox);
     chatDb.lesson(L.id).then(lines => {
@@ -2377,19 +2982,20 @@ function renderLessons(){
         if(x.role === 'me' && x.heard) markText(tx, x.heard, x.habits, x.pron);
         if(x.role === 'me' && x.fix) tx._sentence = x.fix;
         b.appendChild(tx);
-        if(x.wav){
-          const url = URL.createObjectURL(x.wav); lessonUrls.push(url);
-          const p = el('button', 'play', '▶'); p.type = 'button'; p.title = '重聽這一句'; p.setAttribute('aria-label', '重聽這一句');
-          p.onclick = () => playWav(url);
-          b.appendChild(p);
-        }
-        if(x.fix) b.appendChild(el('span', 'fix', '✓ ' + x.fix));
+        if(x.fix) b.appendChild(el('span', 'fix', x.fix));
         const when = new Date(x.t).toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'});
-        b.appendChild(el('span', 'meta', when + (x.meta ? '｜' + x.meta : '')));
+        const meta = el('span', 'meta'); meta.appendChild(el('span', 'meta-t', when + (x.meta ? '｜' + x.meta : '')));
+        if(x.wav){   // 「▶ 重聽」接在時間後面，和上課時的泡泡一樣
+          const url = URL.createObjectURL(x.wav); lessonUrls.push(url);
+          const p = el('button', 'play', '▶ 重聽'); p.type = 'button'; p.title = '重聽這一句'; p.setAttribute('aria-label', '重聽這一句');
+          p.onclick = () => playWav(url);
+          meta.appendChild(p);
+        }
+        b.appendChild(meta);
         chatBox.appendChild(b);
       }
     });
-    const act = el('div', 'note-actions'); act.style.padding = '8px 0 0'; act.style.borderTop = 'none';
+    const act = el('div', 'lesson-acts');
     const ex = el('button', 'ghost', '匯出這堂（Markdown）'); ex.type = 'button'; ex.onclick = () => exportLesson(L); act.appendChild(ex);
     if(L.status === 'done' || L.status === 'error'){
       const re = el('button', 'ghost', '重新整理'); re.type = 'button'; re.onclick = () => summarizeLesson(L); act.appendChild(re);
@@ -2569,12 +3175,44 @@ $('call').onclick = () => {
 };
 $('hangup').onclick = () => sayGoodbye();
 $('cancelTalk').onclick = cancelTalking;
+// 課堂整理：點視窗外面（暗掉的地方）也能關。手機版是滿版，沒有外面可以點，用固定的 ×
+$('lessons').addEventListener('click', e => { if(e.target === $('lessons')) $('lessons').close(); });
 $('newChat').onclick = () => {
   if(ws || callState !== 'off') endCall(false);
+  clearChat();
+  setStatus('已開新對話，筆記本保留。按麥克風開始。');
+};
+/* 清空左邊的對話。畫面上那堂課有存進課堂整理，就讓它縮小飛進「課堂整理」按鈕；沒存（沒說到話）就直接清掉 */
+let chatLesson = null;   // 畫面上這段對話屬於哪一堂課
+function clearChat(){
+  const saved = chatLesson && lessons.includes(chatLesson);
+  chatLesson = null;
+  if(saved && chatEl.children.length) flyToLessons();
   chatEl.innerHTML = ''; userBubbles.clear(); replies.clear(); turns.length = 0; convo.length = 0;
   lastStop = 0; waitingTurn = null; pttTurn = null; commitTurn = null; activeResponse = null;
-  renderStats(); setStatus('已開新對話，筆記本保留。按麥克風開始。');
-};
+  renderStats();
+}
+function flyToLessons(){
+  const btn = $('openLessons');
+  const from = chatEl.getBoundingClientRect(), to = btn.getBoundingClientRect();
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pulse = () => { btn.classList.remove('got-lesson'); void btn.offsetWidth; btn.classList.add('got-lesson'); setTimeout(() => btn.classList.remove('got-lesson'), 1200); };
+  if(still || !from.width || !to.width || !document.body.animate){ pulse(); return; }
+  const ghost = chatEl.cloneNode(true);
+  ghost.removeAttribute('id'); ghost.removeAttribute('aria-live'); ghost.setAttribute('aria-hidden', 'true');
+  ghost.classList.add('chat-ghost');
+  Object.assign(ghost.style, {left:from.left + 'px', top:from.top + 'px', width:from.width + 'px', height:from.height + 'px'});
+  document.body.appendChild(ghost);
+  ghost.scrollTop = chatEl.scrollTop;
+  const dx = to.left + to.width / 2 - from.left, dy = to.top + to.height / 2 - from.top;
+  const k = Math.min(to.width / from.width, to.height / from.height);
+  const a = ghost.animate([
+    {transform:'translate(0,0) scale(1)', opacity:1, borderRadius:'12px'},
+    {transform:`translate(${dx * .35}px,${dy * .2}px) scale(.55)`, opacity:.95, offset:.35},
+    {transform:`translate(${dx - from.width * k / 2}px,${dy - from.height * k / 2}px) scale(${k})`, opacity:.2, borderRadius:'40px'}
+  ], {duration:650, easing:'cubic-bezier(.5,0,.75,0)'});
+  a.onfinish = a.oncancel = () => { ghost.remove(); pulse(); };
+}
 window.addEventListener('beforeunload', () => {
   endCall(false);
   if(micStream){ micStream.getTracks().forEach(t => t.stop()); micStream = null; }
