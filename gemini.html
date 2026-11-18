@@ -1355,6 +1355,7 @@ function addPlayButton(div, wav){
    老師聽完開口回你（哪裡不對、示範那個音、再試一次，或 Good!），一直練到你按「收起」。
    打開時上課自動暫停，收起後恢復。小窗關掉就忘記，什麼都不存。 */
 const TTS_MODEL = 'gemini-3.8-flash-tts', TTS_VOICE = 'Puck', SLOW_RATE = 0.65;
+const PRON_MODEL = 'gemini-3.1-flash-lite';   // 小窗教練專用（要快）；筆記員、課堂整理、記憶仍用 settings.noteModel
 let pronBox = null;
 function pronCoachPrompt(word, said){
   return `You are a patient, warm English pronunciation coach doing a short voice drill with a Taiwanese learner. The target is: "${word}".${said ? ' Earlier in the lesson it sounded like "' + said + '".' : ''}
@@ -1392,6 +1393,12 @@ async function ttsUrl(text){
   const blob = /wav/i.test(mime) ? new Blob([bytes], {type:'audio/wav'}) : pcmWav(bytes, parseInt((mime.match(/rate=(\d+)/) || [])[1], 10) || 24000);
   return URL.createObjectURL(blob);
 }
+function pronVoice(){   // 挑一個美式英文的內建聲音（Chrome 的 Google US English 優先）
+  if(!window.speechSynthesis) return null;
+  const vs = speechSynthesis.getVoices().filter(v => /^en[-_]US$/i.test(v.lang));
+  return vs.find(v => /Google US English/i.test(v.name)) || vs.find(v => /Natural/i.test(v.name)) || vs[0] || null;
+}
+if(window.speechSynthesis) speechSynthesis.getVoices();   // 先叫瀏覽器載入聲音清單，第一次開口才挑得到
 function closePron(){
   const b = pronBox; if(!b) return;
   pronBox = null;
@@ -1399,6 +1406,7 @@ function closePron(){
   clearTimeout(b.recTimer);
   if(b.ownStream) b.ownStream.getTracks().forEach(t => t.stop());
   if(b.audio){ b.audio.pause(); b.audio = null; }
+  if(window.speechSynthesis) speechSynthesis.cancel();
   b.urls.forEach(u => URL.revokeObjectURL(u));
   b.el.remove();
   if(b.paused && callState === 'paused') resumeCall();
@@ -1421,14 +1429,22 @@ function openPron(anchor, info){
   const btn = (t, fn) => { const k = el('button', 'ghost', t); k.type = 'button'; k.onclick = fn; ctl.appendChild(k); return k; };
   const status = el('p', 'pb-status', live ? '上課先暫停了，收起後自動繼續。' : '');
   const say = t => { status.textContent = t; };
+  const hush = () => { if(b.audio) b.audio.pause(); if(window.speechSynthesis) speechSynthesis.cancel(); };
   const play = (url, rate) => {
-    if(b.audio) b.audio.pause();
+    hush();
     const a = new Audio(url); a.playbackRate = rate || 1; a.preservesPitch = true; b.audio = a;
     a.play().catch(() => {});
   };
-  const replayBtns = (m, url) => {
-    const p1 = el('button', 'ghost', '▶'); p1.type = 'button'; p1.title = '再聽一次'; p1.onclick = () => play(url, 1);
-    const p2 = el('button', 'ghost', '🐢'); p2.type = 'button'; p2.title = '慢速再聽'; p2.onclick = () => play(url, SLOW_RATE);
+  const voice = (text, rate) => {   // 瀏覽器內建的聲音：馬上開口，固定美式英文
+    hush();
+    if(!window.speechSynthesis){ say('這個瀏覽器不能念出聲音。'); return; }
+    const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = rate || 1;
+    const v = pronVoice(); if(v) u.voice = v;
+    speechSynthesis.speak(u);
+  };
+  const replayBtns = (m, fn) => {   // fn(速度)：▶ 正常、🐢 慢速
+    const p1 = el('button', 'ghost', '▶'); p1.type = 'button'; p1.title = '再聽一次'; p1.onclick = () => fn(1);
+    const p2 = el('button', 'ghost', '🐢'); p2.type = 'button'; p2.title = '慢速再聽'; p2.onclick = () => fn(SLOW_RATE);
     m.appendChild(p1); m.appendChild(p2);
   };
   const addLine = (who, text, zh) => {
@@ -1437,13 +1453,10 @@ function openPron(anchor, info){
     chat.appendChild(m); chat.scrollTop = chat.scrollHeight;
     return m;
   };
-  const speak = async (text, m) => {   // 老師開口：文字轉語音，念完的那段可以再聽、慢速聽
-    try{
-      const u = await ttsUrl(text);
-      if(pronBox !== b){ URL.revokeObjectURL(u); return; }
-      b.urls.push(u); replayBtns(m, u);
-      if(!(b.rec && b.rec.state === 'recording')) play(u, 1);
-    }catch(err){ say('老師的聲音沒出來：' + ((err && err.message) || '網路連線錯誤')); }
+  const speak = (text, m) => {   // 老師開口：用瀏覽器內建的聲音（不用等轉檔），可以再聽、慢速聽
+    if(pronBox !== b) return;
+    replayBtns(m, r => voice(text, r));
+    if(!(b.rec && b.rec.state === 'recording')) voice(text, 1);
   };
   const talkBtn = btn('● 說', () => b.talk());
   b.el.appendChild(ctl);
@@ -1455,7 +1468,7 @@ function openPron(anchor, info){
     try{ if(!stream) stream = b.ownStream = b.ownStream || await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true, noiseSuppression:true}}); }
     catch(err){ say('拿不到麥克風：' + ((err && err.message) || '')); return; }
     if(pronBox !== b) return;
-    if(b.audio) b.audio.pause();
+    hush();
     const chunks = []; const rec = new MediaRecorder(stream); b.rec = rec;
     rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
     rec.onstop = () => {
@@ -1469,14 +1482,16 @@ function openPron(anchor, info){
   const turn = async blob => {   // 你念完一次：老師聽、回你一句、開口說
     b.busy = true; talkBtn.disabled = true;
     const mu = URL.createObjectURL(blob); b.urls.push(mu);
-    const me = addLine('me', '🎤 第 ' + (++b.tries) + ' 次'); replayBtns(me, mu);
+    const me = addLine('me', '🎤 第 ' + (++b.tries) + ' 次'); replayBtns(me, r => play(mu, r));
     const wait = addLine('coach', '……'); say('老師在聽……');
     try{
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const buf = await ctx.decodeAudioData(await blob.arrayBuffer()); ctx.close();
       const wav = makeWav(buf.getChannelData(0), buf.sampleRate, 16000); URL.revokeObjectURL(wav.url);
-      const raw = await geminiGenerate({model:settings.noteModel, system:pronCoachPrompt(word, info.said), json:true, temperature:0.4, what:'發音教練',
+      const t0 = performance.now();
+      const raw = await geminiGenerate({model:PRON_MODEL, thinking:'minimal', system:pronCoachPrompt(word, info.said), json:true, temperature:0.4, what:'發音教練',
         parts:[{text:'The drill so far:\n' + b.history.join('\n') + '\n\nThe learner\'s latest try is attached.'}, {inlineData:{mimeType:'audio/wav', data:wav.b64}}]});
+      log('發音小窗：老師聽錄音寫回覆 ' + secs(performance.now() - t0) + ' 秒（' + PRON_MODEL + '）');
       if(pronBox !== b) return;
       const t = (raw || '').replace(/```json|```/g, ''); let o = null;
       try{ o = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); }catch(e){}
@@ -1712,9 +1727,10 @@ function showFix(turn, corrected){
 }
 /* ---------- Gemini API（筆記員、課堂整理、記憶都用這個） ----------
    金鑰放在 x-goog-api-key 標頭，不放進網址 */
-async function geminiGenerate({model, system, parts, json, temperature = 0.2, what = 'Gemini', tools}){
+async function geminiGenerate({model, system, parts, json, temperature = 0.2, what = 'Gemini', tools, thinking}){
   const m = String(model || DEFAULT_NOTE_MODEL).replace(/^models\//, '');
   const body = {contents:[{role:'user', parts}], generationConfig:{temperature}};
+  if(thinking) body.generationConfig.thinkingConfig = {thinkingLevel:thinking};   // 例如 'minimal'：少想、快答
   if(system) body.systemInstruction = {parts:[{text:system}]};
   if(json) body.generationConfig.responseMimeType = 'application/json';
   if(tools) body.tools = tools;
