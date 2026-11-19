@@ -1941,12 +1941,18 @@ function makeWav(pcm, inRate, outRate){
   const blob = new Blob([bytes], {type:'audio/wav'});
   return {b64:btoa(bin), blob, url:URL.createObjectURL(blob), secs:n / outRate, pcm:bytes.subarray(44)};
 }
-// 重聽：一次只播一段，前一段還沒播完就按，先停掉前一段，從頭播新的
-let playing = null;
+// 重聽：一次只播一段，前一段還沒播完就按，先停掉前一段，從頭播新的。
+// 全部共用同一個播放器：以前每按一次就開一個新的，iPhone 連按幾下（還在載入就被停掉）聲音會卡住，之後都不出聲
+let playing = null, playingUrl = '';
 function playWav(url){
-  if(playing){ playing.pause(); playing.currentTime = 0; }
-  playing = new Audio(url);
-  playing.play().catch(() => {});
+  if(playing && playing.error){ playing = null; playingUrl = ''; }   // 播放器出錯了：換一個新的
+  if(!playing){ playing = new Audio(); playing.preload = 'auto'; }
+  const a = playing;
+  a.pause();
+  if(playingUrl !== url){ playingUrl = url; a.src = url; }
+  else{ try{ a.currentTime = 0; }catch(e){} }
+  const p = a.play();
+  if(p) p.catch(() => {});
 }
 function addPlayButton(div, wav){
   if(div.querySelector('.play')) return;
