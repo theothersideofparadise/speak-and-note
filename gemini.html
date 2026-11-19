@@ -1942,9 +1942,45 @@ function makeWav(pcm, inRate, outRate){
   return {b64:btoa(bin), blob, url:URL.createObjectURL(blob), secs:n / outRate, pcm:bytes.subarray(44)};
 }
 // 重聽：一次只播一段，前一段還沒播完就按，先停掉前一段，從頭播新的。
-// 全部共用同一個播放器：以前每按一次就開一個新的，iPhone 連按幾下（還在載入就被停掉）聲音會卡住，之後都不出聲
-let playing = null, playingUrl = '';
+// 用 Web Audio 播（和老師的聲音同一種方式）：泡泡一出現就先把錄音下載、解碼好放著，按下去馬上出聲。
+// 以前用 <audio>，iPhone 每按一次要先載入、暖機，會空白一下；連按還會卡住。Web Audio 不能用時退回 <audio>。
+let replayCtx = null, replaySrc = null, replayToken = null;
+const replayBufs = new Map();   // 錄音網址 → 解碼好的聲音（Promise）
+function getReplayCtx(){
+  if(!replayCtx){ try{ replayCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ replayCtx = null; } }
+  return replayCtx;
+}
+function preloadWav(url){
+  if(!url) return null;
+  if(replayBufs.has(url)) return replayBufs.get(url);
+  const ctx = getReplayCtx(); if(!ctx) return null;
+  const p = fetch(url).then(r => { if(!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+    .then(b => new Promise((ok, bad) => ctx.decodeAudioData(b, ok, bad)));   // 舊版 Safari 只支援回呼的寫法
+  p.catch(() => replayBufs.delete(url));   // 失敗了下次再試
+  replayBufs.set(url, p);
+  // 解碼好的聲音很佔記憶體（一句約 1 到 2 MB），只留最近 12 句；舊的被丟掉，再按時重新解碼（錄音在手機裡，很快）
+  while(replayBufs.size > 12) replayBufs.delete(replayBufs.keys().next().value);
+  return p;
+}
+function stopReplay(){
+  if(replaySrc){ try{ replaySrc.stop(); }catch(e){} replaySrc = null; }
+  if(playing) playing.pause();
+}
 function playWav(url){
+  const ctx = getReplayCtx();
+  stopReplay();
+  const token = replayToken = {};   // 連按：只播最後按的那一次
+  const buf = ctx && preloadWav(url);
+  if(!buf){ playWavEl(url); return; }
+  if(ctx.state !== 'running') ctx.resume().catch(() => {});   // iPhone 要在按下去的當下叫醒
+  buf.then(b => {
+    if(replayToken !== token) return;
+    const s = ctx.createBufferSource(); s.buffer = b; s.connect(ctx.destination); s.start(); replaySrc = s;
+  }).catch(() => { if(replayToken === token) playWavEl(url); });
+}
+// 退路：共用同一個 <audio>（以前每按一次開一個新的，iPhone 連按會卡住）
+let playing = null, playingUrl = '';
+function playWavEl(url){
   if(playing && playing.error){ playing = null; playingUrl = ''; }   // 播放器出錯了：換一個新的
   if(!playing){ playing = new Audio(); playing.preload = 'auto'; }
   const a = playing;
@@ -1961,6 +1997,7 @@ function addPlayButton(div, wav){
   b.setAttribute('aria-label', '重聽這一句');
   b.onclick = () => playWav(wav.url);
   metaRow(div).appendChild(b);   // 接在秒數後面，同一行
+  preloadWav(wav.url);           // 先解碼好，按下去馬上播
 }
 
 /* ---------- 發音練習小窗：小小的對話練習 ----------
@@ -3162,7 +3199,7 @@ async function exportLesson(L){
 function renderLessons(){
   const box = $('lessonList');
   box.innerHTML = '';
-  lessonUrls.forEach(u => URL.revokeObjectURL(u)); lessonUrls = [];
+  lessonUrls.forEach(u => { URL.revokeObjectURL(u); replayBufs.delete(u); }); lessonUrls = [];
   const L = lessons.find(x => x.id === lessonView);
   if(!L){ lessonView = null; renderLessonIndex(box); return; }
   const back = el('button', 'ghost back'); back.type = 'button'; back.innerHTML = ICON_PREV + '回目錄';
@@ -3240,6 +3277,7 @@ function renderLessons(){
           const p = el('button', 'play', '▶ 重聽'); p.type = 'button'; p.title = '重聽這一句'; p.setAttribute('aria-label', '重聽這一句');
           p.onclick = () => playWav(url);
           meta.appendChild(p);
+          preloadWav(url);
         }
         b.appendChild(meta);
         chatBox.appendChild(b);
