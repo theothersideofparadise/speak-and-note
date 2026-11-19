@@ -27,6 +27,8 @@
   --on-sky-line:rgba(255,255,255,.5); --on-sky-fill:rgba(255,255,255,.16);
   --planet:#DDB3B6; --band:#C99AA6; --lit:#FFF8ED; --shade:#7890A6;
   --land1:#98CEE0; --land15:#96B2D5; --land2:#D3A6AA; --star:#FFFFFF; --orbit:#E9DCDD;
+  /* 課堂整理日期顏色：灰藍 → 霧綠 → 灰粉，14 天一圈（DESIGN.md 月曆、日期顏色） */
+  --date-a:#B9CCD9; --date-b:#BCD0C2; --date-c:#E0C3C8;
   /* 字 */
   --f-title:'Turret Road','Glow Sans TC Condensed','Noto Sans TC',sans-serif;
   --f-body:'Sofia Sans','Glow Sans TC Condensed','Noto Sans TC',sans-serif;
@@ -67,11 +69,66 @@ button{cursor:pointer}
 ::-webkit-scrollbar-corner{background:transparent}
 @supports not selector(::-webkit-scrollbar){*{scrollbar-width:thin;scrollbar-color:var(--scroll) transparent}}
 
-/* ---- 天空 banner（背景圖是示意，終稿另外一輪做） ---- */
-.scene{position:absolute;left:0;top:0;width:100%;height:var(--bh);pointer-events:none}
-.star{fill:var(--star)}.planet{fill:var(--planet)}.band{fill:var(--band)}.lit{fill:var(--lit)}.shade{fill:var(--shade)}
-.land1{fill:var(--land1)}.land15{fill:var(--land15)}.land2{fill:var(--land2)}
-.orbit{fill:var(--orbit);opacity:.7}.moonlet{fill:var(--orbit)}
+/* ---- 天空 banner：第七輪天空之城＋吉祥物的頭（星球）。場景由 design/mockups/_gen27.py 產生，樣式都包在 .scene 裡 ---- */
+.scene{position:absolute;left:0;top:0;width:100%;height:var(--bh);pointer-events:none;display:block}
+.scene .sky{fill:url(#gSky)}
+.scene .star{fill:var(--star)}
+.scene .land1{fill:var(--land1)} .scene .land15{fill:var(--land15)} .scene .land2{fill:var(--land2)}
+.scene .fL{fill:url(#gL)} .scene .fR{fill:url(#gR)} .scene .sRg{fill:url(#gRs)}
+.scene .rL{fill:var(--sky1)} .scene .rR{fill:var(--band)} .scene .win{fill:var(--sky1);opacity:.7}
+.scene .sL{fill:var(--land15)} .scene .sH{fill:var(--shade)} .scene .bU{fill:var(--shade)}
+.scene .planetc{fill:var(--planet)} .scene .pat-planetc .pa{fill:var(--lit);opacity:.75}
+.scene .pshadow{fill:var(--sky1);opacity:.25}
+.scene .ew{fill:var(--lit)} .scene .ep{fill:var(--sky1)}
+.scene .eyeP{transform-box:fill-box;transform-origin:center;transform:scaleY(0)}
+.scene .e0{--i:0} .scene .e1{--i:1} .scene .e2{--i:2} .scene .e3{--i:3} .scene .e4{--i:4} .scene .e5{--i:5} .scene .e6{--i:6}
+/* 結束課堂：星球（吉祥物的頭）探頭睜眼，播一次（DECISIONS 第二十八輪之五＋之七）。
+   以藏在坡地後的身體底部為軸往右擺出去，像在水裡慢慢停住；暗面（.counter）做相反的動作，所以畫面上不動，臉從陰影鑽出來。
+   一擺出去就從右往左輪流睜眼，一睜開就閉上。 */
+.scene.peek .tilt{animation:peek 8.6s}
+.scene.peek .counter{animation:peek-counter 8.6s}
+.scene.peek .eyeP{animation:peek-eye 8.6s ease-in-out;animation-delay:calc((6 - var(--i)) * .17s)}
+@keyframes peek{
+  0%,8%{transform:translate(0,0) rotate(0);animation-timing-function:cubic-bezier(.3,.7,.4,1)}
+  17%{transform:translate(14.5px,-18px) rotate(21.5deg);animation-timing-function:cubic-bezier(.4,0,.4,1)}
+  24%,48%{transform:translate(14px,-17px) rotate(20deg);animation-timing-function:cubic-bezier(.45,0,.35,1)}
+  64%,100%{transform:translate(0,0) rotate(0)}}
+@keyframes peek-counter{
+  0%,8%{transform:rotate(0) translate(0,0);animation-timing-function:cubic-bezier(.3,.7,.4,1)}
+  17%{transform:rotate(-21.5deg) translate(-14.5px,18px);animation-timing-function:cubic-bezier(.4,0,.4,1)}
+  24%,48%{transform:rotate(-20deg) translate(-14px,17px);animation-timing-function:cubic-bezier(.45,0,.35,1)}
+  64%,100%{transform:rotate(0) translate(0,0)}}
+@keyframes peek-eye{0%,9%{transform:scaleY(0)}13%,16.5%{transform:scaleY(1)}21%,100%{transform:scaleY(0)}}
+@media (prefers-reduced-motion:reduce){.scene.peek .tilt,.scene.peek .counter,.scene.peek .eyeP{animation:none}}
+/* 開場動畫 A「沉下去，再浮上來」（DECISIONS 第二十九輪）。<html class="intro"> 時才播，播完或點一下／按任一鍵就拿掉。
+   0–0.8 秒：吉祥物近景全身、腳輕輕動，後面的塔模糊、低彩度。0.8–1.6：吉祥物像在水裡往下沉出畫面，塔變清楚。
+   1.4–2.6：鏡頭拉遠（場景框從整頁縮成 banner；SVG 是 xMidYMax slice，框變矮＝拉遠），坡地升上來，左右小建築、遠方地平線淡入，彩度恢復。
+   2.2–3.0：星球從塔群後面升起（和沉下去同一條曲線倒過來：它就是吉祥物的頭）。2.8–3.4：頂端和兩欄往上浮出來。 */
+.pod-wrap{display:none}
+.pod-wrap svg{display:block;width:100%;height:100%}
+.pod-wrap .leg2,.pod-wrap .bodyc{fill:var(--sky1)}
+.pod-wrap .pat-bodyc .pa{fill:var(--shade)}
+.intro .pod-wrap{display:block;position:absolute;left:50%;bottom:16%;height:46%;aspect-ratio:116/124;pointer-events:none;animation:intro-sink .8s cubic-bezier(.8,0,.8,.3) .8s both}
+.intro .pod-wrap .leg2{transform-box:fill-box;transform-origin:top center;animation:intro-wig 1.6s ease-in-out infinite}
+.intro .pod-wrap .leg2:nth-child(even){animation-delay:-.8s}
+.intro .scene{animation:intro-zoom 1.2s ease-in-out 1.4s both,intro-unblur 1.8s ease-out .8s both}
+.intro .scene .l-ground{animation:intro-ground 1.2s ease-out 1.4s both}
+.intro .scene .l-base,.intro .scene .l-far{animation:intro-fade 1s ease-out 1.6s both}
+.intro .scene .l-planet{animation:intro-planet .8s cubic-bezier(.2,.7,.2,1) 2.2s both}
+.intro .top{animation:intro-up .5s cubic-bezier(.2,.7,.2,1) 2.8s both}
+.intro .layout{animation:intro-up .5s cubic-bezier(.2,.7,.2,1) 2.9s both}
+@keyframes intro-sink{from{transform:translate(-50%,0)}99%{opacity:1;transform:translate(-50%,130%)}to{opacity:0;transform:translate(-50%,130%)}}
+@keyframes intro-wig{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes intro-zoom{from{top:0;height:100%}}   /* 沒寫 to＝收到 banner 平常的位置和高度（手機的 banner 在標題列下面） */
+@keyframes intro-unblur{0%{filter:blur(3px) saturate(.3)}33%{filter:blur(0) saturate(.3)}100%{filter:none}}
+@keyframes intro-ground{from{transform:translateY(60px)}to{transform:none}}
+@keyframes intro-fade{from{opacity:0}to{opacity:1}}
+@keyframes intro-planet{from{transform:translateY(260px)}to{transform:none}}
+@keyframes intro-up{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+@media (max-width:700px){.intro .pod-wrap{height:32%;bottom:24%}}
+.scene .st-sky1{stop-color:var(--sky1)} .scene .st-skylow{stop-color:var(--sky-low)} .scene .st-lit{stop-color:var(--lit)}
+.scene .st-orbit{stop-color:var(--orbit)} .scene .st-planet{stop-color:var(--planet)} .scene .st-band{stop-color:var(--band)}
+.scene .st-land15{stop-color:var(--land15)} .scene .st-shade{stop-color:var(--shade)}
 
 /* ---- 頂端：標題和三顆按鈕，左右對齊內容線 ---- */
 .top{position:relative;flex:none;width:100%;max-width:var(--page-w);height:var(--bh);margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s4);padding:var(--s7) var(--pad) 0}
@@ -227,6 +284,65 @@ details.log pre{max-height:180px;overflow:auto;white-space:pre-wrap;overflow-wra
 .lesson-row b{font-weight:700}
 .lesson-row:hover{background:var(--hover)}
 /* 課堂整理：內頁 */
+/* ---- 課堂整理目錄：小月曆＋時間線（DECISIONS 第七、十二、十四輪；DESIGN.md 月曆、日期顏色、時間線） ---- */
+.dc0{--c:var(--date-a)} .dc1{--c:color-mix(in srgb,var(--date-a) 78.6%,var(--date-b))} .dc2{--c:color-mix(in srgb,var(--date-a) 57.1%,var(--date-b))} .dc3{--c:color-mix(in srgb,var(--date-a) 35.7%,var(--date-b))} .dc4{--c:color-mix(in srgb,var(--date-a) 14.3%,var(--date-b))} .dc5{--c:color-mix(in srgb,var(--date-b) 92.9%,var(--date-c))} .dc6{--c:color-mix(in srgb,var(--date-b) 71.4%,var(--date-c))} .dc7{--c:color-mix(in srgb,var(--date-b) 50%,var(--date-c))} .dc8{--c:color-mix(in srgb,var(--date-b) 28.6%,var(--date-c))} .dc9{--c:color-mix(in srgb,var(--date-b) 7.1%,var(--date-c))} .dc10{--c:color-mix(in srgb,var(--date-c) 85.7%,var(--date-a))} .dc11{--c:color-mix(in srgb,var(--date-c) 64.3%,var(--date-a))} .dc12{--c:color-mix(in srgb,var(--date-c) 42.9%,var(--date-a))} .dc13{--c:color-mix(in srgb,var(--date-c) 21.4%,var(--date-a))}
+.cal{padding-bottom:var(--s6);border-bottom:1px solid var(--line)}
+.cal-head{display:flex;align-items:center;gap:var(--s5);margin-bottom:var(--s4)}
+.cal-head b{font-size:var(--fs-md);white-space:nowrap}
+.cal-head .hint{margin:0 0 0 auto}
+.cal-head .icon{flex:none;display:inline-grid;place-items:center;width:calc(var(--icon-btn) + var(--s2));height:calc(var(--icon-btn) + var(--s2));padding:0;border:none;border-radius:var(--r1);background:none;color:var(--mic)}
+.cal-head .icon svg{width:var(--s7);height:var(--s7)}
+.cal-head .icon:not(:disabled):hover{background:var(--hover)}
+.cal-head .icon:disabled{opacity:.35;cursor:default}
+.cal.closed .cal-grid{display:none}
+.cal.closed .calfold svg{transform:rotate(180deg)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--s2);text-align:center}
+.cal-grid .wd{font-size:var(--fs-xs);color:var(--muted);padding-bottom:var(--s1)}
+.cal-grid .d{border:none;border-radius:var(--r1);background:none;font-size:var(--fs-sm);line-height:1.2;color:var(--muted);padding:var(--s3) 0 var(--s2);display:flex;flex-direction:column;align-items:center;gap:var(--s1)}
+.cal-grid .d:disabled{cursor:default}
+.cal-grid .d.has{background:var(--c);color:var(--ink);font-weight:700}
+.cal-grid .d.has:hover{box-shadow:inset 0 0 0 1px var(--ink)}
+.cal-grid .d.today{box-shadow:inset 0 0 0 2px var(--ink)}
+.dots{display:flex;gap:var(--s1);height:var(--s2)}
+.dots i{width:var(--s2);height:var(--s2);border-radius:50%;background:var(--ink);opacity:.55}
+#lessonList .month{margin:var(--s7) 0 var(--s1);font-size:var(--fs-xs);font-weight:700;color:var(--muted);letter-spacing:.04em;scroll-margin-top:var(--bar-h)}
+.day{display:grid;grid-template-columns:auto minmax(0,1fr);gap:var(--s6);padding:var(--s5) 0;border-bottom:1px solid var(--line);scroll-margin-top:var(--bar-h)}
+.dt{align-self:start;width:calc(var(--hit) + var(--s6));aspect-ratio:1;border-radius:var(--r1);background:var(--c);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dt b{font:700 var(--fs-lg)/1 var(--f-body)}
+.dt span{font-size:var(--fs-xs);margin-top:var(--s1)}
+.lrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--s5);width:100%;text-align:left;background:none;border:none;padding:var(--s3) var(--s2);border-radius:var(--r1)}
+.lrow + .lrow{border-top:1px dashed var(--line)}
+.lrow:hover{background:var(--hover)}
+.lrow time{font-size:var(--fs-xs);color:var(--muted)}
+.lrow b{display:block;font-size:var(--fs-md);font-weight:700}
+.lrow small{font-size:var(--fs-xs);color:var(--muted)}
+.lrow .go{width:var(--s7);height:var(--s7);color:var(--muted)}
+.back svg{width:var(--s6);height:var(--s6);vertical-align:-2px;margin-right:var(--s1)}
+@media (max-width:700px){
+  .cal-head{flex-wrap:wrap;gap:var(--s4)}
+  .cal-head .hint{order:9;flex-basis:100%;margin:0}
+  .cal-head .calfold{margin-left:auto}
+  .day{gap:var(--s5)}
+  .lrow{column-gap:0;row-gap:var(--s1);padding:var(--s4) var(--s1)}
+  .lrow > span{display:contents}
+  .lrow b{grid-row:1;grid-column:1 / span 2}
+  .lrow time{grid-row:2;grid-column:1}
+  .lrow time::after{content:'｜'}
+  .lrow small{grid-row:2;grid-column:2}
+  .lrow .go{grid-row:1 / span 2;grid-column:3;margin-left:var(--s4)}
+}
+/* 習慣清單：名稱、細進度條、成績；手機上名稱和成績同一行，進度條在下一行拉滿（DESIGN.md 進度條：細條、--r0、底色 --line、已完成 --mic） */
+.habit{display:grid;grid-template-columns:minmax(0,10em) minmax(0,1fr) 9em;align-items:center;gap:var(--s6);padding:var(--s4) 0;border-bottom:1px solid var(--line)}
+.habit b{font-weight:700}
+.habit span{font-size:var(--fs-xs);color:var(--muted);text-align:right}   /* 成績欄固定寬、靠右：三條進度條一樣長 */
+.bar{-webkit-appearance:none;appearance:none;display:block;width:100%;height:var(--s3);border:none;border-radius:var(--r0);background:var(--line);overflow:hidden}
+.bar::-webkit-progress-bar{background:var(--line);border-radius:var(--r0)}
+.bar::-webkit-progress-value{background:var(--mic);border-radius:var(--r0)}
+.bar::-moz-progress-bar{background:var(--mic);border-radius:var(--r0)}
+@media (max-width:700px){
+  .habit{grid-template-columns:minmax(0,1fr) auto;row-gap:var(--s3);column-gap:var(--s5)}
+  .habit .bar{grid-column:1 / -1;grid-row:2}
+}
 .lesson{padding:var(--s5) 0 0}
 .lesson > h3:first-child{margin:var(--s5) 0 var(--s1);padding:0;border:none;font-size:var(--fs-lg)}
 .lesson h3{margin:var(--pad) 0 var(--s4);padding-bottom:var(--s3);border-bottom:1px solid var(--line);font-size:var(--fs-md)}
@@ -386,19 +502,20 @@ setTimeout(function(){done(false)},3000);
 document.fonts.load('400 16px "Glow Sans TC Condensed"','中').then(function(f){done(f.length>0&&document.fonts.check('400 16px "Glow Sans TC Condensed"','中'))},function(){done(false)});
 })();
 </script>
+<script>
+/* 開場動畫：每次打開網頁播一次（約 3.4 秒）。減少動態效果時不播 */
+if(!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) document.documentElement.classList.add('intro');
+</script>
 </head>
 <body>
-<svg class="scene" viewBox="0 0 1280 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
-<defs><clipPath id="pl"><circle cx="560" cy="160" r="205"/></clipPath></defs>
-<circle class="star" cx="533" cy="100" r="1" opacity=".75"/><circle class="star" cx="1095" cy="9" r="1" opacity=".3"/><circle class="star" cx="116" cy="26" r=".8" opacity=".5"/><circle class="star" cx="970" cy="117" r=".8" opacity=".5"/><circle class="star" cx="1123" cy="19" r="1.3" opacity=".3"/><circle class="star" cx="36" cy="99" r=".8" opacity=".5"/><circle class="star" cx="582" cy="29" r="1" opacity=".3"/><circle class="star" cx="157" cy="23" r="1.3" opacity=".75"/><circle class="star" cx="921" cy="22" r=".8" opacity=".3"/><circle class="star" cx="20" cy="32" r=".8" opacity=".3"/><circle class="star" cx="350" cy="43" r="1" opacity=".3"/><circle class="star" cx="1114" cy="118" r="1.3" opacity=".75"/><circle class="star" cx="429" cy="29" r="1.3" opacity=".3"/><circle class="star" cx="794" cy="44" r=".8" opacity=".5"/><circle class="star" cx="859" cy="27" r=".8" opacity=".5"/><circle class="star" cx="143" cy="48" r="1" opacity=".75"/><circle class="star" cx="1210" cy="6" r="1.3" opacity=".75"/><circle class="star" cx="702" cy="14" r="1" opacity=".5"/><circle class="star" cx="636" cy="67" r="1.3" opacity=".5"/><circle class="star" cx="388" cy="67" r="1" opacity=".75"/><circle class="star" cx="370" cy="13" r="1" opacity=".3"/><circle class="star" cx="742" cy="114" r="1" opacity=".3"/><circle class="star" cx="1134" cy="106" r="1" opacity=".5"/><circle class="star" cx="780" cy="80" r=".8" opacity=".5"/><circle class="star" cx="105" cy="96" r=".8" opacity=".75"/><circle class="star" cx="412" cy="21" r=".8" opacity=".5"/><circle class="star" cx="715" cy="71" r="1" opacity=".75"/><circle class="star" cx="523" cy="105" r="1" opacity=".3"/><circle class="star" cx="1217" cy="101" r="1" opacity=".5"/><circle class="star" cx="85" cy="61" r=".8" opacity=".3"/><circle class="star" cx="707" cy="71" r="1.3" opacity=".5"/><circle class="star" cx="313" cy="49" r="1" opacity=".75"/><circle class="star" cx="1126" cy="17" r="1" opacity=".75"/><circle class="star" cx="658" cy="45" r=".8" opacity=".3"/><circle class="star" cx="314" cy="98" r="1.3" opacity=".5"/><circle class="star" cx="1000" cy="26" r="1.3" opacity=".3"/><circle class="star" cx="175" cy="82" r="1.3" opacity=".5"/><circle class="star" cx="75" cy="36" r="1.3" opacity=".75"/><circle class="star" cx="714" cy="111" r="1" opacity=".5"/><circle class="star" cx="873" cy="24" r=".8" opacity=".75"/><circle class="star" cx="77" cy="108" r="1" opacity=".5"/><circle class="star" cx="434" cy="22" r="1.3" opacity=".75"/><circle class="star" cx="281" cy="86" r="1" opacity=".3"/><circle class="star" cx="355" cy="61" r="1" opacity=".3"/><circle class="star" cx="130" cy="114" r="1" opacity=".5"/><circle class="star" cx="299" cy="64" r="1.3" opacity=".3"/>
-<circle class="planet" cx="560" cy="160" r="205"/>
-<g clip-path="url(#pl)"><rect class="band" x="300" y="34" width="560" height="10"/><rect class="band" x="300" y="62" width="560" height="26"/><rect class="band" x="300" y="112" width="560" height="6"/></g>
-<rect class="orbit" x="0" y="96" width="1280" height="1.5"/><circle class="moonlet" cx="286" cy="96.7" r="5"/><circle class="moonlet" cx="930" cy="96.7" r="8"/>
-<polygon class="land1" points="0,200 0,170 180,165 330,148 420,141 900,141 1000,151 1160,159 1280,155 1280,200"/>
-<polygon class="lit" points="250.0,158.0 260.8,158.0 272.3,132.0 261.8,132.0"/><polygon class="shade" points="260.8,158.0 268.0,158.0 279.3,132.0 272.3,132.0"/><polygon class="lit" points="444.0,141.0 478.0,141.0 486.9,95.0 454.7,95.0"/><polygon class="lit" points="486.0,141.0 496.2,141.0 501.3,111.0 491.5,111.0"/><polygon class="shade" points="496.2,141.0 520.0,141.0 524.3,111.0 501.3,111.0"/><polygon class="lit" points="528.0,141.0 542.7,141.0 551.0,69.0 537.6,69.0"/><polygon class="shade" points="542.7,141.0 574.0,141.0 579.7,69.0 551.0,69.0"/><polygon class="lit" points="580.0,141.0 628.0,141.0 628.9,75.0 584.7,75.0"/><polygon class="lit" points="634.0,141.0 659.1,141.0 656.9,43.0 634.7,43.0"/><polygon class="shade" points="659.1,141.0 700.0,141.0 693.0,43.0 656.9,43.0"/><polygon class="lit" points="724.0,141.0 750.0,141.0 745.0,103.0 720.2,103.0"/><polygon class="lit" points="764.0,141.0 774.5,141.0 764.9,81.0 755.2,81.0"/><polygon class="shade" points="774.5,141.0 806.0,141.0 794.2,81.0 764.9,81.0"/><polygon class="lit" points="810.0,141.0 840.4,141.0 825.1,77.0 797.1,77.0"/><polygon class="shade" points="840.4,141.0 848.0,141.0 832.2,77.0 825.1,77.0"/><polygon class="lit" points="856.0,141.0 864.0,141.0 856.5,113.0 848.8,113.0"/><polygon class="shade" points="864.0,141.0 876.0,141.0 868.1,113.0 856.5,113.0"/><polygon class="lit" points="1108.0,157.0 1122.0,157.0 1110.8,137.0 1097.1,137.0"/>
-<polygon class="land15" points="0,200 0,178 220,170 470,180 760,166 1010,180 1280,170 1280,200"/>
-<polygon class="land2" points="0,200 0,190 260,182 540,192 820,180 1090,193 1280,185 1280,200"/>
-</svg>
+<svg class="scene" id="sky" viewBox="0 0 1280 200" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs>
+<linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop class="st-sky1" offset="0"/><stop class="st-skylow" offset="1"/></linearGradient>
+<linearGradient id="gSkyTall" x1="0" y1="0" x2="0" y2="1"><stop class="st-sky1" offset=".15"/><stop class="st-skylow" offset=".85"/></linearGradient>
+<linearGradient id="gR" x1="0" y1="0" x2="0" y2="1"><stop class="st-lit" offset="0"/><stop class="st-orbit" offset=".7"/><stop class="st-planet" offset="1"/></linearGradient>
+<linearGradient id="gL" x1="0" y1="0" x2="0" y2="1"><stop class="st-land15" offset="0"/><stop class="st-shade" offset="1"/></linearGradient>
+<linearGradient id="gPlanet" x1="0" y1="0" x2="1" y2="1"><stop class="st-orbit" offset="0"/><stop class="st-planet" offset=".5"/><stop class="st-band" offset="1"/></linearGradient>
+<linearGradient id="gRs" gradientUnits="userSpaceOnUse" x1="0" y1="118" x2="0" y2="186"><stop class="st-lit" offset="0"/><stop class="st-orbit" offset=".6"/><stop class="st-planet" offset="1"/></linearGradient></defs><rect class="sky" x="-1400" y="-700" width="4100" height="900"/><g class="l-stars"><circle class="star" cx="981.8" cy="-48.8" r=".7" opacity=".5"/><circle class="star" cx="1395.1" cy="-428.2" r=".7" opacity=".3"/><circle class="star" cx="-394.3" cy="-258.8" r=".9" opacity=".5"/><circle class="star" cx="768.2" cy="-178.1" r=".7" opacity=".75"/><circle class="star" cx="-114.8" cy="-404.8" r="1.6" opacity=".3"/><circle class="star" cx="1357.2" cy="-564.6" r="1.6" opacity=".3"/><circle class="star" cx="-342.9" cy="128.7" r=".7" opacity=".3"/><circle class="star" cx="1388.7" cy="119.3" r=".9" opacity=".3"/><circle class="star" cx="81.1" cy="120.3" r=".9" opacity=".3"/><circle class="star" cx="1840.6" cy="-88.2" r="1.6" opacity=".5"/><circle class="star" cx="-641.8" cy="-300.5" r=".9" opacity=".5"/><circle class="star" cx="-524.1" cy="-388" r=".7" opacity=".75"/><circle class="star" cx="1130.4" cy="-359.8" r="1.2" opacity=".5"/><circle class="star" cx="1510" cy="-249.8" r="1.2" opacity=".3"/><circle class="star" cx="599.3" cy="-77.4" r=".7" opacity=".5"/><circle class="star" cx="1932.8" cy="-602.4" r="1.2" opacity=".5"/><circle class="star" cx="-651.2" cy="-13.4" r="1.2" opacity=".5"/><circle class="star" cx="862" cy="-613" r=".7" opacity=".75"/><circle class="star" cx="-211.5" cy="115.5" r=".9" opacity=".3"/><circle class="star" cx="1340.5" cy="95.8" r="1.6" opacity=".5"/><circle class="star" cx="683.7" cy="67.4" r="1.2" opacity=".5"/><circle class="star" cx="-408.3" cy="-43.7" r="1.2" opacity=".5"/><circle class="star" cx="-601.1" cy="108.3" r=".7" opacity=".3"/><circle class="star" cx="220" cy="-149.7" r=".9" opacity=".5"/><circle class="star" cx="44.3" cy="-79" r=".7" opacity=".5"/><circle class="star" cx="1152.1" cy="-384.2" r=".7" opacity=".75"/><circle class="star" cx="-298.1" cy="-89.3" r="1.6" opacity=".3"/><circle class="star" cx="1244.3" cy="-557.7" r="1.6" opacity=".3"/><circle class="star" cx="-59.2" cy="-162.7" r="1.2" opacity=".5"/><circle class="star" cx="1057.6" cy="-507.9" r=".7" opacity=".5"/><circle class="star" cx="202.3" cy="-460.6" r=".9" opacity=".75"/><circle class="star" cx="1720.5" cy="-301.4" r=".9" opacity=".5"/><circle class="star" cx="307.1" cy="-574.7" r="1.6" opacity=".5"/><circle class="star" cx="-318.8" cy="89.9" r=".9" opacity=".75"/><circle class="star" cx="524.6" cy="-244.1" r="1.2" opacity=".5"/><circle class="star" cx="39.9" cy="-258" r=".9" opacity=".3"/><circle class="star" cx="317.9" cy="141.1" r=".9" opacity=".75"/><circle class="star" cx="1830.3" cy="48.2" r=".9" opacity=".3"/><circle class="star" cx="628" cy="-223.3" r="1.2" opacity=".3"/><circle class="star" cx="1422.3" cy="-23.3" r=".7" opacity=".5"/><circle class="star" cx="281.3" cy="-77.6" r="1.2" opacity=".5"/><circle class="star" cx="15.1" cy="135.3" r="1.2" opacity=".5"/><circle class="star" cx="1054.2" cy="-172.9" r=".7" opacity=".5"/><circle class="star" cx="776.9" cy="-427" r="1.2" opacity=".5"/><circle class="star" cx="79.8" cy="-234.7" r="1.2" opacity=".5"/><circle class="star" cx="39.5" cy="-353.9" r="1.6" opacity=".5"/><circle class="star" cx="1790.3" cy="-487.2" r="1.6" opacity=".5"/><circle class="star" cx="1882.6" cy="-221" r=".9" opacity=".3"/><circle class="star" cx="1558.9" cy="101.8" r="1.6" opacity=".5"/><circle class="star" cx="1166.8" cy="-65.8" r="1.6" opacity=".3"/><circle class="star" cx="965.3" cy="100.9" r="1.6" opacity=".5"/><circle class="star" cx="984.1" cy="-23.5" r="1.2" opacity=".75"/><circle class="star" cx="1989.2" cy="-469.4" r="1.6" opacity=".75"/><circle class="star" cx="1055.3" cy="-451.3" r=".9" opacity=".75"/><circle class="star" cx="1239.8" cy="139.6" r=".9" opacity=".3"/><circle class="star" cx="-553.8" cy="-517.2" r="1.2" opacity=".3"/><circle class="star" cx="603.2" cy="-197.8" r="1.6" opacity=".5"/><circle class="star" cx="248" cy="-109.9" r=".7" opacity=".75"/><circle class="star" cx="-148.2" cy="-67.1" r="1.2" opacity=".3"/><circle class="star" cx="246.4" cy="113.1" r="1.6" opacity=".3"/><circle class="star" cx="1159.9" cy="-198.6" r=".7" opacity=".75"/><circle class="star" cx="956.6" cy="-547" r="1.2" opacity=".75"/><circle class="star" cx="91.6" cy="-349.3" r=".9" opacity=".5"/><circle class="star" cx="405" cy="-185.8" r="1.2" opacity=".5"/><circle class="star" cx="-316.3" cy="-161.1" r="1.6" opacity=".3"/><circle class="star" cx="1913.6" cy="-151.4" r="1.2" opacity=".75"/><circle class="star" cx="-697.4" cy="-536.9" r=".9" opacity=".5"/><circle class="star" cx="999.5" cy="66.3" r="1.6" opacity=".5"/><circle class="star" cx="465.5" cy="-445.7" r="1.2" opacity=".5"/><circle class="star" cx="1925.6" cy="-327.6" r=".9" opacity=".75"/><circle class="star" cx="903.7" cy="-49.4" r="1.2" opacity=".5"/><circle class="star" cx="-22.1" cy="-604.9" r="1.2" opacity=".5"/><circle class="star" cx="1809.8" cy="-509.7" r=".7" opacity=".3"/><circle class="star" cx="1082.2" cy="119.8" r=".9" opacity=".5"/><circle class="star" cx="-592.1" cy="-514.9" r="1.6" opacity=".3"/><circle class="star" cx="596.8" cy="-188.6" r=".9" opacity=".5"/><circle class="star" cx="1411.1" cy="-430.8" r="1.2" opacity=".3"/><circle class="star" cx="1247.9" cy="-400" r="1.6" opacity=".75"/><circle class="star" cx="1979.7" cy="-221" r=".7" opacity=".3"/><circle class="star" cx="1353.1" cy="-388.5" r="1.2" opacity=".75"/><circle class="star" cx="101.4" cy="-212" r="1.6" opacity=".5"/><circle class="star" cx="274.8" cy="-46.3" r=".9" opacity=".3"/><circle class="star" cx="-692.3" cy="-194" r=".7" opacity=".75"/><circle class="star" cx="773.1" cy="-608.8" r="1.6" opacity=".75"/><circle class="star" cx="854.2" cy="-74.7" r="1.6" opacity=".5"/><circle class="star" cx="584.4" cy="-94.6" r=".9" opacity=".5"/><circle class="star" cx="555.7" cy="-36.2" r="1.2" opacity=".3"/><circle class="star" cx="1175.5" cy="-286.7" r="1.2" opacity=".75"/><circle class="star" cx="1408" cy="81.2" r=".9" opacity=".3"/><circle class="star" cx="591.7" cy="-197.2" r="1.6" opacity=".5"/><circle class="star" cx="752.5" cy="-292.3" r=".7" opacity=".3"/><circle class="star" cx="1278.1" cy="-414.3" r=".7" opacity=".3"/><circle class="star" cx="1091.7" cy="-600.3" r="1.6" opacity=".3"/><circle class="star" cx="1995.5" cy="-80" r=".7" opacity=".3"/><circle class="star" cx="1573.6" cy="-451.2" r=".7" opacity=".75"/><circle class="star" cx="1716.1" cy="145.4" r="1.6" opacity=".3"/><circle class="star" cx="-205.7" cy="-477.3" r=".9" opacity=".3"/><circle class="star" cx="980.5" cy="-586.5" r=".7" opacity=".75"/><circle class="star" cx="323.8" cy="-564.6" r=".7" opacity=".75"/><circle class="star" cx="853.2" cy="-48.4" r=".9" opacity=".3"/><circle class="star" cx="465.5" cy="-377.8" r="1.6" opacity=".5"/><circle class="star" cx="254.2" cy="-114.8" r=".7" opacity=".3"/><circle class="star" cx="1182.7" cy="-503.6" r="1.2" opacity=".75"/><circle class="star" cx="784.7" cy="-450.1" r=".7" opacity=".75"/><circle class="star" cx="-63.8" cy="21.1" r="1.2" opacity=".75"/><circle class="star" cx="1932.8" cy="2.2" r="1.2" opacity=".5"/><circle class="star" cx="1289.2" cy="-481.9" r=".7" opacity=".75"/><circle class="star" cx="222.3" cy="-178.6" r=".7" opacity=".3"/><circle class="star" cx="1631.1" cy="-230" r="1.6" opacity=".3"/><circle class="star" cx="352.6" cy="-263.8" r="1.2" opacity=".3"/><circle class="star" cx="1450.5" cy="-597.3" r="1.6" opacity=".3"/><circle class="star" cx="1590.3" cy="107.4" r="1.6" opacity=".75"/><circle class="star" cx="1444.9" cy="-42.8" r=".7" opacity=".75"/><circle class="star" cx="626.9" cy="-457.1" r="1.6" opacity=".5"/><circle class="star" cx="1556.7" cy="-396.9" r="1.2" opacity=".5"/><circle class="star" cx="321" cy="-63.5" r="1.2" opacity=".75"/><circle class="star" cx="99" cy="-133.9" r="1.2" opacity=".75"/><circle class="star" cx="-601.9" cy="144.7" r=".9" opacity=".75"/><circle class="star" cx="-212.6" cy="-571.3" r=".7" opacity=".3"/><circle class="star" cx="-196.9" cy="-469.4" r="1.6" opacity=".5"/><circle class="star" cx="1085.4" cy="-351.6" r="1.6" opacity=".5"/><circle class="star" cx="111.5" cy="99.6" r="1.6" opacity=".5"/><circle class="star" cx="557" cy="-543.2" r=".9" opacity=".75"/><circle class="star" cx="-270.6" cy="-331.5" r="1.6" opacity=".5"/><circle class="star" cx="-289.3" cy="-424.4" r="1.2" opacity=".3"/><circle class="star" cx="1326" cy="-102.6" r=".7" opacity=".5"/><circle class="star" cx="1720.2" cy="-354.9" r="1.2" opacity=".5"/><circle class="star" cx="1832.4" cy="-90.5" r="1.6" opacity=".5"/><circle class="star" cx="1591.8" cy="-499.9" r="1.2" opacity=".5"/><circle class="star" cx="525.5" cy="-435.2" r=".9" opacity=".3"/><circle class="star" cx="-157.2" cy="-600.8" r=".9" opacity=".75"/><circle class="star" cx="-488.9" cy="-311.2" r="1.2" opacity=".75"/><circle class="star" cx="142" cy="-259.6" r="1.2" opacity=".3"/><circle class="star" cx="1277.3" cy="-67.2" r=".9" opacity=".3"/><circle class="star" cx="-225.8" cy="-459.2" r=".7" opacity=".75"/><circle class="star" cx="943.4" cy="-60.7" r="1.2" opacity=".3"/><circle class="star" cx="547.2" cy="-271.2" r="1.6" opacity=".3"/><circle class="star" cx="-578.6" cy="-197.7" r="1.2" opacity=".3"/><circle class="star" cx="1234.6" cy="-437.5" r="1.6" opacity=".3"/><circle class="star" cx="1826.5" cy="-578.6" r=".9" opacity=".75"/><circle class="star" cx="-563.8" cy="-314.1" r=".7" opacity=".3"/><circle class="star" cx="-10.3" cy="-306.2" r="1.2" opacity=".75"/><circle class="star" cx="-561.4" cy="-591" r=".9" opacity=".3"/><circle class="star" cx="1178.5" cy="-126.8" r=".9" opacity=".75"/><circle class="star" cx="-68.9" cy="93.7" r=".7" opacity=".3"/><circle class="star" cx="763.2" cy="89.4" r=".7" opacity=".75"/><circle class="star" cx="-121.1" cy="-606.6" r="1.2" opacity=".5"/><circle class="star" cx="442.6" cy="-28.5" r=".9" opacity=".75"/><circle class="star" cx="-666.6" cy="-37.7" r="1.6" opacity=".3"/><circle class="star" cx="797.1" cy="-513.2" r="1.6" opacity=".3"/><circle class="star" cx="1405.7" cy="-417.1" r="1.6" opacity=".5"/><circle class="star" cx="-341.8" cy="-206.7" r="1.6" opacity=".3"/><circle class="star" cx="1182.4" cy="-4.9" r=".9" opacity=".5"/><circle class="star" cx="-534.1" cy="-80.5" r=".7" opacity=".75"/><circle class="star" cx="-160.4" cy="-399.8" r="1.2" opacity=".3"/><circle class="star" cx="-505.9" cy="-27.5" r="1.6" opacity=".75"/><circle class="star" cx="-699.8" cy="-399.9" r=".9" opacity=".75"/><circle class="star" cx="-623.5" cy="-509.5" r=".7" opacity=".75"/><circle class="star" cx="-572.6" cy="-290.8" r=".7" opacity=".5"/><circle class="star" cx="817.2" cy="-372.6" r="1.2" opacity=".3"/><circle class="star" cx="-329.2" cy="-236.8" r="1.2" opacity=".5"/><circle class="star" cx="-608.1" cy="-202.4" r=".7" opacity=".3"/><circle class="star" cx="-371.5" cy="126.5" r="1.2" opacity=".5"/><circle class="star" cx="1621.5" cy="110.9" r=".7" opacity=".3"/><circle class="star" cx="724.1" cy="-523.5" r=".9" opacity=".5"/><circle class="star" cx="267.3" cy="-494.3" r=".9" opacity=".75"/><circle class="star" cx="1953.9" cy="-413.5" r=".9" opacity=".75"/><circle class="star" cx="1215.5" cy="-276.4" r="1.6" opacity=".5"/><circle class="star" cx="-380.9" cy="-375.9" r=".9" opacity=".5"/><circle class="star" cx="909.8" cy="-487.9" r=".7" opacity=".75"/></g><g class="l-planet"><g transform="translate(720 441) scale(3.5)"><g transform="translate(0 -24)"><g class="tilt"><g transform="translate(0 24)"><defs><clipPath id="bc-skp"><path d="M-48 -70 A48 48 0 0 1 48 -70 L48 -30 Q48 -24 42 -24 L-42 -24 Q-48 -24 -48 -30 Z"/></clipPath><clipPath id="bt-skp"><rect x="-60" y="-130" width="120" height="74.7"/></clipPath></defs><path class="planetc" d="M-48 -70 A48 48 0 0 1 48 -70 L48 -30 Q48 -24 42 -24 L-42 -24 Q-48 -24 -48 -30 Z"/><g clip-path="url(#bc-skp)" class="pat-planetc"><g clip-path="url(#bt-skp)"><path class="pa" d="M-60 -130 L-57 -130 L-54 -130 L-51 -130 L-48 -130 L-45 -130 L-42 -130 L-39 -130 L-36 -130 L-33 -130 L-30 -130 L-27 -130 L-24 -130 L-21 -130 L-18 -130 L-15 -130 L-12 -130 L-9 -130 L-6 -130 L-3 -130 L0 -130 L3 -130 L6 -130 L9 -130 L12 -130 L15 -130 L18 -130 L21 -130 L24 -130 L27 -130 L30 -130 L33 -130 L36 -130 L39 -130 L42 -130 L45 -130 L48 -130 L51 -130 L54 -130 L57 -130 L60 -130 L60 -99.8 L57 -100 L54 -100.6 L51 -101.5 L48 -102.6 L45 -103.7 L42 -104.7 L39 -105.5 L36 -106.1 L33 -106.2 L30 -105.9 L27 -105.3 L24 -104.4 L21 -103.4 L18 -102.3 L15 -101.2 L12 -100.4 L9 -99.9 L6 -99.8 L3 -100.1 L0 -100.7 L-3 -101.6 L-6 -102.7 L-9 -103.8 L-12 -104.8 L-15 -105.6 L-18 -106.1 L-21 -106.2 L-24 -105.9 L-27 -105.3 L-30 -104.3 L-33 -103.3 L-36 -102.1 L-39 -101.1 L-42 -100.4 L-45 -99.9 L-48 -99.8 L-51 -100.1 L-54 -100.8 L-57 -101.7 L-60 -102.8 Z"/><path class="pa" d="M-60 -90.7 L-57 -91.3 L-54 -92 L-51 -92.6 L-48 -93.2 L-45 -93.7 L-42 -94.1 L-39 -94.3 L-36 -94.4 L-33 -94.3 L-30 -94 L-27 -93.6 L-24 -93.1 L-21 -92.5 L-18 -91.8 L-15 -91.2 L-12 -90.6 L-9 -90.1 L-6 -89.8 L-3 -89.6 L0 -89.6 L3 -89.8 L6 -90.1 L9 -90.6 L12 -91.2 L15 -91.8 L18 -92.4 L21 -93 L24 -93.6 L27 -94 L30 -94.3 L33 -94.4 L36 -94.3 L39 -94.1 L42 -93.7 L45 -93.2 L48 -92.6 L51 -92 L54 -91.3 L57 -90.8 L60 -90.3 L60 -83.4 L57 -82.7 L54 -82 L51 -81.5 L48 -81.1 L45 -81 L42 -81.1 L39 -81.5 L36 -82 L33 -82.6 L30 -83.3 L27 -84 L24 -84.5 L21 -84.9 L18 -85 L15 -84.9 L12 -84.5 L9 -84 L6 -83.3 L3 -82.6 L0 -82 L-3 -81.4 L-6 -81.1 L-9 -81 L-12 -81.1 L-15 -81.5 L-18 -82.1 L-21 -82.7 L-24 -83.4 L-27 -84.1 L-30 -84.6 L-33 -84.9 L-36 -85 L-39 -84.8 L-42 -84.5 L-45 -83.9 L-48 -83.3 L-51 -82.6 L-54 -81.9 L-57 -81.4 L-60 -81.1 Z"/><path class="pa" d="M-60 -73.2 L-57 -73.4 L-54 -73.6 L-51 -73.6 L-48 -73.5 L-45 -73.3 L-42 -73 L-39 -72.6 L-36 -72.2 L-33 -71.8 L-30 -71.4 L-27 -71 L-24 -70.7 L-21 -70.5 L-18 -70.4 L-15 -70.4 L-12 -70.6 L-9 -70.8 L-6 -71.1 L-3 -71.5 L0 -71.9 L3 -72.4 L6 -72.8 L9 -73.1 L12 -73.4 L15 -73.5 L18 -73.6 L21 -73.5 L24 -73.4 L27 -73.1 L30 -72.7 L33 -72.3 L36 -71.9 L39 -71.5 L42 -71.1 L45 -70.8 L48 -70.5 L51 -70.4 L54 -70.4 L57 -70.5 L60 -70.7 L60 -69.9 L57 -69.8 L54 -69.6 L51 -69.2 L48 -68.8 L45 -68.3 L42 -67.8 L39 -67.4 L36 -67.2 L33 -67.1 L30 -67.2 L27 -67.4 L24 -67.8 L21 -68.3 L18 -68.7 L15 -69.2 L12 -69.6 L9 -69.8 L6 -69.9 L3 -69.8 L0 -69.6 L-3 -69.2 L-6 -68.7 L-9 -68.2 L-12 -67.8 L-15 -67.4 L-18 -67.2 L-21 -67.1 L-24 -67.2 L-27 -67.5 L-30 -67.8 L-33 -68.3 L-36 -68.8 L-39 -69.2 L-42 -69.6 L-45 -69.8 L-48 -69.9 L-51 -69.8 L-54 -69.5 L-57 -69.1 L-60 -68.7 Z"/></g><g transform="translate(0 -24)"><g class="counter"><g transform="translate(0 24)"><circle class="pshadow" cx="-17" cy="-65" r="48"/></g></g></g></g><g class="eyeP e0"><circle class="ew" cx="-29.9" cy="-83.9" r="4"/><circle class="ep" cx="-29.9" cy="-83.3" r="1.8"/></g><g class="eyeP e1"><circle class="ew" cx="-22.6" cy="-94" r="4"/><circle class="ep" cx="-22.6" cy="-93.4" r="1.8"/></g><g class="eyeP e2"><circle class="ew" cx="-12.2" cy="-100.7" r="4"/><circle class="ep" cx="-12.2" cy="-100.1" r="1.8"/></g><g class="eyeP e3"><circle class="ew" cx="-0" cy="-103" r="4"/><circle class="ep" cx="-0" cy="-102.4" r="1.8"/></g><g class="eyeP e4"><circle class="ew" cx="12.2" cy="-100.7" r="4"/><circle class="ep" cx="12.2" cy="-100.1" r="1.8"/></g><g class="eyeP e5"><circle class="ew" cx="22.6" cy="-94" r="4"/><circle class="ep" cx="22.6" cy="-93.4" r="1.8"/></g><g class="eyeP e6"><circle class="ew" cx="29.9" cy="-83.9" r="4"/><circle class="ep" cx="29.9" cy="-83.3" r="1.8"/></g></g></g></g></g></g><g class="l-far"><g opacity=".45"><polygon class="land1" points="-1400,520 -1400,176 -200,176 1500,176 2700,176 2700,520"/></g></g><g class="l-mid"><g transform="translate(0 30)"><polygon class="sH" points="548,74 524,88 497.2,105.6 470.4,123.2 443.6,140.8 416.8,158.4 390,176 360,196 788,196 758,176 720.8,158.4 683.6,140.8 646.4,123.2 609.2,105.6 572,88"/><polygon class="fL" points="558.6,123.4 546.5,126.3 546.8,78.8 558.6,75.9"/><polygon class="fR" points="558.6,123.4 572.1,125.7 571.7,78.2 558.6,75.9"/><path class="win" d="M561 83.8 L561 81.4 Q561.9 79.9 562.8 81.7 L562.8 84.1 Z"/><path class="win" d="M567.6 84.9 L567.6 82.5 Q568.5 81 569.4 82.8 L569.4 85.2 Z"/><polygon class="fL" points="557.7,76.2 554.7,76.9 554.7,74 557.7,73.3"/><polygon class="fL" points="551.8,77.6 548.8,78.3 548.9,75.4 551.8,74.7"/><polygon class="fR" points="559.7,76.1 563,76.7 562.9,73.8 559.7,73.3"/><polygon class="fR" points="566.2,77.2 569.5,77.8 569.5,74.9 566.2,74.4"/><polygon class="fL" points="525.1,126.2 518,127.9 518.9,58.5 525.4,57"/><polygon class="fR" points="525.1,126.2 539.5,128.7 538.6,59.2 525.4,57"/><path class="win" d="M520.4 114.9 L520.4 111.4 Q519.9 110.7 519.4 111.6 L519.4 115.1 Z"/><path class="win" d="M523.9 103.3 L523.9 99.8 Q523.5 99.1 523 100.1 L523 103.5 Z"/><path class="win" d="M524 92.6 L524 89.1 Q523.5 88.4 523.1 89.3 L523 92.8 Z"/><path class="win" d="M520.6 93.4 L520.6 89.9 Q520.2 89.2 519.7 90.1 L519.6 93.6 Z"/><path class="win" d="M524.1 81.8 L524.1 78.4 Q523.6 77.6 523.1 78.6 L523.1 82.1 Z"/><path class="win" d="M520.7 82.6 L520.7 79.2 Q520.3 78.4 519.8 79.4 L519.8 82.9 Z"/><path class="win" d="M534.8 115.4 L534.8 111.9 Q535.7 110.3 536.7 112.3 L536.8 115.7 Z"/><path class="win" d="M534.7 104.6 L534.7 101.2 Q535.7 99.6 536.6 101.5 L536.7 105 Z"/><path class="win" d="M527.7 82 L527.7 78.5 Q528.7 76.9 529.6 78.8 L529.6 82.3 Z"/><path class="win" d="M527.7 71.2 L527.7 67.8 Q528.7 66.2 529.6 68.1 L529.6 71.5 Z"/><path class="win" d="M534.5 72.4 L534.5 68.9 Q535.4 67.4 536.3 69.2 L536.4 72.7 Z"/><polygon class="rL" points="524.8,91.3 517.2,93.2 517.2,91.2 524.8,89.3"/><polygon class="rR" points="524.8,91.3 540.3,94 540.3,92 524.8,89.3"/><path class="rL" d="M525.4 57 L518.9 58.5 Q518.9 47.6 528.7 47.6 Q526 52.3 525.4 57 Z"/><path class="rR" d="M525.4 57 L538.6 59.2 Q538.6 47.6 528.7 47.6 Q526 52.3 525.4 57 Z"/><polygon class="fL" points="589.1,126.8 576.5,129.8 577.8,36 589.4,33.3"/><polygon class="fR" points="589.1,126.8 608.8,130.1 607.5,36.3 589.4,33.3"/><path class="win" d="M586.9 110.5 L586.9 105.8 Q586.1 104.4 585.2 106.2 L585.2 110.9 Z"/><path class="win" d="M580.7 112 L580.7 107.3 Q579.9 105.9 579 107.7 L579 112.4 Z"/><path class="win" d="M587 91.1 L587 86.5 Q586.2 85.1 585.3 86.9 L585.3 91.5 Z"/><path class="win" d="M580.9 92.6 L580.9 87.9 Q580.1 86.6 579.2 88.3 L579.2 93 Z"/><path class="win" d="M587 81.5 L587.1 76.8 Q586.2 75.5 585.4 77.2 L585.3 81.9 Z"/><path class="win" d="M581 82.9 L581 78.2 Q580.2 76.9 579.4 78.6 L579.3 83.3 Z"/><path class="win" d="M587.1 71.8 L587.1 67.1 Q586.3 65.8 585.4 67.5 L585.4 72.2 Z"/><path class="win" d="M581.1 73.2 L581.1 68.6 Q580.3 67.2 579.5 69 L579.4 73.6 Z"/><path class="win" d="M587.1 62.1 L587.2 57.5 Q586.3 56.2 585.5 57.9 L585.5 62.5 Z"/><path class="win" d="M587.2 52.5 L587.2 47.8 Q586.4 46.5 585.6 48.2 L585.5 52.9 Z"/><path class="win" d="M581.3 53.9 L581.3 49.2 Q580.5 47.9 579.7 49.6 L579.7 54.3 Z"/><path class="win" d="M592.6 110.5 L592.6 105.8 Q594 103.6 595.3 106.3 L595.3 111 Z"/><path class="win" d="M602.3 112.2 L602.3 107.5 Q603.7 105.3 605 108 L605.1 112.6 Z"/><path class="win" d="M602.3 102.5 L602.2 97.8 Q603.6 95.6 604.9 98.3 L605 103 Z"/><path class="win" d="M602.2 92.8 L602.1 88.1 Q603.5 86 604.8 88.6 L604.9 93.3 Z"/><path class="win" d="M592.6 81.5 L592.6 76.8 Q593.9 74.7 595.3 77.3 L595.3 82 Z"/><path class="win" d="M592.6 71.9 L592.6 67.2 Q593.9 65 595.2 67.6 L595.3 72.3 Z"/><path class="win" d="M602 73.5 L602 68.8 Q603.3 66.6 604.6 69.2 L604.7 73.9 Z"/><path class="win" d="M601.9 63.8 L601.9 59.1 Q603.2 57 604.5 59.5 L604.5 64.2 Z"/><path class="win" d="M592.6 52.5 L592.6 47.8 Q593.9 45.7 595.2 48.3 L595.2 53 Z"/><path class="win" d="M601.9 54.1 L601.8 49.4 Q603.1 47.3 604.4 49.8 L604.4 54.5 Z"/><polygon class="rL" points="588.8,79.6 575.3,82.9 575.3,80.9 588.8,77.6"/><polygon class="rR" points="588.8,79.6 610,83.2 610,81.2 588.8,77.6"/><path class="rL" d="M589.4 33.3 L577.8 36 Q577.8 19.1 592.7 19.1 Q590 26.2 589.4 33.3 Z"/><path class="rR" d="M589.4 33.3 L607.5 36.3 Q607.5 19.1 592.7 19.1 Q590 26.2 589.4 33.3 Z"/><polygon class="fL" points="552,94 541,96.6 542.2,6.6 551.9,4.3"/><polygon class="fR" points="552,94 561,95.5 559.8,5.6 551.9,4.3"/><path class="win" d="M550 78.3 L550 73.8 Q549.3 72.7 548.5 74.2 L548.5 78.7 Z"/><path class="win" d="M550.1 50.5 L550.1 46 Q549.4 44.9 548.6 46.3 L548.6 50.8 Z"/><path class="win" d="M550.1 36.5 L550.1 32.1 Q549.4 31 548.7 32.4 L548.7 36.9 Z"/><path class="win" d="M545 37.8 L545.1 33.3 Q544.4 32.2 543.6 33.6 L543.6 38.1 Z"/><path class="win" d="M550.1 22.6 L550.1 18.1 Q549.4 17.1 548.7 18.5 L548.7 23 Z"/><path class="win" d="M545.1 23.8 L545.2 19.3 Q544.5 18.2 543.8 19.7 L543.7 24.2 Z"/><path class="win" d="M553.6 78.1 L553.5 73.6 Q554.2 72.6 554.8 73.8 L554.8 78.3 Z"/><path class="win" d="M558 78.9 L557.9 74.4 Q558.5 73.4 559.1 74.6 L559.2 79.1 Z"/><path class="win" d="M553.5 64.2 L553.5 59.7 Q554.1 58.7 554.7 59.9 L554.7 64.4 Z"/><path class="win" d="M553.5 50.3 L553.5 45.8 Q554 44.8 554.6 46 L554.7 50.5 Z"/><path class="win" d="M557.7 51 L557.7 46.5 Q558.2 45.5 558.8 46.7 L558.9 51.2 Z"/><path class="win" d="M553.4 36.4 L553.4 31.9 Q554 30.9 554.6 32.1 L554.6 36.6 Z"/><path class="win" d="M553.4 22.4 L553.4 18 Q553.9 17 554.5 18.2 L554.5 22.6 Z"/><polygon class="rL" points="552,44.4 540.5,47.2 540.6,45.2 552,42.4"/><polygon class="rR" points="552,44.4 561.5,46 561.4,44 552,42.4"/><polygon class="rL" points="551.9,4.3 542.2,6.6 551,-19.9"/><polygon class="rR" points="551.9,4.3 559.8,5.6 551,-19.9"/><polygon class="fL" points="568.2,141 560.6,142.8 561.5,69.3 568.5,67.6"/><polygon class="fR" points="568.2,141 584,143.6 583.1,70.1 568.5,67.6"/><path class="win" d="M566.9 128.1 L566.9 124.4 Q566.4 123.6 565.9 124.7 L565.9 128.3 Z"/><path class="win" d="M567 116.7 L567 113 Q566.5 112.2 566 113.3 L565.9 117 Z"/><path class="win" d="M567 105.3 L567.1 101.7 Q566.6 100.9 566 101.9 L566 105.6 Z"/><path class="win" d="M563.4 106.2 L563.4 102.6 Q562.9 101.8 562.4 102.8 L562.4 106.5 Z"/><path class="win" d="M563.5 94.8 L563.5 91.2 Q563 90.4 562.5 91.4 L562.5 95.1 Z"/><path class="win" d="M567.2 82.6 L567.2 78.9 Q566.7 78.2 566.2 79.2 L566.2 82.9 Z"/><path class="win" d="M578.9 129.6 L578.8 125.9 Q579.9 124.1 581 126.3 L581 129.9 Z"/><path class="win" d="M578.8 118.2 L578.8 114.5 Q579.8 112.8 580.9 114.9 L580.9 118.5 Z"/><path class="win" d="M571.1 105.5 L571.1 101.8 Q572.2 100.1 573.2 102.2 L573.2 105.9 Z"/><path class="win" d="M571.1 94.1 L571.1 90.5 Q572.2 88.8 573.2 90.8 L573.2 94.5 Z"/><path class="win" d="M578.6 95.4 L578.6 91.7 Q579.6 90 580.7 92.1 L580.7 95.8 Z"/><path class="win" d="M571.1 82.8 L571.1 79.1 Q572.2 77.4 573.2 79.4 L573.2 83.1 Z"/><polygon class="rL" points="567.9,104 559.7,106 559.7,104 567.9,102"/><polygon class="rR" points="567.9,104 584.9,106.9 584.9,104.9 567.9,102"/><polygon class="fL" points="568,67.8 566.8,68.1 566.8,63.7 568,63.4"/><polygon class="fL" points="565.6,68.3 564.5,68.6 564.5,64.2 565.7,63.9"/><polygon class="fL" points="563.3,68.9 562.1,69.2 562.2,64.8 563.3,64.5"/><polygon class="fR" points="569.7,67.8 572.1,68.2 572.1,63.8 569.7,63.4"/><polygon class="fR" points="574.5,68.7 577,69.1 576.9,64.7 574.5,64.3"/><polygon class="fR" points="579.4,69.5 581.8,69.9 581.8,65.5 579.4,65.1"/><polygon class="fL" points="535.7,141.7 516.6,146.3 517.1,102.2 535.6,97.7"/><polygon class="fR" points="535.7,141.7 547,143.6 546.6,99.6 535.6,97.7"/><path class="win" d="M543.1 104.5 L543.1 102.3 Q543.8 101.1 544.6 102.6 L544.6 104.8 Z"/><polygon class="fL" points="534.1,98.1 529.5,99.2 529.5,96.5 534.1,95.4"/><polygon class="fL" points="524.8,100.3 520.2,101.4 520.2,98.8 524.9,97.7"/><polygon class="fR" points="536.4,97.9 539.2,98.3 539.2,95.7 536.4,95.2"/><polygon class="fR" points="541.9,98.8 544.7,99.3 544.7,96.6 541.9,96.2"/><polygon class="fL" points="602,143.3 589.5,146.3 590.5,71 601.9,68.2"/><polygon class="fR" points="602,143.3 612.8,145.2 611.9,69.9 601.9,68.2"/><path class="win" d="M599.8 130.3 L599.8 126.6 Q598.9 125.2 598.1 127 L598 130.7 Z"/><path class="win" d="M599.8 118.7 L599.8 114.9 Q598.9 113.6 598.1 115.3 L598.1 119.1 Z"/><path class="win" d="M593.7 120.1 L593.8 116.4 Q592.9 115.1 592.1 116.8 L592 120.5 Z"/><path class="win" d="M599.8 107 L599.8 103.3 Q599 102 598.1 103.7 L598.1 107.4 Z"/><path class="win" d="M593.8 108.5 L593.9 104.7 Q593 103.4 592.2 105.1 L592.1 108.9 Z"/><path class="win" d="M599.8 95.4 L599.8 91.6 Q599 90.3 598.2 92 L598.2 95.8 Z"/><path class="win" d="M599.8 83.7 L599.8 80 Q599 78.7 598.2 80.4 L598.2 84.1 Z"/><path class="win" d="M594 85.1 L594 81.4 Q593.2 80.1 592.4 81.8 L592.4 85.5 Z"/><path class="win" d="M609.3 131 L609.2 127.3 Q610 126.1 610.7 127.5 L610.7 131.3 Z"/><path class="win" d="M603.9 118.5 L603.9 114.7 Q604.6 113.5 605.3 115 L605.3 118.7 Z"/><path class="win" d="M603.8 106.8 L603.8 103.1 Q604.5 101.9 605.3 103.3 L605.3 107.1 Z"/><path class="win" d="M609 107.7 L609 104 Q609.7 102.8 610.5 104.2 L610.5 108 Z"/><path class="win" d="M603.8 95.2 L603.8 91.4 Q604.5 90.3 605.2 91.7 L605.2 95.4 Z"/><path class="win" d="M603.8 83.5 L603.8 79.8 Q604.5 78.6 605.2 80 L605.2 83.8 Z"/><path class="win" d="M608.8 84.4 L608.8 80.6 Q609.5 79.5 610.2 80.9 L610.3 84.6 Z"/><polygon class="rL" points="602,105.5 588.7,108.7 588.7,106.7 602,103.5"/><polygon class="rR" points="602,105.5 613.7,107.5 613.7,105.5 602,103.5"/><polygon class="fL" points="601,68.4 599.1,68.9 599.1,64.4 601,63.9"/><polygon class="fL" points="597.2,69.3 595.3,69.8 595.3,65.3 597.2,64.8"/><polygon class="fL" points="593.4,70.3 591.5,70.7 591.5,66.2 593.4,65.7"/><polygon class="fR" points="602.7,68.3 604.4,68.6 604.4,64.1 602.7,63.8"/><polygon class="fR" points="606.1,68.9 607.7,69.2 607.7,64.7 606,64.4"/><polygon class="fR" points="609.4,69.5 611,69.8 611,65.2 609.3,65"/><polygon class="fL" points="634.3,143.8 619.6,147.3 620.7,63 634.3,59.8"/><polygon class="fR" points="634.3,143.8 647.4,146 646.3,61.8 634.3,59.8"/><path class="win" d="M631.7 129.3 L631.7 125.1 Q630.7 123.5 629.7 125.6 L629.7 129.8 Z"/><path class="win" d="M624.4 131 L624.5 126.8 Q623.4 125.2 622.4 127.3 L622.4 131.5 Z"/><path class="win" d="M631.7 118.8 L631.7 114.6 Q630.7 113.1 629.7 115.1 L629.7 119.3 Z"/><path class="win" d="M624.5 120.6 L624.5 116.4 Q623.5 114.8 622.5 116.9 L622.5 121.1 Z"/><path class="win" d="M631.7 108.4 L631.7 104.2 Q630.7 102.7 629.7 104.7 L629.7 108.9 Z"/><path class="win" d="M624.6 110.1 L624.6 105.9 Q623.6 104.4 622.6 106.4 L622.6 110.6 Z"/><path class="win" d="M631.7 98 L631.8 93.8 Q630.8 92.3 629.8 94.3 L629.8 98.5 Z"/><path class="win" d="M624.7 99.7 L624.7 95.5 Q623.7 94 622.8 96 L622.7 100.2 Z"/><path class="win" d="M631.8 87.6 L631.8 83.4 Q630.8 81.9 629.8 83.9 L629.8 88.1 Z"/><path class="win" d="M624.9 78.8 L624.9 74.6 Q623.9 73.1 623 75.1 L622.9 79.3 Z"/><path class="win" d="M636.6 129 L636.6 124.8 Q637.5 123.4 638.4 125.1 L638.5 129.3 Z"/><path class="win" d="M643.1 130.1 L643.1 125.9 Q644 124.5 644.9 126.2 L644.9 130.4 Z"/><path class="win" d="M643 119.7 L643 115.5 Q643.9 114 644.8 115.8 L644.8 120 Z"/><path class="win" d="M636.6 108.2 L636.6 104 Q637.4 102.6 638.3 104.3 L638.4 108.5 Z"/><path class="win" d="M642.9 109.3 L642.9 105.1 Q643.8 103.6 644.6 105.4 L644.7 109.6 Z"/><path class="win" d="M636.5 97.8 L636.5 93.6 Q637.4 92.2 638.3 93.9 L638.3 98.1 Z"/><path class="win" d="M642.8 98.8 L642.8 94.6 Q643.6 93.2 644.5 94.9 L644.6 99.1 Z"/><path class="win" d="M636.5 87.4 L636.5 83.2 Q637.4 81.8 638.2 83.5 L638.3 87.7 Z"/><path class="win" d="M642.7 88.4 L642.7 84.2 Q643.5 82.8 644.4 84.5 L644.5 88.7 Z"/><path class="win" d="M642.6 78 L642.6 73.8 Q643.4 72.4 644.3 74.1 L644.3 78.3 Z"/><polygon class="rL" points="634.4,101.4 618.5,105.2 618.5,103.2 634.4,99.4"/><polygon class="rR" points="634.4,101.4 648.5,103.8 648.5,101.8 634.4,99.4"/><polygon class="fL" points="633.2,60 630.9,60.6 630.9,55.5 633.2,55"/><polygon class="fL" points="628.6,61.1 626.4,61.7 626.4,56.6 628.7,56.1"/><polygon class="fL" points="624.1,62.2 621.8,62.8 621.9,57.7 624.2,57.2"/><polygon class="fR" points="635.2,59.9 637.2,60.3 637.2,55.2 635.2,54.9"/><polygon class="fR" points="639.2,60.6 641.3,61 641.2,55.9 639.2,55.6"/><polygon class="fR" points="643.3,61.3 645.3,61.7 645.2,56.6 643.2,56.3"/><polygon class="fL" points="491.5,145.8 483.2,147.7 484.2,73.5 491.9,71.7"/><polygon class="fR" points="491.5,145.8 509.3,148.8 508.2,74.4 491.9,71.7"/><path class="win" d="M490.1 132.8 L490.1 129.1 Q489.6 128.2 489 129.3 L489 133 Z"/><path class="win" d="M490.2 121.3 L490.2 117.6 Q489.6 116.7 489.1 117.8 L489 121.6 Z"/><path class="win" d="M486.1 122.2 L486.2 118.5 Q485.6 117.7 485.1 118.8 L485 122.5 Z"/><path class="win" d="M490.3 109.8 L490.3 106.1 Q489.7 105.2 489.2 106.4 L489.1 110.1 Z"/><path class="win" d="M486.3 110.7 L486.3 107 Q485.8 106.2 485.2 107.3 L485.1 111 Z"/><path class="win" d="M490.3 98.3 L490.4 94.6 Q489.8 93.7 489.3 94.9 L489.2 98.6 Z"/><path class="win" d="M486.4 99.2 L486.4 95.5 Q485.9 94.7 485.3 95.8 L485.3 99.5 Z"/><path class="win" d="M490.4 86.8 L490.4 83.1 Q489.9 82.3 489.4 83.4 L489.3 87.1 Z"/><path class="win" d="M486.5 87.7 L486.6 84 Q486 83.2 485.5 84.3 L485.4 88 Z"/><path class="win" d="M494.7 132.9 L494.7 129.2 Q496 127.3 497.2 129.7 L497.2 133.4 Z"/><path class="win" d="M503.5 134.4 L503.5 130.7 Q504.7 128.7 505.9 131.1 L505.9 134.9 Z"/><path class="win" d="M494.7 121.5 L494.8 117.8 Q496 115.8 497.2 118.2 L497.2 121.9 Z"/><path class="win" d="M503.4 122.9 L503.4 119.2 Q504.6 117.3 505.8 119.6 L505.8 123.3 Z"/><path class="win" d="M494.8 110 L494.8 106.3 Q496 104.3 497.2 106.7 L497.2 110.4 Z"/><path class="win" d="M503.3 111.4 L503.3 107.7 Q504.5 105.8 505.6 108.1 L505.7 111.8 Z"/><path class="win" d="M494.8 98.5 L494.8 94.8 Q496 92.9 497.1 95.2 L497.1 98.9 Z"/><path class="win" d="M503.2 99.9 L503.2 96.2 Q504.4 94.3 505.5 96.6 L505.6 100.3 Z"/><path class="win" d="M494.8 87 L494.8 83.3 Q496 81.4 497.1 83.7 L497.1 87.4 Z"/><path class="win" d="M503.1 88.4 L503.1 84.7 Q504.2 82.8 505.4 85.1 L505.4 88.8 Z"/><polygon class="rL" points="491.2,108.4 482.2,110.6 482.3,108.6 491.2,106.4"/><polygon class="rR" points="491.2,108.4 510.3,111.7 510.2,109.7 491.2,106.4"/><polygon class="rL" points="491.9,71.7 484.2,73.5 496.2,48.7"/><polygon class="rR" points="491.9,71.7 508.2,74.4 496.2,48.7"/><polygon class="fL" points="653.7,158.6 644,160.9 644.4,113.7 653.8,111.5"/><polygon class="fR" points="653.7,158.6 671.9,161.7 671.5,114.5 653.8,111.5"/><path class="win" d="M665.9 120.8 L665.9 118.4 Q667.1 116.4 668.3 118.8 L668.4 121.2 Z"/><polygon class="fL" points="653,111.7 650.7,112.2 650.7,109.4 653.1,108.8"/><polygon class="fL" points="648.3,112.8 646,113.4 646,110.5 648.4,110"/><polygon class="fR" points="655.2,111.7 659.6,112.5 659.6,109.6 655.2,108.9"/><polygon class="fR" points="664.1,113.2 668.5,114 668.5,111.1 664.1,110.4"/><polygon class="fL" points="564.4,158.6 547,162.7 548.2,76.2 564.2,72.3"/><polygon class="fR" points="564.4,158.6 577.7,160.8 576.4,74.4 564.2,72.3"/><path class="win" d="M561.2 143.8 L561.2 139.5 Q560.1 137.6 558.9 140 L558.9 144.4 Z"/><path class="win" d="M561.3 133.1 L561.3 128.8 Q560.1 126.9 558.9 129.3 L558.9 133.6 Z"/><path class="win" d="M552.8 135.1 L552.8 130.8 Q551.7 128.9 550.5 131.4 L550.4 135.7 Z"/><path class="win" d="M561.3 122.4 L561.3 118.1 Q560.1 116.2 558.9 118.6 L558.9 122.9 Z"/><path class="win" d="M552.9 124.4 L552.9 120.1 Q551.8 118.2 550.6 120.6 L550.5 125 Z"/><path class="win" d="M553.1 103 L553.1 98.6 Q552 96.8 550.8 99.2 L550.8 103.5 Z"/><path class="win" d="M553.2 92.2 L553.2 87.9 Q552.1 86.1 551 88.5 L550.9 92.8 Z"/><path class="win" d="M573.2 144.6 L573.2 140.2 Q574.1 138.8 575 140.6 L575.1 144.9 Z"/><path class="win" d="M566.6 132.7 L566.6 128.4 Q567.5 127 568.4 128.7 L568.5 133.1 Z"/><path class="win" d="M573.1 133.9 L573.1 129.5 Q574 128.1 574.9 129.8 L575 134.2 Z"/><path class="win" d="M572.8 101.7 L572.8 97.4 Q573.6 96 574.5 97.7 L574.6 102 Z"/><polygon class="rL" points="564.5,115.1 545.9,119.6 545.9,117.6 564.5,113.1"/><polygon class="rR" points="564.5,115.1 578.8,117.5 578.8,115.5 564.5,113.1"/><polygon class="fL" points="562.9,72.6 560.3,73.3 560.3,68.1 562.9,67.5"/><polygon class="fL" points="557.6,73.9 554.9,74.6 555,69.4 557.6,68.7"/><polygon class="fL" points="552.3,75.2 549.6,75.8 549.7,70.6 552.3,70"/><polygon class="fR" points="565.2,72.5 567.2,72.8 567.2,67.7 565.2,67.3"/><polygon class="fR" points="569.3,73.2 571.3,73.5 571.2,68.4 569.2,68"/><polygon class="fR" points="573.3,73.9 575.4,74.2 575.3,69.1 573.3,68.7"/><polygon class="fL" points="607.4,160.5 593.4,163.9 594.8,76 607.6,72.9"/><polygon class="fR" points="607.4,160.5 627.2,163.9 625.9,76 607.6,72.9"/><path class="win" d="M598.1 147 L598.1 142.6 Q597.1 141.1 596.2 143.1 L596.1 147.5 Z"/><path class="win" d="M598.2 136.1 L598.2 131.7 Q597.3 130.2 596.3 132.2 L596.3 136.6 Z"/><path class="win" d="M605.1 123.6 L605.1 119.2 Q604.1 117.7 603.2 119.7 L603.2 124 Z"/><path class="win" d="M598.3 125.2 L598.4 120.8 Q597.4 119.3 596.5 121.3 L596.4 125.7 Z"/><path class="win" d="M605.1 112.7 L605.1 108.3 Q604.2 106.9 603.3 108.8 L603.2 113.2 Z"/><path class="win" d="M598.4 114.3 L598.5 109.9 Q597.5 108.5 596.6 110.4 L596.6 114.8 Z"/><path class="win" d="M598.6 103.4 L598.6 99 Q597.7 97.6 596.8 99.5 L596.7 103.9 Z"/><path class="win" d="M605.2 91 L605.3 86.6 Q604.3 85.2 603.4 87 L603.4 91.4 Z"/><path class="win" d="M598.7 92.5 L598.7 88.1 Q597.8 86.7 596.9 88.6 L596.8 93 Z"/><path class="win" d="M620.7 147 L620.7 142.6 Q622.1 140.4 623.4 143.1 L623.5 147.5 Z"/><path class="win" d="M611 134.5 L611 130.1 Q612.3 127.9 613.7 130.5 L613.7 134.9 Z"/><path class="win" d="M611 123.6 L610.9 119.2 Q612.3 117 613.6 119.7 L613.6 124 Z"/><path class="win" d="M620.5 125.2 L620.5 120.8 Q621.8 118.6 623.2 121.3 L623.2 125.7 Z"/><path class="win" d="M610.9 112.7 L610.9 108.3 Q612.3 106.2 613.6 108.8 L613.6 113.2 Z"/><path class="win" d="M620.4 114.3 L620.4 109.9 Q621.7 107.8 623 110.4 L623.1 114.8 Z"/><path class="win" d="M610.9 101.8 L610.9 97.5 Q612.2 95.3 613.6 97.9 L613.6 102.3 Z"/><path class="win" d="M620.3 103.4 L620.3 99 Q621.6 96.9 622.9 99.5 L622.9 103.9 Z"/><path class="win" d="M620.2 92.5 L620.2 88.2 Q621.5 86 622.8 88.6 L622.8 93 Z"/><polygon class="rL" points="607.2,116.3 592.1,119.9 592.2,117.9 607.2,114.3"/><polygon class="rR" points="607.2,116.3 628.5,119.9 628.5,117.9 607.2,114.3"/><polygon class="fL" points="606.6,73.1 604.5,73.6 604.5,68.4 606.6,67.9"/><polygon class="fL" points="602.3,74.1 600.2,74.7 600.2,69.4 602.4,68.9"/><polygon class="fL" points="598,75.2 595.9,75.7 595.9,70.4 598.1,69.9"/><polygon class="fR" points="609.1,73.1 612.1,73.6 612.1,68.4 609.1,67.9"/><polygon class="fR" points="615.2,74.2 618.2,74.7 618.2,69.4 615.2,68.9"/><polygon class="fR" points="621.3,75.2 624.3,75.7 624.2,70.4 621.2,69.9"/><polygon class="fL" points="455.8,160.7 448.4,162.5 449.3,95.4 456.1,93.8"/><polygon class="fR" points="455.8,160.7 469.8,163.1 469,96 456.1,93.8"/><path class="win" d="M454.6 149 L454.6 145.6 Q454.1 144.8 453.6 145.9 L453.5 149.2 Z"/><path class="win" d="M450.9 149.9 L450.9 146.5 Q450.4 145.7 449.9 146.8 L449.9 150.1 Z"/><path class="win" d="M454.6 138.6 L454.6 135.3 Q454.1 134.5 453.6 135.5 L453.6 138.8 Z"/><path class="win" d="M451 139.5 L451 136.1 Q450.5 135.3 450 136.4 L450 139.7 Z"/><path class="win" d="M454.7 117.8 L454.8 114.5 Q454.3 113.7 453.8 114.7 L453.8 118.1 Z"/><path class="win" d="M454.8 107.5 L454.8 104.1 Q454.3 103.4 453.8 104.3 L453.8 107.7 Z"/><path class="win" d="M451.3 108.3 L451.3 104.9 Q450.9 104.2 450.4 105.2 L450.3 108.5 Z"/><path class="win" d="M458.4 149.1 L458.4 145.7 Q459.3 144.2 460.3 146.1 L460.3 149.4 Z"/><path class="win" d="M465.3 150.3 L465.2 146.9 Q466.2 145.3 467.2 147.2 L467.2 150.6 Z"/><path class="win" d="M458.4 138.7 L458.4 135.4 Q459.3 133.8 460.3 135.7 L460.3 139 Z"/><path class="win" d="M458.4 128.3 L458.4 125 Q459.3 123.4 460.3 125.3 L460.3 128.6 Z"/><path class="win" d="M458.4 117.9 L458.4 114.6 Q459.3 113.1 460.3 114.9 L460.3 118.3 Z"/><path class="win" d="M458.4 107.6 L458.4 104.2 Q459.3 102.7 460.2 104.5 L460.2 107.9 Z"/><path class="win" d="M465 108.7 L464.9 105.3 Q465.8 103.8 466.8 105.6 L466.8 109 Z"/><polygon class="rL" points="455.6,127 447.6,128.9 447.6,126.9 455.6,125"/><polygon class="rR" points="455.6,127 470.6,129.6 470.6,127.6 455.6,125"/><polygon class="rL" points="456.1,93.8 449.3,95.4 459.1,72.9"/><polygon class="rR" points="456.1,93.8 469,96 459.1,72.9"/><polygon class="fL" points="529.6,161.7 518.5,164.4 519.3,96.4 529.6,94"/><polygon class="fR" points="529.6,161.7 539.2,163.3 538.4,95.5 529.6,94"/><path class="win" d="M527.7 150 L527.7 146.6 Q526.9 145.4 526.1 147 L526.1 150.3 Z"/><path class="win" d="M522.2 151.3 L522.2 147.9 Q521.4 146.7 520.7 148.3 L520.6 151.7 Z"/><path class="win" d="M527.7 139.5 L527.7 136.1 Q526.9 134.9 526.2 136.4 L526.2 139.8 Z"/><path class="win" d="M527.7 129 L527.7 125.6 Q526.9 124.4 526.2 125.9 L526.2 129.3 Z"/><path class="win" d="M522.3 130.3 L522.4 126.9 Q521.6 125.7 520.9 127.2 L520.8 130.6 Z"/><path class="win" d="M527.7 118.5 L527.7 115.1 Q527 113.9 526.2 115.4 L526.2 118.8 Z"/><path class="win" d="M522.5 109.2 L522.5 105.8 Q521.8 104.7 521.1 106.2 L521 109.6 Z"/><path class="win" d="M531.3 149.8 L531.3 146.4 Q532 145.3 532.6 146.6 L532.7 150 Z"/><path class="win" d="M531.3 139.3 L531.3 135.9 Q531.9 134.8 532.6 136.1 L532.6 139.5 Z"/><path class="win" d="M536 140.1 L535.9 136.7 Q536.6 135.6 537.2 136.9 L537.3 140.3 Z"/><path class="win" d="M531.3 128.8 L531.3 125.4 Q531.9 124.4 532.5 125.6 L532.6 129 Z"/><path class="win" d="M535.9 129.6 L535.8 126.2 Q536.5 125.1 537.1 126.4 L537.2 129.8 Z"/><path class="win" d="M531.2 107.8 L531.2 104.4 Q531.8 103.4 532.4 104.6 L532.5 108 Z"/><polygon class="rL" points="529.7,127.6 517.7,130.5 517.8,128.5 529.7,125.6"/><polygon class="rR" points="529.7,127.6 540,129.3 540,127.3 529.7,125.6"/><polygon class="rL" points="529.6,94 519.3,96.4 528.9,72.9"/><polygon class="rR" points="529.6,94 538.4,95.5 528.9,72.9"/><polygon class="fL" points="496.1,162.8 481.5,166.3 481.9,118.9 496,115.5"/><polygon class="fR" points="496.1,162.8 507.2,164.7 506.8,117.3 496,115.5"/><path class="win" d="M493.5 123.4 L493.5 121.1 Q492.5 119.5 491.5 121.5 L491.5 123.9 Z"/><path class="win" d="M486.4 125.1 L486.4 122.8 Q485.4 121.2 484.4 123.3 L484.4 125.6 Z"/><polygon class="fL" points="494.9,115.7 491.3,116.6 491.4,113.7 494.9,112.9"/><polygon class="fL" points="487.8,117.4 484.3,118.3 484.3,115.4 487.8,114.6"/><polygon class="fR" points="496.9,115.6 499.6,116.1 499.6,113.2 496.9,112.8"/><polygon class="fR" points="502.3,116.5 505,117 504.9,114.1 502.3,113.7"/><polygon class="bU" points="521.9,130.6 539.1,116.8 532.1,118.4 514.9,132.3"/><polygon class="fR" points="519.9,129.2 519.9,126 523.1,126.5 523.1,123.3 526.3,123.9 526.3,120.7 529.5,121.2 529.5,118 532.7,118.6 532.7,115.4 535.9,115.9 535.9,112.7 539.1,113.3 539.1,116.8 521.9,130.6"/><path class="bU" d="M469.3 129.2 Q480.5 123.4 491.7 133 L486.7 134.2 Q475.5 124.6 464.3 130.4 Z"/><path class="fR" d="M469.3 121.5 L491.7 125.3 L491.7 133 Q480.5 123.4 469.3 129.2 Z"/><path class="bU" d="M508.6 110.4 Q516.9 104.1 525.2 113.2 L520.2 114.4 Q511.9 105.3 503.6 111.6 Z"/><path class="fR" d="M508.6 102.7 L525.2 105.5 L525.2 113.2 Q516.9 104.1 508.6 110.4 Z"/></g></g><g class="l-base"><g transform="translate(0 30)"><polygon class="sL" points="644,143 618.2,149.2 620.4,134.9 643.7,129.3"/><polygon class="sRg" points="644,143 663.4,146.3 661.2,132.3 643.7,129.3"/><polygon class="sL" points="543.1,143 507,151.6 509.7,139.1 542.1,131.3"/><polygon class="sRg" points="543.1,143 559.8,145.8 557.1,133.8 542.1,131.3"/><polygon class="sL" points="716.1,144 693.1,149.5 695.6,131 716.3,126"/><polygon class="sRg" points="716.1,144 743.4,148.6 740.9,130.2 716.3,126"/><polygon class="sL" points="604.5,145 599.4,146.2 600,123.7 604.5,122.7"/><polygon class="sRg" points="604.5,145 610.7,146.1 610.1,123.6 604.5,122.7"/><polygon class="sL" points="589.5,145 584.6,146.2 585.1,126.3 589.5,125.2"/><polygon class="sRg" points="589.5,145 594.5,145.9 594,126 589.5,125.2"/><polygon class="sL" points="461.2,146 428.1,153.9 430.8,139.1 460.6,132"/><polygon class="sRg" points="461.2,146 480.9,149.3 478.2,135 460.6,132"/><polygon class="sL" points="418.2,146 413.6,147.1 414.1,127 418.2,126"/><polygon class="sRg" points="418.2,146 423.7,146.9 423.2,126.8 418.2,126"/><polygon class="sL" points="426.7,161 424,161.6 424.4,146.7 426.8,146.1"/><polygon class="sRg" points="426.7,161 431.5,161.8 431.1,146.8 426.8,146.1"/><polygon class="sL" points="442.3,161 435.3,162.7 436,137 442.3,135.5"/><polygon class="sRg" points="442.3,161 448.2,162 447.5,136.4 442.3,135.5"/><polygon class="sL" points="442.3,135.5 436,137 441.7,127.7"/><polygon class="sRg" points="442.3,135.5 447.5,136.4 441.7,127.7"/><polygon class="sL" points="390.3,161 378.8,163.8 380.3,155 390.6,152.5"/><polygon class="sRg" points="390.3,161 408.7,164.1 407.2,155.4 390.6,152.5"/><polygon class="sL" points="516.5,161 503,164.2 504.5,155.2 516.7,152.3"/><polygon class="sRg" points="516.5,161 533.8,164 532.3,154.9 516.7,152.3"/><polygon class="sL" points="558.7,163 553.5,164.2 553.9,149 558.5,147.8"/><polygon class="sRg" points="558.7,163 561.1,163.4 560.7,148.2 558.5,147.8"/><polygon class="sL" points="558.5,147.8 553.9,149 557.3,143.3"/><polygon class="sRg" points="558.5,147.8 560.7,148.2 557.3,143.3"/><polygon class="sL" points="653.1,163 633.2,167.8 634.8,155.2 652.7,150.9"/><polygon class="sRg" points="653.1,163 665.9,165.2 664.2,152.9 652.7,150.9"/><polygon class="sL" points="721.4,164 686.2,172.4 688.8,161.5 720.5,153.9"/><polygon class="sRg" points="721.4,164 737,166.6 734.4,156.3 720.5,153.9"/><polygon class="sL" points="594.2,164 564.6,171.1 566.8,162.5 593.4,156.1"/><polygon class="sRg" points="594.2,164 607.4,166.2 605.3,158.2 593.4,156.1"/><polygon class="sL" points="474.6,164 454.4,168.8 456,156.3 474.1,152"/><polygon class="sRg" points="474.6,164 485.9,165.9 484.3,153.7 474.1,152"/><polygon class="sL" points="530.6,178 501.9,184.9 504.2,170.9 530,164.7"/><polygon class="sRg" points="530.6,178 548.1,181 545.8,167.4 530,164.7"/><polygon class="sL" points="599.7,179 575.6,184.8 578.1,167.3 599.7,162.1"/><polygon class="sRg" points="599.7,179 624.6,183.2 622.2,165.9 599.7,162.1"/><polygon class="sL" points="361.4,179 344,183.2 345.7,166.2 361.4,162.5"/><polygon class="sRg" points="361.4,179 378.3,181.9 376.6,165.1 361.4,162.5"/><polygon class="sL" points="444.7,179 406.7,188.1 409.5,168.6 443.7,160.4"/><polygon class="sRg" points="444.7,179 462.4,182 459.6,163.1 443.7,160.4"/><polygon class="sL" points="680.6,180 655.3,186.1 658.1,168.4 680.8,162.9"/><polygon class="sRg" points="680.6,180 710.5,185.1 707.8,167.5 680.8,162.9"/><polygon class="sL" points="492.1,180 489.2,180.7 489.6,165.4 492.2,164.8"/><polygon class="sRg" points="492.1,180 496.8,180.8 496.5,165.5 492.2,164.8"/><polygon class="sL" points="806.4,181 798.8,182.8 799.3,160.6 806.2,159"/><polygon class="sRg" points="806.4,181 809.8,181.6 809.3,159.5 806.2,159"/><polygon class="sL" points="396.5,181 393.2,181.8 393.6,165.6 396.6,164.9"/><polygon class="sRg" points="396.5,181 401.3,181.8 400.9,165.6 396.6,164.9"/><polygon class="sL" points="758.7,182 747.3,184.7 748.9,174.7 759.1,172.3"/><polygon class="sRg" points="758.7,182 778.9,185.4 777.3,175.4 759.1,172.3"/></g><polygon class="fL" points="196,172 188,173.9 188.7,127.9 195.9,126.1"/><polygon class="fR" points="196,172 202,173 201.3,127.1 195.9,126.1"/><path class="win" d="M194.6 149.9 L194.6 147.6 Q194.1 146.7 193.5 147.8 L193.5 150.1 Z"/><path class="win" d="M190.8 150.8 L190.8 148.5 Q190.3 147.6 189.7 148.7 L189.7 151 Z"/><path class="win" d="M194.6 135.6 L194.6 133.3 Q194.1 132.5 193.6 133.6 L193.6 135.9 Z"/><path class="win" d="M190.9 136.5 L190.9 134.2 Q190.4 133.4 189.9 134.5 L189.9 136.8 Z"/><path class="win" d="M200 164.4 L200 162.1 Q200.4 161.5 200.8 162.3 L200.8 164.6 Z"/><path class="win" d="M197 149.7 L197 147.4 Q197.4 146.8 197.8 147.5 L197.8 149.8 Z"/><path class="win" d="M199.8 150.2 L199.8 147.9 Q200.2 147.2 200.6 148 L200.6 150.3 Z"/><path class="win" d="M196.9 135.5 L196.9 133.2 Q197.3 132.6 197.7 133.3 L197.7 135.6 Z"/><polygon class="rL" points="196.1,148.9 187.6,150.9 187.6,148.9 196.1,146.9"/><polygon class="rR" points="196.1,148.9 202.4,150 202.4,148 196.1,146.9"/><polygon class="rL" points="195.9,126.1 188.7,127.9 195,111.8"/><polygon class="rR" points="195.9,126.1 201.3,127.1 195,111.8"/><polygon class="fL" points="216,174 210,175.4 210.8,147.4 216.2,146.1"/><polygon class="fR" points="216,174 225,175.5 224.2,147.5 216.2,146.1"/><path class="win" d="M215 169.2 L215 167.4 Q214.6 166.8 214.2 167.6 L214.1 169.4 Z"/><path class="win" d="M212 169.9 L212.1 168.2 Q211.6 167.5 211.2 168.3 L211.2 170.1 Z"/><path class="win" d="M212.4 152.6 L212.4 150.8 Q212 150.2 211.6 151 L211.6 152.8 Z"/><path class="win" d="M222 170 L222 168.2 Q222.6 167.2 223.2 168.4 L223.3 170.2 Z"/><path class="win" d="M217.6 152 L217.6 150.2 Q218.2 149.2 218.8 150.4 L218.8 152.2 Z"/><path class="win" d="M221.8 152.7 L221.7 150.9 Q222.3 149.9 222.9 151.1 L222.9 152.9 Z"/><polygon class="fL" points="215.7,146.3 214.8,146.5 214.8,144.5 215.7,144.3"/><polygon class="fL" points="213.9,146.7 213,146.9 213.1,144.9 213.9,144.7"/><polygon class="fL" points="212.1,147.1 211.2,147.3 211.3,145.3 212.2,145.1"/><polygon class="fR" points="216.8,146.3 218.1,146.5 218.1,144.5 216.8,144.3"/><polygon class="fR" points="219.5,146.7 220.8,146.9 220.8,145 219.5,144.7"/><polygon class="fR" points="222.2,147.2 223.5,147.4 223.5,145.4 222.2,145.2"/><polygon class="fL" points="180,176 173,177.7 173.7,157.7 180,156.1"/><polygon class="fR" points="180,176 187,177.2 186.3,157.2 180,156.1"/><path class="win" d="M178.8 172.7 L178.8 170.9 Q178.3 170.2 177.8 171.2 L177.8 173 Z"/><path class="win" d="M175.3 173.5 L175.4 171.8 Q174.9 171 174.4 172 L174.4 173.8 Z"/><path class="win" d="M181.2 172.6 L181.2 170.8 Q181.7 170.1 182.2 171 L182.2 172.8 Z"/><path class="rL" d="M180 156.1 L173.7 157.7 Q173.7 150.2 180 150.2 Q180 153.2 180 156.1 Z"/><path class="rR" d="M180 156.1 L186.3 157.2 Q186.3 150.2 180 150.2 Q180 153.2 180 156.1 Z"/><polygon class="fL" points="352,170 345,171.7 345.8,133.7 352.1,132.2"/><polygon class="fR" points="352,170 361,171.5 360.2,133.5 352.1,132.2"/><path class="win" d="M350.8 163.5 L350.8 161.6 Q350.3 160.8 349.8 161.8 L349.8 163.7 Z"/><path class="win" d="M358 164.2 L358 162.3 Q358.6 161.3 359.2 162.5 L359.3 164.4 Z"/><path class="win" d="M357.7 140.7 L357.7 138.8 Q358.3 137.8 358.8 139 L358.9 140.9 Z"/><polygon class="rL" points="351.9,150.9 344.5,152.7 344.5,150.7 351.9,148.9"/><polygon class="rR" points="351.9,150.9 361.5,152.5 361.5,150.5 351.9,148.9"/><polygon class="fL" points="351.6,132.3 350.5,132.5 350.6,130.3 351.6,130"/><polygon class="fL" points="349.5,132.8 348.4,133 348.5,130.8 349.5,130.5"/><polygon class="fL" points="347.4,133.3 346.3,133.5 346.4,131.3 347.4,131"/><polygon class="fR" points="352.7,132.3 354.1,132.5 354.1,130.2 352.7,130"/><polygon class="fR" points="355.4,132.7 356.8,133 356.8,130.7 355.4,130.5"/><polygon class="fR" points="358.1,133.2 359.5,133.4 359.5,131.1 358.1,130.9"/><polygon class="fL" points="374,172 368,173.4 368.6,113.4 374,112.1"/><polygon class="fR" points="374,172 380,173 379.4,113 374,112.1"/><path class="win" d="M372.9 161.5 L372.9 158.5 Q372.5 157.8 372.1 158.7 L372.1 161.7 Z"/><path class="win" d="M370 162.2 L370 159.2 Q369.6 158.5 369.2 159.4 L369.2 162.4 Z"/><path class="win" d="M373 149.1 L373 146.1 Q372.6 145.5 372.2 146.3 L372.2 149.3 Z"/><path class="win" d="M370.1 149.8 L370.1 146.8 Q369.7 146.2 369.3 147 L369.3 150 Z"/><path class="win" d="M373 136.7 L373 133.7 Q372.6 133.1 372.2 133.9 L372.2 136.9 Z"/><path class="win" d="M370.2 137.4 L370.2 134.4 Q369.8 133.8 369.4 134.6 L369.4 137.6 Z"/><path class="win" d="M373 124.3 L373 121.3 Q372.6 120.7 372.2 121.5 L372.2 124.5 Z"/><path class="win" d="M370.2 125 L370.3 122 Q369.9 121.4 369.5 122.2 L369.5 125.2 Z"/><path class="win" d="M375 149 L375 146 Q375.4 145.4 375.8 146.2 L375.8 149.2 Z"/><path class="win" d="M375 136.6 L375 133.7 Q375.4 133 375.8 133.8 L375.8 136.8 Z"/><path class="win" d="M377.8 124.7 L377.7 121.7 Q378.1 121.1 378.5 121.9 L378.5 124.9 Z"/><polygon class="rL" points="374,141.9 367.6,143.5 367.6,141.5 374,139.9"/><polygon class="rR" points="374,141.9 380.4,143 380.4,141 374,139.9"/><polygon class="rL" points="374,112.1 368.6,113.4 374,92.8"/><polygon class="rR" points="374,112.1 379.4,113 374,92.8"/><polygon class="fL" points="1064,174 1055,176.2 1055.8,134.1 1063.9,132.2"/><polygon class="fR" points="1064,174 1071,175.2 1070.2,133.2 1063.9,132.2"/><path class="win" d="M1058 167.9 L1058 165.8 Q1057.4 164.9 1056.8 166.1 L1056.7 168.2 Z"/><path class="win" d="M1062.4 153.9 L1062.4 151.8 Q1061.8 150.8 1061.2 152.1 L1061.2 154.2 Z"/><path class="win" d="M1058.1 154.9 L1058.2 152.8 Q1057.6 151.9 1057 153.1 L1056.9 155.2 Z"/><path class="win" d="M1062.4 140.9 L1062.4 138.8 Q1061.9 137.9 1061.3 139.1 L1061.3 141.2 Z"/><path class="win" d="M1058.3 141.9 L1058.3 139.8 Q1057.7 138.9 1057.2 140.1 L1057.1 142.2 Z"/><path class="win" d="M1065.1 153.7 L1065.1 151.6 Q1065.6 150.9 1066.1 151.8 L1066.1 153.9 Z"/><path class="win" d="M1068.5 154.3 L1068.4 152.2 Q1068.9 151.4 1069.4 152.3 L1069.4 154.4 Z"/><path class="win" d="M1065.1 140.7 L1065.1 138.6 Q1065.5 137.9 1066 138.8 L1066 140.9 Z"/><path class="win" d="M1068.3 141.3 L1068.3 139.2 Q1068.7 138.5 1069.2 139.3 L1069.2 141.4 Z"/><polygon class="rL" points="1064.1,152.9 1054.5,155.2 1054.5,153.2 1064.1,150.9"/><polygon class="rR" points="1064.1,152.9 1071.5,154.2 1071.5,152.2 1064.1,150.9"/><polygon class="rL" points="1063.9,132.2 1055.8,134.1 1063,119.4"/><polygon class="rR" points="1063.9,132.2 1070.2,133.2 1063,119.4"/><polygon class="fL" points="1088,176 1082,177.4 1082.7,153.4 1088,152.1"/><polygon class="fR" points="1088,176 1095,177.2 1094.3,153.2 1088,152.1"/><path class="win" d="M1084 172.7 L1084 170.9 Q1083.6 170.2 1083.2 171.1 L1083.2 172.9 Z"/><path class="win" d="M1092.7 172.5 L1092.7 170.7 Q1093.1 169.9 1093.6 170.9 L1093.6 172.7 Z"/><path class="rL" d="M1088 152.1 L1082.7 153.4 Q1082.7 146.6 1088.5 146.6 Q1088.1 149.4 1088 152.1 Z"/><path class="rR" d="M1088 152.1 L1094.3 153.2 Q1094.3 146.6 1088.5 146.6 Q1088.1 149.4 1088 152.1 Z"/><polygon class="fL" points="1196,172 1189,173.7 1189.8,119.7 1196,118.2"/><polygon class="fR" points="1196,172 1204,173.4 1203.2,119.4 1196,118.2"/><path class="win" d="M1194.8 162.6 L1194.8 159.9 Q1194.3 159.2 1193.8 160.1 L1193.8 162.8 Z"/><path class="win" d="M1191.3 163.4 L1191.4 160.7 Q1190.9 160 1190.4 161 L1190.4 163.7 Z"/><path class="win" d="M1194.8 151.5 L1194.8 148.8 Q1194.3 148 1193.9 149 L1193.9 151.7 Z"/><path class="win" d="M1191.4 152.3 L1191.5 149.6 Q1191 148.8 1190.5 149.8 L1190.5 152.5 Z"/><path class="win" d="M1194.8 140.3 L1194.9 137.6 Q1194.4 136.9 1193.9 137.9 L1193.9 140.6 Z"/><path class="win" d="M1194.9 129.2 L1194.9 126.5 Q1194.4 125.8 1194 126.7 L1194 129.4 Z"/><path class="win" d="M1197.4 162.5 L1197.4 159.9 Q1198 159 1198.5 160 L1198.5 162.7 Z"/><path class="win" d="M1201.4 163.2 L1201.3 160.5 Q1201.9 159.6 1202.4 160.7 L1202.5 163.4 Z"/><path class="win" d="M1197.4 151.4 L1197.4 148.7 Q1197.9 147.8 1198.5 148.9 L1198.5 151.6 Z"/><path class="win" d="M1201.2 152.1 L1201.2 149.4 Q1201.8 148.5 1202.3 149.6 L1202.3 152.3 Z"/><path class="win" d="M1197.4 140.3 L1197.4 137.6 Q1197.9 136.7 1198.4 137.8 L1198.4 140.5 Z"/><path class="win" d="M1201.1 140.9 L1201.1 138.2 Q1201.6 137.4 1202.2 138.4 L1202.2 141.1 Z"/><path class="win" d="M1197.4 129.1 L1197.4 126.5 Q1197.9 125.6 1198.4 126.6 L1198.4 129.3 Z"/><polygon class="rL" points="1196,144.9 1188.5,146.7 1188.6,144.7 1196,142.9"/><polygon class="rR" points="1196,144.9 1204.5,146.3 1204.4,144.4 1196,142.9"/><polygon class="fL" points="1195.5,118.3 1194.5,118.5 1194.5,115.3 1195.6,115"/><polygon class="fL" points="1193.4,118.8 1192.4,119 1192.4,115.8 1193.5,115.5"/><polygon class="fL" points="1191.3,119.3 1190.3,119.5 1190.3,116.3 1191.4,116"/><polygon class="fR" points="1196.6,118.2 1197.8,118.5 1197.8,115.2 1196.6,115"/><polygon class="fR" points="1199,118.7 1200.2,118.9 1200.2,115.6 1199,115.4"/><polygon class="fR" points="1201.4,119.1 1202.6,119.3 1202.6,116 1201.4,115.8"/></g><g class="l-ground"><polygon class="land1" points="-1400,520 -1400,178 -200,178 60,172 150,166 240,173 330,161 430,170 500,158 600,166 690,152 760,163 860,156 960,168 1040,160 1130,170 1230,162 1500,170 2700,170 2700,520"/><polygon class="land15" points="-1400,520 -1400,183 -200,183 220,176 470,185 760,174 1010,184 1280,177 1500,181 2700,181 2700,520"/><polygon class="land2" points="-1400,520 -1400,192 -200,192 260,186 540,194 820,184 1090,194 1280,187 1500,191 2700,191 2700,520"/></g></svg>
+<div class="pod-wrap" aria-hidden="true"><svg class="pod-o" viewBox="-58 -124 116 124"><rect class="leg2" x="-48" y="-40" width="10" height="34" rx="5"/><rect class="leg2" x="-34.3" y="-40" width="10" height="38" rx="5"/><rect class="leg2" x="-20.6" y="-40" width="10" height="35" rx="5"/><rect class="leg2" x="-6.9" y="-40" width="10" height="40" rx="5"/><rect class="leg2" x="6.8" y="-40" width="10" height="35" rx="5"/><rect class="leg2" x="20.5" y="-40" width="10" height="38" rx="5"/><rect class="leg2" x="34.2" y="-40" width="10" height="34" rx="5"/><g><defs><clipPath id="bc-skm"><path d="M-48 -70 A48 48 0 0 1 48 -70 L48 -30 Q48 -24 42 -24 L-42 -24 Q-48 -24 -48 -30 Z"/></clipPath><clipPath id="bt-skm"><rect x="-60" y="-130" width="120" height="74.7"/></clipPath></defs><path class="bodyc" d="M-48 -70 A48 48 0 0 1 48 -70 L48 -30 Q48 -24 42 -24 L-42 -24 Q-48 -24 -48 -30 Z"/><g clip-path="url(#bc-skm)" class="pat-bodyc"><g clip-path="url(#bt-skm)"><path class="pa" d="M-60 -130 L-57 -130 L-54 -130 L-51 -130 L-48 -130 L-45 -130 L-42 -130 L-39 -130 L-36 -130 L-33 -130 L-30 -130 L-27 -130 L-24 -130 L-21 -130 L-18 -130 L-15 -130 L-12 -130 L-9 -130 L-6 -130 L-3 -130 L0 -130 L3 -130 L6 -130 L9 -130 L12 -130 L15 -130 L18 -130 L21 -130 L24 -130 L27 -130 L30 -130 L33 -130 L36 -130 L39 -130 L42 -130 L45 -130 L48 -130 L51 -130 L54 -130 L57 -130 L60 -130 L60 -99.8 L57 -100 L54 -100.6 L51 -101.5 L48 -102.6 L45 -103.7 L42 -104.7 L39 -105.5 L36 -106.1 L33 -106.2 L30 -105.9 L27 -105.3 L24 -104.4 L21 -103.4 L18 -102.3 L15 -101.2 L12 -100.4 L9 -99.9 L6 -99.8 L3 -100.1 L0 -100.7 L-3 -101.6 L-6 -102.7 L-9 -103.8 L-12 -104.8 L-15 -105.6 L-18 -106.1 L-21 -106.2 L-24 -105.9 L-27 -105.3 L-30 -104.3 L-33 -103.3 L-36 -102.1 L-39 -101.1 L-42 -100.4 L-45 -99.9 L-48 -99.8 L-51 -100.1 L-54 -100.8 L-57 -101.7 L-60 -102.8 Z"/><path class="pa" d="M-60 -90.7 L-57 -91.3 L-54 -92 L-51 -92.6 L-48 -93.2 L-45 -93.7 L-42 -94.1 L-39 -94.3 L-36 -94.4 L-33 -94.3 L-30 -94 L-27 -93.6 L-24 -93.1 L-21 -92.5 L-18 -91.8 L-15 -91.2 L-12 -90.6 L-9 -90.1 L-6 -89.8 L-3 -89.6 L0 -89.6 L3 -89.8 L6 -90.1 L9 -90.6 L12 -91.2 L15 -91.8 L18 -92.4 L21 -93 L24 -93.6 L27 -94 L30 -94.3 L33 -94.4 L36 -94.3 L39 -94.1 L42 -93.7 L45 -93.2 L48 -92.6 L51 -92 L54 -91.3 L57 -90.8 L60 -90.3 L60 -83.4 L57 -82.7 L54 -82 L51 -81.5 L48 -81.1 L45 -81 L42 -81.1 L39 -81.5 L36 -82 L33 -82.6 L30 -83.3 L27 -84 L24 -84.5 L21 -84.9 L18 -85 L15 -84.9 L12 -84.5 L9 -84 L6 -83.3 L3 -82.6 L0 -82 L-3 -81.4 L-6 -81.1 L-9 -81 L-12 -81.1 L-15 -81.5 L-18 -82.1 L-21 -82.7 L-24 -83.4 L-27 -84.1 L-30 -84.6 L-33 -84.9 L-36 -85 L-39 -84.8 L-42 -84.5 L-45 -83.9 L-48 -83.3 L-51 -82.6 L-54 -81.9 L-57 -81.4 L-60 -81.1 Z"/><path class="pa" d="M-60 -73.2 L-57 -73.4 L-54 -73.6 L-51 -73.6 L-48 -73.5 L-45 -73.3 L-42 -73 L-39 -72.6 L-36 -72.2 L-33 -71.8 L-30 -71.4 L-27 -71 L-24 -70.7 L-21 -70.5 L-18 -70.4 L-15 -70.4 L-12 -70.6 L-9 -70.8 L-6 -71.1 L-3 -71.5 L0 -71.9 L3 -72.4 L6 -72.8 L9 -73.1 L12 -73.4 L15 -73.5 L18 -73.6 L21 -73.5 L24 -73.4 L27 -73.1 L30 -72.7 L33 -72.3 L36 -71.9 L39 -71.5 L42 -71.1 L45 -70.8 L48 -70.5 L51 -70.4 L54 -70.4 L57 -70.5 L60 -70.7 L60 -69.9 L57 -69.8 L54 -69.6 L51 -69.2 L48 -68.8 L45 -68.3 L42 -67.8 L39 -67.4 L36 -67.2 L33 -67.1 L30 -67.2 L27 -67.4 L24 -67.8 L21 -68.3 L18 -68.7 L15 -69.2 L12 -69.6 L9 -69.8 L6 -69.9 L3 -69.8 L0 -69.6 L-3 -69.2 L-6 -68.7 L-9 -68.2 L-12 -67.8 L-15 -67.4 L-18 -67.2 L-21 -67.1 L-24 -67.2 L-27 -67.5 L-30 -67.8 L-33 -68.3 L-36 -68.8 L-39 -69.2 L-42 -69.6 L-45 -69.8 L-48 -69.9 L-51 -69.8 L-54 -69.5 L-57 -69.1 L-60 -68.7 Z"/></g></g></g></svg></div>
 <header class="top">
   <h1>Speak & Note</h1>
   <div class="top-actions">
@@ -427,9 +544,9 @@ document.fonts.load('400 16px "Glow Sans TC Condensed"','中').then(function(f){
           <div class="call-text" id="callText"><b>開始上課</b></div>
           <button id="modeChip" class="chip" type="button" aria-haspopup="true" aria-expanded="false" title="換說話方式"><span id="modeChipText"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></button>
           <div id="modeMenu" class="mode-menu" role="menu" hidden>
-            <button type="button" role="menuitemradio" data-mode="ptt"><b>按一下說</b><span>想好再講：按一下開始，再按一下送出（空白鍵也可以）</span></button>
-            <button type="button" role="menuitemradio" data-mode="auto"><b>耐心自動</b><span>直接講，停比較久（約 2 秒）老師才接</span></button>
-            <button type="button" role="menuitemradio" data-mode="fast"><b>一般自動</b><span>直接講，停一下老師就接，反應最快</span></button>
+            <button type="button" role="menuitemradio" data-mode="ptt"><b>按一下說</b><span>按一下開始，再按一下送出</span></button>
+            <button type="button" role="menuitemradio" data-mode="auto"><b>耐心自動</b><span>停約 2 秒才接</span></button>
+            <button type="button" role="menuitemradio" data-mode="fast"><b>一般自動</b><span>停一下就接，最快</span></button>
           </div>
         </div>
         <button id="cancelTalk" class="ghost" hidden title="不送出這句（Esc）">取消<span class="wide">這句</span></button>
@@ -454,8 +571,7 @@ document.fonts.load('400 16px "Glow Sans TC Condensed"','中').then(function(f){
 <dialog id="lessons">
   <form method="dialog">
     <div class="dlg-head"><h2>課堂整理</h2><button value="close" class="x" aria-label="關閉" title="關閉"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
-    <span class="hint">一次通話算一堂課。掛斷後筆記員會把這堂課的錯誤分類、合併成重點。以前的課都留在目錄裡，最新的在最上面。</span>
-    <div id="lessonList"></div>
+        <div id="lessonList"></div>
   </form>
 </dialog>
 
@@ -463,55 +579,55 @@ document.fonts.load('400 16px "Glow Sans TC Condensed"','中').then(function(f){
   <form method="dialog">
     <h2>設定</h2>
     <p class="hint">目前使用的模型：<span id="modeLabel" class="mode"></span></p>
-    <label>Google AI Studio 金鑰（老師和筆記員共用）
+    <label>Google AI Studio 金鑰
       <input type="password" id="googleKey" autocomplete="off" placeholder="AIza...">
-      <span class="hint">到 aistudio.google.com 的「Get API key」申請。金鑰只存在這台電腦的瀏覽器裡。錄影時別打開這個視窗；用公用電腦的話，用完按「清除金鑰」。</span>
+      <span class="hint">只存在這個瀏覽器。錄影時別打開這頁。</span>
       <span><button type="button" class="ghost" id="testKey">測試金鑰</button> <span class="hint" id="testKeyResult"></span></span>
     </label>
     <label hidden>說話方式
       <select id="talkMode">
-        <option value="ptt">按一下說：按一下開始、再按一下送出（空白鍵也可以）</option>
-        <option value="auto">耐心自動：直接講，你停比較久（約 2 秒）老師才接</option>
-        <option value="fast">一般自動：直接講，停頓一下老師就接（反應最快）</option>
+        <option value="ptt">按一下說：按一下開始、再按一下送出</option>
+        <option value="auto">耐心自動：停約 2 秒才接</option>
+        <option value="fast">一般自動：停一下就接</option>
       </select>
-      <span class="hint">「按一下說」最適合會停頓、結巴的時候，老師不會中途插嘴，句子也不會被切碎。說得比較流利的話，「一般自動」最像真人對話。自動模式請戴耳機，不然老師可能聽到自己的聲音。通話中改的話，下次通話才生效。</span>
+      <span class="hint">自動模式請戴耳機。</span>
     </label>
-    <label>老師說話速度：<span id="speedVal"></span>
+    <label>說話速度：<span id="speedVal"></span>
       <input type="range" id="speed" min="0.7" max="1.2" step="0.05">
-      <span class="hint">Gemini 沒有調速度的開關，這裡是寫進老師的提示詞，請它說慢一點或快一點，效果不一定很明顯。下次通話生效。</span>
+      <span class="hint">效果不一定明顯，下次上課生效。</span>
     </label>
-    <label>老師的模型
+    <label>對話模型
       <select id="teacherModel">
         <option value="gemini-3.8-live">gemini-3.8-live（推薦）</option>
         <option value="gemini-3.8-live-extended-thinking">gemini-3.8-live-extended-thinking：想比較久再回答</option>
       </select>
-      <span class="hint">老師直接聽你的聲音，馬上口頭回覆和糾正。你說的話會由老師這條連線順便轉成文字，顯示在聊天欄。下次通話生效。</span>
+      <span class="hint">下次上課生效。</span>
     </label>
-    <label>關於我（給老師看的背景）
+    <label>關於我
       <textarea id="aboutMe" rows="4" placeholder="例如：我是台灣人，正在上 AI 課程，最近用 Claude Code 做 vibe coding，做了一個英文口說練習程式。"></textarea>
-      <span class="hint">老師每次通話前會先讀這段，比較聊得起來，也會知道你講的新名詞。中文或英文都可以。</span>
+      <span class="hint">每堂課開始前會先讀這段。</span>
     </label>
-    <label>老師對我的記憶（每堂課後自動更新）
-      <textarea id="profileText" rows="8" spellcheck="false" placeholder="還沒有記憶。上完第一堂課（掛斷後）筆記員會自動寫好。"></textarea>
-      <span class="hint">掛斷後筆記員會把這堂課的內容改寫進來：你的程度、常犯的錯、近況和計畫、最近幾堂聊了什麼。下次通話開始時老師會先讀它。用英文寫是為了讓老師讀得最準。你可以直接修改；清空就是讓老師忘掉。</span>
+    <label>記憶（每堂課後自動更新）
+      <textarea id="profileText" rows="8" spellcheck="false" placeholder="上完第一堂課後自動寫好。"></textarea>
+      <span class="hint">可以直接改，清空就會忘掉。</span>
     </label>
-    <label>老師的個性和上課方式（模板）
+    <label>上課風格
       <select id="teacherTemplate"></select>
-      <span class="hint">選一個模板會把下面的內容換成那個模板。</span>
+      <span class="hint">選了會換掉下面的提示詞。</span>
     </label>
-    <label>老師的提示詞（可以自己改）
+    <label>提示詞
       <textarea id="teacherStyle" rows="12" spellcheck="false"></textarea>
-      <span class="hint">寫老師是誰、怎麼聊、第一句說什麼。中文或英文都可以（英文效果通常比較穩）。清空就會用回「一對一家教」。改完按儲存，通話中改的話下一句開始生效（第一句招呼要重新通話才會變）。</span>
+      <span class="hint">清空就用回「一對一家教」。</span>
     </label>
     <details class="hint">
-      <summary>另外一定會自動加上的規則（不能改，保護「發音不清楚不算文法錯」和筆記本一致）</summary>
+      <summary>固定規則（不能改）</summary>
       <pre id="fixedRules"></pre>
     </details>
-    <label>筆記員的模型（Google，要能聽錄音）
+    <label>筆記模型（要能聽錄音）
       <select id="noteModelSelect"></select>
-      <span class="hint" id="noteModelHint">老師講完後，筆記員在背景重聽你的錄音、檢查老師的糾正，再寫進筆記本。老師講錯時，它會提醒老師下一句自己更正。</span>
+      <span class="hint" id="noteModelHint">下課前在背景重聽錄音、寫進筆記本。</span>
     </label>
-    <label id="noteCustomWrap" hidden>自訂筆記員模型名稱
+    <label id="noteCustomWrap" hidden>自訂筆記模型名稱
       <input type="text" id="noteModelCustom" placeholder="例如 gemini-3.8-flash">
     </label>
     <label>筆記解釋語言
@@ -520,16 +636,16 @@ document.fonts.load('400 16px "Glow Sans TC Condensed"','中').then(function(f){
         <option value="en">英文</option>
       </select>
     </label>
-    <label class="check"><input type="checkbox" id="showFix"> 在我說的句子下面，用紅字顯示正確說法</label>
-    <label class="check"><input type="checkbox" id="webSearch"> 老師可以上網查時事（聊到新聞、新東西時自己用 Google 搜尋查，每查一次要多付一點 Google 費用）</label>
-    <label class="check"><input type="checkbox" id="pronNotes"> 發音提醒（記在筆記本，跟文法分開）</label>
+    <label class="check"><input type="checkbox" id="showFix"> 句子下面顯示正確說法</label>
+    <label class="check"><input type="checkbox" id="webSearch"> 可以上網查時事（每次多一點費用）</label>
+    <label class="check"><input type="checkbox" id="pronNotes"> 發音提醒</label>
     <label>糾正程度
       <select id="strict">
-        <option value="gentle">溫和：只改明顯會誤會的錯</option>
+        <option value="gentle">溫和：只改會誤會的錯</option>
         <option value="strict">嚴格：文法和不自然的說法都改</option>
       </select>
     </label>
-    <details class="log"><summary>連線紀錄（出問題時打開，整段貼給 Claude）</summary><pre id="log"></pre></details>
+    <details class="log"><summary>連線紀錄</summary><pre id="log"></pre></details>
     <div class="dialog-actions">
       <button type="button" class="ghost danger" id="clearKeys">清除金鑰</button>
       <button type="button" class="ghost" onclick="document.getElementById('settings').close('cancel')">取消</button>
@@ -541,10 +657,24 @@ document.fonts.load('400 16px "Glow Sans TC Condensed"','中').then(function(f){
 <audio id="au" autoplay></audio>
 
 <script>
+/* 展示版：網址加 ?demo=1。讀 demo/demo-data.js 的假資料（假課堂、假對話、Zira 合成的假錄音），
+   不碰 API、不需要金鑰，也不讀不寫這個瀏覽器真正的課堂和設定（全部放記憶體，重新整理就回到原樣） */
+window.DEMO = /[?&]demo(=|&|$)/.test(location.search);
+if(window.DEMO) document.write('<script src="demo/demo-data.js"><\/script>');
+</script>
+<script>
 const $ = id => document.getElementById(id);
+const DEMO = !!(window.DEMO && window.DEMO_DATA);
+const demoMem = DEMO ? {
+  sngm_lessons:DEMO_DATA.lessons, sngm_notes:DEMO_DATA.notes, sngm_noteLesson:DEMO_DATA.noteLesson,
+  sngm_settings:{pronNotes:true, v10:true, tools8:true}
+} : null;
 const store = {
-  get(k, d){ try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  get(k, d){
+    if(demoMem) return k in demoMem ? JSON.parse(JSON.stringify(demoMem[k])) : d;
+    try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; }
+  },
+  set(k, v){ if(demoMem){ demoMem[k] = v; return; } try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 };
 /* ---------- 聊天紀錄和錄音的本機資料庫（IndexedDB） ----------
    localStorage 太小裝不下錄音，所以每一句（文字＋錄音）存在瀏覽器的 IndexedDB，關掉網頁也不會消失。
@@ -581,6 +711,14 @@ const chatDb = {
       .catch(e => log('刪不掉聊天紀錄：' + (e && e.message)));
   }
 };
+if(DEMO){   // 展示版：聊天紀錄也只放記憶體
+  const mem = DEMO_DATA.lines.slice();
+  Object.assign(chatDb, {
+    put(r){ const i = mem.findIndex(x => x.id === r.id); if(i >= 0) mem[i] = r; else mem.push(r); return Promise.resolve(); },
+    async lesson(id){ return mem.filter(x => x.lessonId === id).sort((x, y) => x.id - y.id); },
+    async remove(id){ for(let i = mem.length - 1; i >= 0; i--) if(mem[i].lessonId === id) mem.splice(i, 1); }
+  });
+}
 let lineSeq = 0;
 function newLineId(){ return Date.now() * 1000 + (lineSeq++ % 1000); }   // 依建立順序排列
 function saveUserLine(u){
@@ -660,7 +798,7 @@ function errTitle(t){
   if(/金鑰/.test(t) && /貼上|沒有填|還沒/.test(t)) return '還沒填 Google 金鑰';
   if(/找不到麥克風/.test(t)) return '找不到麥克風';
   if(/麥克風權限/.test(t)) return '瀏覽器不讓網頁用麥克風';
-  if(/找不到老師的模型/.test(t)) return '找不到老師的模型';
+  if(/找不到模型/.test(t)) return '找不到模型';
   if(/用量|餘額|額度/.test(t)) return '額度不夠';
   if(/這堂課還在/.test(t)) return '連線中斷';
   return '出了點問題';
@@ -683,7 +821,7 @@ function log(msg, obj){
 }
 function secs(ms){ return (ms / 1000).toFixed(1); }
 function updateModeLabel(){
-  $('modeLabel').textContent = '老師 ' + settings.teacherModel + '｜筆記員 ' + String(settings.noteModel).split('/').pop();
+  $('modeLabel').textContent = '對話 ' + settings.teacherModel + '｜筆記 ' + String(settings.noteModel).split('/').pop();
 }
 function addBubble(role, text, pending){
   const div = document.createElement('div');
@@ -692,14 +830,24 @@ function addBubble(role, text, pending){
   span.className = 'txt'; span.textContent = text;
   div.appendChild(span);
   chatEl.appendChild(div);
-  chatEl.scrollTop = chatEl.scrollHeight;
+  chatEl.scrollTop = chatEl.scrollHeight;   // 新的一句：一定跳到最新
   return div;
 }
 function setText(div, text, pending){
   div.querySelector('.txt').textContent = text;
   div.classList.toggle('pending', !!pending);
-  chatEl.scrollTop = chatEl.scrollHeight;
 }
+/* 聊天框黏在最底下：你在底部附近時，裡面任何變動（文字變長、多一行秒數、紅字、▶ 重聽、字幕換成標記版）都自動捲到底。
+   以前只有新泡泡和換字時會捲，泡泡之後才長高的那幾行會把最新的內容推到看不到的地方。
+   你自己往上捲看舊的（離底部超過 80px）就不拉你回來，捲回底部附近又會黏住。 */
+// 用「變動前」的內容高度判斷你原本在不在底部（不靠捲動事件，它有時比內容變動晚到）
+let chatH = 0;
+const chatToBottom = () => {
+  if(chatH - chatEl.scrollTop - chatEl.clientHeight < 80) chatEl.scrollTop = chatEl.scrollHeight;
+  chatH = chatEl.scrollHeight;
+};
+new MutationObserver(chatToBottom).observe(chatEl, {childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['class']});
+if(window.ResizeObserver) new ResizeObserver(chatToBottom).observe(chatEl);
 // 美化：回想／上網查的小泡泡前面放細線圖示（取代原本的 🔎 🌐）
 const TOOL_ICONS = {
   recall:'<path d="M3 12a9 9 0 1 0 2.6-6.4"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>',
@@ -834,7 +982,7 @@ $('modeMenu').onclick = e => {
   settings.talkMode = m; store.set('sngm_settings', settings);
   if(live) switchMode(m);
   updateModeChip();
-  if(changed && callState !== 'switching') setStatus('說話方式改成「' + modeName(m) + '」' + (callState === 'paused' ? '，按麥克風繼續就用新的方式。' : '。'));
+  if(changed && callState !== 'switching') setStatus('改成「' + modeName(m) + '」');
 };
 document.addEventListener('click', e => { if(!$('modeMenu').hidden && !e.target.closest('#modeMenu')) closeModeMenu(); });
 document.addEventListener('keydown', e => {
@@ -1034,11 +1182,11 @@ let greetTimer = null;
 function friendlyClose(code, reason){
   const r = reason || '';
   if(/API key not valid|API_KEY_INVALID/i.test(r)) return 'Google 金鑰不正確，請到「設定」檢查。';
-  if(/not found|is not supported|unsupported model/i.test(r)) return '找不到老師的模型 ' + settings.teacherModel + '，請到「設定」換一個。';
+  if(/not found|is not supported|unsupported model/i.test(r)) return '找不到模型 ' + settings.teacherModel + '，請到「設定」換一個。';
   if(/quota|exceeded|RESOURCE_EXHAUSTED/i.test(r)) return '用量超過上限或餘額不足，請到 AI Studio 檢查。';
   if(/billing|prepay|payment|balance/i.test(r)) return 'Google 帳戶的儲值餘額不足，請到 AI Studio 儲值。';
   if(code === 1006) return '連線突然斷掉（可能是網路不穩）。';
-  return '老師的連線被關掉了（' + code + (r ? '：' + r : '') + '）。';
+  return '連線被關掉了（' + code + (r ? '：' + r : '') + '）。';
 }
 
 async function startCall(){
@@ -1126,14 +1274,14 @@ function openSocket(){
       autoRetries++;
       rejoin = true; connecting = true;
       setCallUI('connecting');
-      setStatus('連線斷了，自動重新連線中…（第 ' + autoRetries + ' 次）');
+      setStatus('連線斷了，重新連線中…（第 ' + autoRetries + ' 次）');
       log('自動重新連線（第 ' + autoRetries + ' 次），' + (resumeHandle ? '試著接回原本的對話' : '附上目前的對話'));
       setTimeout(() => { if(callState === 'connecting' && lesson && !ws) openSocket(); }, 1000 * autoRetries);
       return;
     }
     autoRetries = 0;
     setCallUI('paused');
-    setStatus(friendlyClose(e.code, e.reason) + ' 這堂課還在，按麥克風重新連線繼續。', true);
+    setStatus(friendlyClose(e.code, e.reason) + ' 這堂課還在，按麥克風繼續。', true);
   };
 }
 function fatalClose(code, reason){
@@ -1277,7 +1425,7 @@ function pauseCall(){
   if(pttTurn){ pttTurn.bubble.remove(); const i = convo.indexOf(pttTurn.convo); if(i >= 0) convo.splice(i, 1); pttTurn = null; }
   $('call').classList.remove('hearing');
   setCallUI('paused');
-  setStatus('已暫停。老師在等你，按麥克風繼續。');
+  setStatus('已暫停');
   log('暫停');
 }
 // 繼續：連線還在就直接繼續；斷掉了就重新連線，同一堂課接著上
@@ -1290,7 +1438,7 @@ function resumeCall(){
   if(ws && wsReady){
     setMicOn(talkMode() !== 'ptt');
     setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
-    setStatus('繼續上課。');
+    setStatus('繼續');
     log('繼續');
     return;
   }
@@ -1312,7 +1460,7 @@ function sayGoodbye(){
   setMicOn(false); stopPlayback();
   if(cur){ const r = cur; cur = null; finishReply(r, true); }
   actx && actx.resume(); pctx && pctx.resume();
-  setCallUI('ending'); setStatus('老師在跟你道別……（再按一次「結束課堂」可以直接結束）');
+  setCallUI('ending'); setStatus('道別中…（再按一次「結束課堂」直接結束）');
   const n0 = convo.length, t0 = performance.now();
   send({realtimeInput:{text}});
   log('下課：請老師道別');
@@ -1321,6 +1469,32 @@ function sayGoodbye(){
     if((said && !serverBusy && !cur && playing_.size === 0) || performance.now() - t0 > 15000) endCall(true);
   }, 300);
 }
+// 結束課堂：banner 的星球（吉祥物的頭）探頭睜眼一次。減少動態效果時不播
+function peekMascot(){
+  const sky = $('sky');
+  if(!sky || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  sky.classList.remove('peek'); void sky.getBoundingClientRect(); sky.classList.add('peek');
+}
+$('sky').addEventListener('animationend', e => { if(e.animationName === 'peek') $('sky').classList.remove('peek'); });
+// 場景照 1280×200 畫，最高的塔尖離上緣只有 10。視窗比這個比例寬時，slice 會放大切掉上面（塔尖、星球頂），
+// 所以改成 meet：高度剛好放進去，左右露出場景本來就往外延伸的地面和天空。比較窄時照舊 slice（切左右）。
+// 兩種在比例剛好 6.4 時一模一樣，開場拉遠時跨過去也不會跳。
+(function(){
+  const sky = $('sky');
+  const fit = () => { const r = sky.getBoundingClientRect(); if(r.height) sky.setAttribute('preserveAspectRatio', 'xMidYMax ' + (r.width / r.height > 1280 / 200 ? 'meet' : 'slice')); };
+  if(window.ResizeObserver) new ResizeObserver(fit).observe(sky);
+  fit();
+})();
+// 開場動畫：播完、或點一下／按任一鍵就直接跳到最後一格（這一下只用來跳過，不會按到按鈕）
+(function(){
+  const root = document.documentElement;
+  if(!root.classList.contains('intro')) return;
+  const skip = e => { e.preventDefault(); e.stopPropagation(); end(); };
+  const end = () => { root.classList.remove('intro'); removeEventListener('click', skip, true); removeEventListener('keydown', skip, true); };
+  addEventListener('click', skip, true); addEventListener('keydown', skip, true);
+  document.querySelector('.layout').addEventListener('animationend', e => { if(e.animationName === 'intro-up') end(); });
+  setTimeout(end, 5000);   // 保險：動畫事件沒來也會結束
+})();
 let memoryJob = null;   // 上一堂課的課堂整理＋記憶更新還在做：開新課要等它，老師才會用到最新的記憶
 function endCall(say){
   connecting = false;
@@ -1329,7 +1503,7 @@ function endCall(say){
   dropSocket();
   callMode = null; sessionMode = null; modeSwitch = null; clearInterval(modeWatch); pttSending = false;
   setCallUI('off');
-  if(say){ setStatus('已結束課堂。'); log('結束課堂'); }
+  if(say){ setStatus('已下課'); log('結束課堂'); peekMascot(); }
   // 這堂課結束：等筆記員把最後幾句審完，再做課堂整理
   if(lesson){
     const L = lesson; lesson = null;
@@ -1431,7 +1605,7 @@ function onServer(m, t0){
       if(switched || callState === 'switching'){   // 改說話方式的換線：換好了，按鈕改成新的方式
         setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
         setMicOn(talkMode() !== 'ptt');
-        setStatus('已改成「' + modeName(talkMode()) + '」，繼續上課。');
+        setStatus('已改成「' + modeName(talkMode()) + '」');
         log('說話方式已改成' + modeName(talkMode()));
       }
       const buf = swapBuf; swapBuf = [];
@@ -1443,14 +1617,14 @@ function onServer(m, t0){
     setCallUI(talkMode() === 'ptt' ? 'ready' : 'auto');
     setMicOn(talkMode() !== 'ptt');
     if(rejoin){
-      setStatus('已重新連上，繼續上課。');
+      setStatus('已重新連上');
       if(usedHandle) log('已接回原本那段對話');
       else{
         log('接不回原本的對話，改成附上目前的對話重新開始');
         send({realtimeInput:{text:'The learner is back after a short break. Say welcome back in one short sentence, then continue the conversation from where it was.'}});
       }
     }else{
-      setStatus('已接通。');
+      setStatus('已接通');
       greet();
     }
     return;
@@ -1615,7 +1789,7 @@ function finishTalking(){
   u.tStop = performance.now();
   if(u.tStop - u.tStart < 600){   // 太短，當作按錯
     u.bubble.remove(); convo.splice(convo.indexOf(u.convo), 1);
-    setStatus('太短了，請按一下、說完再按一次。');
+    setStatus('太短了，說完再按一次');
     return;
   }
   setText(u.bubble, '（轉錄中…）', true);
@@ -1637,7 +1811,7 @@ function finishTalking(){
       const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
       u.wav = null;
       log('太安靜，當作沒說話，這句沒有送出');
-      setStatus('沒聽到聲音，這句沒有送給老師。請靠近麥克風再說一次。');
+      setStatus('沒聽到聲音，這句沒有送出');
       return;
     }
     addPlayButton(u.bubble, u.wav);
@@ -1679,7 +1853,7 @@ function cancelTalking(){
   const u = pttTurn; pttTurn = null;
   u.bubble.remove(); const i = convo.indexOf(u.convo); if(i >= 0) convo.splice(i, 1);
   setCallUI('ready');
-  setStatus('已取消這句，沒有送出。準備好再按一下重新說。');
+  setStatus('已取消這句');
   log('已取消這句（按了「取消這句」），沒有送出');
 }
 document.addEventListener('keydown', e => {
@@ -1695,8 +1869,8 @@ document.addEventListener('keydown', e => {
   if(pronBox){ pronBox.talk(); return; }   // 發音小窗開著：空白鍵＝小窗的「● 說」
   // 剛改成按一下說、還在換線（約 1.5 秒）：先記著，換好馬上開始錄你的聲音
   const toPtt = callState === 'switching' ? (modeSwitch || talkMode()) === 'ptt' : (callState === 'auto' && settings.talkMode === 'ptt');
-  if(toPtt){ talkQueued = true; setStatus('正在換成「按一下說」，換好馬上開始聽你說。'); return; }
-  if(callState === 'auto'){ setStatus('自動模式不用按，直接說話就好。想暫停請按左下的麥克風。'); return; }
+  if(toPtt){ talkQueued = true; setStatus('正在換成「按一下說」…'); return; }
+  if(callState === 'auto'){ setStatus('自動模式直接說就好'); return; }
   if(callState === 'switching') return;
   if(!$('call').disabled) $('call').onclick();
 });
@@ -1922,6 +2096,13 @@ function openPron(info){
     const mu = URL.createObjectURL(blob); b.urls.push(mu);
     const me = addLine('me', '第 ' + (++b.tries) + ' 次');
     const again = el('button', 'again', '▶'); again.type = 'button'; again.title = '聽自己念的'; again.setAttribute('aria-label', again.title); again.onclick = () => play(mu, 1); me.appendChild(again);
+    if(DEMO){   // 展示版沒有金鑰：不送去聽，改成再示範一次，讓你按 ▶ 自己比
+      const again2 = 'Listen again. ' + word + '.';
+      addLine('coach', again2, '按 ▶ 聽自己的，和示範比比看');
+      speak(again2);
+      b.busy = false; talkBtn.disabled = false;
+      return;
+    }
     const wait = addLine('coach', '……');
     try{
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1944,7 +2125,7 @@ function openPron(info){
       b.history.push('Coach: ' + reply);
       speak(reply);
     }catch(err){
-      if(pronBox === b) wait.textContent = '（老師沒聽成：' + ((err && err.message) || '網路連線錯誤') + '）';
+      if(pronBox === b) wait.textContent = '（沒聽成：' + ((err && err.message) || '網路連線錯誤') + '）';
     }finally{ b.busy = false; talkBtn.disabled = false; }
   };
   // 放進右欄那則發音提醒（重畫成展開的樣子）；手機先把筆記本拉開
@@ -2188,8 +2369,8 @@ async function geminiGenerate({model, system, parts, json, temperature = 0.2, wh
   return text;
 }
 async function judgeTurn(u, ctx){
-  if(!settings.googleKey){ setNoteStatus('沒有填 Google 金鑰，筆記員休息中。請到「設定」貼上。', true); return null; }
-  setNoteStatus('✎ 正在重聽你剛才那句，整理筆記……');
+  if(!settings.googleKey){ setNoteStatus('還沒填 Google 金鑰，請到「設定」貼上。', true); return null; }
+  setNoteStatus('✎ 正在整理筆記…');
   const intro = 'Conversation so far (text from automatic transcription, may contain misheard words):\n' + (ctx || '(this is the start)') +
     '\n\nLatest turn: the learner\'s audio is attached.';
   try{
@@ -2203,7 +2384,7 @@ async function judgeTurn(u, ctx){
     log('筆記員（重聽 ' + secs(u.reviewDone - u.reviewStarted) + ' 秒）：' + JSON.stringify(out));
     return out;
   }catch(err){
-    setNoteStatus('筆記員失敗：' + ((err && err.message) || '網路連線錯誤'), true);
+    setNoteStatus('筆記失敗：' + ((err && err.message) || '網路連線錯誤'), true);
     return null;
   }
 }
@@ -2229,7 +2410,7 @@ function settleTurn(u){
   if(!out.heard){
     if(u.bubble && !(u.transcript || '').trim()) setText(u.bubble, '（沒聽到）', true);
     log('筆記員：這句錄音裡沒有清楚的話，不記筆記');
-    setNoteStatus('✎ 這句沒聽到清楚的話，沒有記筆記');
+    setNoteStatus('✎ 這句沒聽清楚');
     return;
   }
   const real = out.corrections.filter(c => c && c.wrong && c.correct);
@@ -2263,7 +2444,7 @@ function settleTurn(u){
   const timing = '重聽 ' + (u.reviewDone ? secs(u.reviewDone - u.reviewStarted) : '?') + ' 秒' +
     (wait == null ? '' : wait > 0 ? '，老師講完後 ' + secs(wait) + ' 秒才好' : '，比老師早 ' + secs(-wait) + ' 秒好');
   log('對照：' + real.length + ' 個錯，老師講到 ' + (real.length - missed.length) + ' 個，補充 ' + missed.length + ' 個（' + timing + '）');
-  setNoteStatus('✎ 筆記好了（' + timing + '）');
+  setNoteStatus('');
   // 老師有開口糾正：把老師說出口、筆記員沒記到的糾正補進筆記本（以老師為準）
   if(u.replyText && (real.length > missed.length || /try saying|you said|instead of|we say|should be|should say|the correct|better to say|you can say/i.test(u.replyText))) checkTeacher(u, out, real);
 }
@@ -2425,7 +2606,7 @@ function renderStrip(animate){
   const sl = el('span', 'sl');
   const first = shownNotes()[0];
   if(first) stripLines(first).forEach(x => sl.appendChild(x));
-  else sl.appendChild(el('p', 'meaning', '老師糾正過的句子會自動記在這裡。按左下的麥克風開始聊天吧。'));
+  else sl.appendChild(el('p', 'meaning', '糾正過的句子會記在這裡'));
   const roll = box.querySelector('.roll'), old = roll && roll.querySelector('.sl:last-child');
   if(!animate || !old || RM || !phoneStrip()){
     clearTimeout(stripTimer);
@@ -2503,7 +2684,7 @@ function renderNotes(freshIds = []){
   setNoteCount(list.length, fresh);
   renderStrip(fresh);
   if(!list.length){
-    box.appendChild(el('p', 'empty', '老師糾正過的句子會自動記在這裡。按左下的麥克風開始聊天吧。'));
+    box.appendChild(el('p', 'empty', '糾正過的句子會記在這裡'));
     return;
   }
   for(const n of list){
@@ -2545,7 +2726,7 @@ function renderNotes(freshIds = []){
 }
 $('exportNotes').onclick = () => {
   const list = shownNotes();
-  if(!list.length){ setNoteStatus('筆記本還是空的，沒有東西可以匯出。'); return; }
+  if(!list.length){ setNoteStatus('筆記本是空的'); return; }
   const lines = list.map(n => n.type === 'pron'
     ? `[${n.date}] 發音\n🗣 ${n.said} → ${n.meant}\n   ${n.tip}\n`
     : `[${n.date}] 文法\n✗ ${n.wrong}\n✓ ${n.correct}\n   ${n.why}\n`);
@@ -2555,13 +2736,13 @@ $('exportNotes').onclick = () => {
   a.download = 'english-notebook-' + new Date().toISOString().slice(0, 10) + '.txt';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  setNoteStatus('筆記已匯出到「下載」資料夾。');
+  setNoteStatus('已匯出到「下載」');
 };
 $('clearNotes').onclick = () => {
   const list = shownNotes();
   if(!list.length) return;
   if(confirm('確定要清空這堂課的筆記嗎？清空後無法復原。（課堂整理裡的紀錄不受影響）')){
-    notes = notes.filter(n => !list.includes(n)); store.set('sngm_notes', notes); renderNotes(); setNoteStatus('筆記已清空。');
+    notes = notes.filter(n => !list.includes(n)); store.set('sngm_notes', notes); renderNotes(); setNoteStatus('已清空');
   }
 };
 
@@ -2595,7 +2776,7 @@ async function summarizeLesson(L){
   }
   if(!settings.googleKey){ L.status = 'error'; L.error = '沒有填 Google 金鑰，沒辦法整理。'; saveLesson(L); return; }
   L.status = 'summarizing'; L.error = ''; saveLesson(L);
-  setNoteStatus('✎ 正在做課堂整理……');
+  setNoteStatus('✎ 正在整理這堂課…');
   const input = 'Mistakes:\n' + (L.items.map(i => i.wrong + ' -> ' + i.correct + (i.why ? ' (' + i.why + ')' : '')).join('\n') || '(none)') +
     '\n\nMore natural phrasings:\n' + (L.natural.map(n => n.said + ' -> ' + n.better + (n.why ? ' (' + n.why + ')' : '')).join('\n') || '(none)') +
     '\n\nWhat the learner said:\n' + (L.sentences.join('\n') || '(not available)');
@@ -2610,7 +2791,7 @@ async function summarizeLesson(L){
       groups:Array.isArray(o.groups) ? o.groups : [], natural:Array.isArray(o.natural) ? o.natural : []
     };
     L.status = 'done'; saveLesson(L);
-    setNoteStatus('✎ 課堂整理好了，按右上「課堂整理」查看。');
+    setNoteStatus('✎ 課堂整理好了');
   }catch(err){
     L.status = 'error'; L.error = '整理失敗：' + ((err && err.message) || '網路連線錯誤'); saveLesson(L);
     setNoteStatus(L.error, true);
@@ -2645,7 +2826,7 @@ async function updateProfile(L){
       ((L.items || []).map(i => i.wrong + ' -> ' + i.correct).join('\n') || '(none)') +
       (s.title ? '\nLesson title: ' + s.title : '') +
       '\n\nConversation (automatic transcription, may contain misheard words):\n' + (talk || '(not available)');
-    setNoteStatus('✎ 正在更新老師對你的記憶……');
+    setNoteStatus('✎ 正在更新記憶…');
     const raw = await geminiGenerate({model:settings.noteModel, system:profilePrompt(), what:'記憶更新', parts:[{text:input}]});
     let text = raw.replace(/```[a-z]*|```/g, '').trim();
     if(text.length < 20){ log('記憶更新回覆太短', text); throw new Error('回覆是空的'); }
@@ -2653,9 +2834,9 @@ async function updateProfile(L){
     profile = {text, updated:Date.now()};
     store.set('sngm_profile', profile);
     log('記憶已更新：' + text);
-    setNoteStatus('✎ 課堂整理和老師的記憶都更新好了，下次通話老師會記得。');
+    setNoteStatus('');
   }catch(err){
-    setNoteStatus('記憶更新失敗：' + ((err && err.message) || '網路連線錯誤') + '（不影響課堂整理）', true);
+    setNoteStatus('記憶更新失敗：' + ((err && err.message) || '網路連線錯誤') + '', true);
   }
 }
 
@@ -2698,8 +2879,7 @@ function fastChat(system, user, extra){
   return geminiGenerate(Object.assign({model:settings.noteModel, system, parts:[{text:user}], temperature:0.1, what:'工具'}, extra || {})).then(t => String(t || '').trim());
 }
 async function runRecall(query){
-  const bubble = toolBubble('recall', '老師在回想以前的課…');
-  setStatus('老師在翻以前的課，請等幾秒…');
+  const bubble = toolBubble('recall', '回想以前的課…');
   const t0 = performance.now();
   let answer;
   try{
@@ -2744,8 +2924,7 @@ const WEB_TOOL = {
   parameters:{type:'OBJECT', properties:{query:{type:'STRING', description:'What to look up, in English, e.g. "latest Taiwan typhoon news" or "what is vibe coding"'}}, required:['query']}
 };
 async function runWebSearch(query){
-  const bubble = toolBubble('web', '老師在上網查：' + query + '…');
-  setStatus('老師在上網查，請等幾秒…');
+  const bubble = toolBubble('web', '上網查：' + query + '…');
   const t0 = performance.now();
   let answer;
   try{
@@ -2799,11 +2978,14 @@ function lessonTitle(L){
   if(L.summary && L.summary.title) return L.summary.title;
   return {live:'（上課中）', waiting:'（整理中…）', summarizing:'（整理中…）', error:'（整理失敗）'}[L.status] || '（沒有標題）';
 }
+function lessonTime(L){ return new Date(L.start).toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'}); }
+function lessonStats(L){   // 「10 分鐘｜15 句｜4 個錯誤」
+  const mins = L.end ? Math.max(1, Math.round((L.end - L.start) / 60000)) + ' 分鐘｜' : '';
+  return mins + L.turns + ' 句｜' + L.items.length + ' 個錯誤';
+}
 function lessonMeta(L){
   const dt = new Date(L.start);
-  const mins = L.end ? Math.max(1, Math.round((L.end - L.start) / 60000)) + ' 分鐘｜' : '';
-  return (dt.getMonth() + 1) + '/' + dt.getDate() + ' ' + dt.toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'}) +
-    '｜' + mins + L.turns + ' 句｜' + L.items.length + ' 個錯誤';
+  return (dt.getMonth() + 1) + '/' + dt.getDate() + ' ' + lessonTime(L) + '｜' + lessonStats(L);
 }
 /* ---------- 習慣清單成功率：從最早的課照順序重算，算到「這堂課結束時」為止 ----------
    練習中：在 2 堂不同的課都犯過。畢業：最近 30 次 ≥ 90%、橫跨至少 3 堂課（只在畢業那堂顯示）。
@@ -2847,20 +3029,81 @@ function habitReport(L){   // 這堂課要顯示的：最多 3 項練習中（�
   return {practice, grad:all.filter(x => x.gradHere)};
 }
 function habitRateText(x){ return x.n < 10 ? '累積中（' + x.n + '/10 次）' : '最近 ' + x.n + ' 次用對 ' + x.pct + '%'; }
-// 總目錄：一堂課一行，依月份分段，最新的在最上面
+/* 總目錄：上面小月曆（有課的日子上色、點點＝幾堂、今天加框；‹ › 換月、^ 收起），
+   下面時間線（左邊大日期＋週幾，同一天的課疊在右邊，最新的在最上面）。日期顏色 14 天一圈（.dc0～.dc13） */
+const ICON_PREV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M14 5l-7 7 7 7"/></svg>';
+const ICON_NEXT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M10 5l7 7-7 7"/></svg>';
+const WEEKDAYS = '一二三四五六日';
+let calMonth = null;                                // 月曆顯示哪個月（那個月的 1 號）
+let calOpen = store.get('sngm_calOpen', true);      // 月曆收起來了沒（記在這個瀏覽器）
+function dayKey(d){ return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+function dateColor(d){ return 'dc' + ((Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5) + 11) % 14); }   // 和定案樣稿同一套（+11 對齊 Python 的 toordinal）
+function iconBtn(svg, label, cls){ const b = el('button', 'icon' + (cls ? ' ' + cls : '')); b.type = 'button'; b.innerHTML = svg; b.setAttribute('aria-label', label); b.title = label; return b; }
 function renderLessonIndex(box){
-  if(!lessons.length){ box.appendChild(el('p', 'empty', '還沒有課堂整理。通話結束後，這堂課的重點會出現在這裡。')); return; }
-  box.appendChild(el('p', 'hint', '共 ' + lessons.length + ' 堂課，點一堂看整理。'));
+  if(!lessons.length){ box.appendChild(el('p', 'empty', '還沒有課。下課後會出現在這裡。')); return; }
+  const sorted = lessons.slice().sort((a, b) => b.start - a.start);
+  const byDay = new Map();   // 'y-m-d' → 那天的課（新的在前）
+  for(const L of sorted){ const k = dayKey(new Date(L.start)); if(!byDay.has(k)) byDay.set(k, []); byDay.get(k).push(L); }
+  const now = new Date(), thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const oldest = new Date(sorted[sorted.length - 1].start), firstMonth = new Date(oldest.getFullYear(), oldest.getMonth(), 1);
+  if(!calMonth){ const d = new Date(sorted[0].start); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); }
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  const goMonth = delta => {
+    calMonth = new Date(y, m + delta, 1); renderLessons();
+    const h = document.getElementById('mon-' + calMonth.getFullYear() + '-' + (calMonth.getMonth() + 1));
+    if(h) h.scrollIntoView({block:'start'});
+  };
+  // 月曆
+  const cal = el('div', 'cal' + (calOpen ? '' : ' closed'));
+  const head = el('div', 'cal-head');
+  const prev = iconBtn(ICON_PREV, '上個月'); prev.disabled = calMonth <= firstMonth; prev.onclick = () => goMonth(-1);
+  const next = iconBtn(ICON_NEXT, '下個月'); next.disabled = calMonth >= thisMonth; next.onclick = () => goMonth(1);
+  let days = 0, count = 0;
+  for(const [k, Ls] of byDay) if(k.startsWith(y + '-' + (m + 1) + '-')){ days++; count += Ls.length; }
+  const fold = iconBtn(ICON_UP, calOpen ? '收起月曆' : '打開月曆', 'calfold'); fold.setAttribute('aria-expanded', String(calOpen));
+  fold.onclick = () => {
+    calOpen = !calOpen; store.set('sngm_calOpen', calOpen);
+    cal.classList.toggle('closed', !calOpen); fold.setAttribute('aria-expanded', String(calOpen));
+    fold.title = calOpen ? '收起月曆' : '打開月曆'; fold.setAttribute('aria-label', fold.title);
+  };
+  head.append(prev, el('b', null, y + ' 年 ' + (m + 1) + ' 月'), next, el('span', 'hint', count ? '這個月上了 ' + days + ' 天、' + count + ' 堂' : '這個月沒有課'), fold);
+  cal.appendChild(head);
+  const grid = el('div', 'cal-grid');
+  for(const w of WEEKDAYS) grid.appendChild(el('span', 'wd', w));
+  for(let i = (new Date(y, m, 1).getDay() + 6) % 7; i > 0; i--) grid.appendChild(el('span'));
+  const last = new Date(y, m + 1, 0).getDate();
+  for(let dd = 1; dd <= last; dd++){
+    const d = new Date(y, m, dd), Ls = byDay.get(dayKey(d)) || [];
+    const b = el('button', 'd' + (Ls.length ? ' has ' + dateColor(d) : '') + (dayKey(d) === dayKey(now) ? ' today' : '')); b.type = 'button';
+    b.appendChild(document.createTextNode(String(dd)));
+    const dots = el('span', 'dots'); for(let i = 0; i < Math.min(Ls.length, 4); i++) dots.appendChild(el('i')); b.appendChild(dots);
+    b.setAttribute('aria-label', (m + 1) + ' 月 ' + dd + ' 日' + (Ls.length ? '，' + Ls.length + ' 堂課' : ''));
+    if(Ls.length) b.onclick = () => { const r = document.getElementById('day-' + dayKey(d)); if(r) r.scrollIntoView({block:'start', behavior:'smooth'}); };
+    else b.disabled = true;
+    grid.appendChild(b);
+  }
+  cal.appendChild(grid);
+  box.appendChild(cal);
+  // 時間線
   let month = '';
-  for(const L of lessons){
-    const dt = new Date(L.start);
-    const m = dt.getFullYear() + ' 年 ' + (dt.getMonth() + 1) + ' 月';
-    if(m !== month){ month = m; box.appendChild(el('h3', null, m)); }
-    const b = el('button', 'lesson-row'); b.type = 'button';
-    b.appendChild(el('b', null, lessonTitle(L)));
-    b.appendChild(el('span', 'hint', lessonMeta(L)));
-    b.onclick = () => { lessonView = L.id; renderLessons(); $('lessonList').scrollIntoView(); };
-    box.appendChild(b);
+  for(const [k, Ls] of byDay){
+    const d = new Date(Ls[0].start);
+    const mk = d.getFullYear() + ' 年 ' + (d.getMonth() + 1) + ' 月';
+    if(mk !== month){ month = mk; const h = el('div', 'month', mk); h.id = 'mon-' + d.getFullYear() + '-' + (d.getMonth() + 1); box.appendChild(h); }
+    const row = el('div', 'day'); row.id = 'day-' + k;
+    const dt = el('div', 'dt ' + dateColor(d));
+    dt.append(el('b', null, String(d.getDate())), el('span', null, '週' + WEEKDAYS[(d.getDay() + 6) % 7]));
+    const list = el('div');
+    for(const L of Ls){
+      const b = el('button', 'lrow'); b.type = 'button';
+      const sp = el('span'); sp.append(el('b', null, lessonTitle(L)), el('small', null, lessonStats(L)));
+      b.append(el('time', null, lessonTime(L)), sp);
+      b.insertAdjacentHTML('beforeend', ICON_NEXT.replace('<svg ', '<svg class="go" '));
+      b.onclick = () => { lessonView = L.id; renderLessons(); $('lessonList').scrollIntoView(); };
+      list.appendChild(b);
+    }
+    row.append(dt, list);
+    box.appendChild(row);
   }
 }
 let lessonUrls = [];   // 重聽用的暫時網址，換頁時釋放
@@ -2916,7 +3159,7 @@ function renderLessons(){
   lessonUrls.forEach(u => URL.revokeObjectURL(u)); lessonUrls = [];
   const L = lessons.find(x => x.id === lessonView);
   if(!L){ lessonView = null; renderLessonIndex(box); return; }
-  const back = el('button', 'ghost', '← 回目錄'); back.type = 'button';
+  const back = el('button', 'ghost back'); back.type = 'button'; back.innerHTML = ICON_PREV + '回目錄';
   back.onclick = () => { lessonView = null; renderLessons(); };
   box.appendChild(back);
   {
@@ -2924,7 +3167,7 @@ function renderLessons(){
     d.appendChild(el('h3', null, lessonTitle(L)));
     d.appendChild(el('p', 'hint', lessonMeta(L)));
     if(L.status === 'live') d.appendChild(el('p', 'meaning', '這堂課還在進行中。'));
-    else if(L.status === 'waiting' || L.status === 'summarizing') d.appendChild(el('p', 'meaning', '✎ 筆記員正在整理這堂課……'));
+    else if(L.status === 'waiting' || L.status === 'summarizing') d.appendChild(el('p', 'meaning', '✎ 整理中…'));
     else if(L.status === 'error') d.appendChild(el('p', 'meaning', L.error || '整理失敗。'));
     if(L.status === 'done' && L.summary){
       const s = L.summary;
@@ -2955,16 +3198,16 @@ function renderLessons(){
       const hr = habitReport(L);
       if(hr.practice.length || hr.grad.length){
         d.appendChild(el('h3', null, '習慣清單'));
-        for(const x of hr.grad){
-          const gb = el('div', 'grp'); const l = el('p', 'line');
-          l.appendChild(el('b', null, '畢業：' + x.zh)); l.appendChild(document.createTextNode('　' + habitRateText(x)));
-          gb.appendChild(l); d.appendChild(gb);
-        }
-        for(const x of hr.practice){
-          const gb = el('div', 'grp'); const l = el('p', 'line');
-          l.appendChild(el('b', null, x.zh)); l.appendChild(document.createTextNode('　' + habitRateText(x)));
-          gb.appendChild(l); d.appendChild(gb);
-        }
+        // 一項一列：名稱、細進度條、成績（DESIGN.md 進度條）。累積不到 10 次時，條畫的是累積進度（6/10＝60%）
+        const habitRow = (x, name) => {
+          const row = el('div', 'habit');
+          const bar = el('progress', 'bar'); bar.max = 100; bar.value = x.n < 10 ? x.n * 10 : x.pct;
+          bar.setAttribute('aria-label', name + '：' + habitRateText(x));
+          row.append(el('b', null, name), bar, el('span', null, habitRateText(x)));
+          d.appendChild(row);
+        };
+        for(const x of hr.grad) habitRow(x, '畢業：' + x.zh);
+        for(const x of hr.practice) habitRow(x, x.zh);
       }
     }
     // 整堂聊天紀錄（從本機資料庫讀出來，你的每一句都可以按 ▶ 重聽）
@@ -2986,7 +3229,8 @@ function renderLessons(){
         const when = new Date(x.t).toLocaleTimeString('zh-TW', {hour12:false, hour:'2-digit', minute:'2-digit'});
         const meta = el('span', 'meta'); meta.appendChild(el('span', 'meta-t', when + (x.meta ? '｜' + x.meta : '')));
         if(x.wav){   // 「▶ 重聽」接在時間後面，和上課時的泡泡一樣
-          const url = URL.createObjectURL(x.wav); lessonUrls.push(url);
+          const url = typeof x.wav === 'string' ? x.wav : URL.createObjectURL(x.wav);   // 展示版的錄音是檔案路徑
+          if(typeof x.wav !== 'string') lessonUrls.push(url);
           const p = el('button', 'play', '▶ 重聽'); p.type = 'button'; p.title = '重聽這一句'; p.setAttribute('aria-label', '重聽這一句');
           p.onclick = () => playWav(url);
           meta.appendChild(p);
@@ -2997,7 +3241,7 @@ function renderLessons(){
     });
     const act = el('div', 'lesson-acts');
     const ex = el('button', 'ghost', '匯出這堂（Markdown）'); ex.type = 'button'; ex.onclick = () => exportLesson(L); act.appendChild(ex);
-    if(L.status === 'done' || L.status === 'error'){
+    if(!DEMO && (L.status === 'done' || L.status === 'error')){   // 重新整理要金鑰，展示版不放
       const re = el('button', 'ghost', '重新整理'); re.type = 'button'; re.onclick = () => summarizeLesson(L); act.appendChild(re);
     }
     if(L.status !== 'live'){
@@ -3151,17 +3395,17 @@ $('settings').addEventListener('close', () => {
   store.set('sngm_settings', settings);
   updateModeLabel();
   if(ws || callState !== 'off'){
-    setStatus('設定已儲存。說話方式馬上換；老師模型、提示詞、速度要等這堂課結束、下次開始上課才生效。');
+    setStatus('設定已儲存，下次上課生效');
     switchMode(settings.talkMode);
   }
-  else setStatus('設定已儲存。');
+  else setStatus('設定已儲存');
 });
 $('clearKeys').onclick = () => {
   settings.googleKey = '';
   store.set('sngm_settings', settings);
   $('googleKey').value = '';
   $('settings').close('cancel');
-  setStatus('金鑰已從這台電腦清除。');
+  setStatus('金鑰已清除');
 };
 $('openSettings').onclick = openSettings;
 
@@ -3180,7 +3424,7 @@ $('lessons').addEventListener('click', e => { if(e.target === $('lessons')) $('l
 $('newChat').onclick = () => {
   if(ws || callState !== 'off') endCall(false);
   clearChat();
-  setStatus('已開新對話，筆記本保留。按麥克風開始。');
+  setStatus('已開新對話');
 };
 /* 清空左邊的對話。畫面上那堂課有存進課堂整理，就讓它縮小飛進「課堂整理」按鈕；沒存（沒說到話）就直接清掉 */
 let chatLesson = null;   // 畫面上這段對話屬於哪一堂課
@@ -3226,7 +3470,31 @@ document.body.classList.toggle('nofix', !settings.showFix);
 for(const L of lessons) if(L.status === 'live' || L.status === 'waiting' || L.status === 'summarizing'){ L.status = 'error'; L.error = '上次網頁關掉時還沒整理完，按「重新整理」再做一次。'; }
 store.set('sngm_lessons', lessons);
 setCallUI('off');
-if(!settings.googleKey) setStatus('第一次使用：請先到「設定」貼上 Google AI Studio 金鑰，再按「測試金鑰」。');
+if(DEMO) showDemo();
+else if(!settings.googleKey) setStatus('請先到「設定」貼上 Google AI Studio 金鑰');
+/* 展示版：左欄排好範例那堂課（字幕標記、紅字、▶ 重聽、秒數），上課按鈕只提示不能用 */
+function showDemo(){
+  $('call').onclick = () => setStatus('展示版不能上課，接上自己的 Google 金鑰就能練習');
+  const L = lessons.find(x => x.id === DEMO_DATA.noteLesson);
+  chatLesson = L || null;
+  addBubble('sys', '展示版｜範例對話');
+  chatDb.lesson(DEMO_DATA.noteLesson).then(lines => {
+    for(const x of lines){
+      if(x.role !== 'me'){
+        const t = addBubble('assistant', x.text);
+        if(x.meta) setMeta(t, x.meta);
+        const m = /開口 ([\d.]+)/.exec(x.meta || ''); if(m) turns.push({start:Number(m[1]) * 1000});
+        continue;
+      }
+      const b = addBubble('user', x.text), tx = b.querySelector('.txt');
+      if(x.heard) markText(tx, x.heard, x.habits, settings.pronNotes ? x.pron : []);
+      if(x.fix){ tx._sentence = x.fix; tx.after(el('span', 'fix', x.fix)); }
+      if(x.wav) addPlayButton(b, {secs:x.secs || 0, url:x.wav});
+    }
+    renderStats();
+    chatEl.scrollTop = 0;   // 從第一句開始看
+  });
+}
 </script>
 </body>
 </html>
