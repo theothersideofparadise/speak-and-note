@@ -879,6 +879,7 @@ function renderStats(){
 }
 // 畫面狀態：off 沒通話／connecting 連線中／auto 自動模式通話中／ready 按一下說：等你開口／talking 按一下說：你正在說
 let callState = 'off';
+let demoHangup = DEMO;    // 展示版：「結束課堂」一開始就顯示（按過就收起來）
 let talkQueued = false;   // 換說話方式時先按了空白鍵：換好就開始說
 function setCallUI(state){
   callState = state;
@@ -889,7 +890,7 @@ function setCallUI(state){
   btn.classList.toggle('paused', state === 'paused');
   const labels = {off:'開始上課', connecting:'連線中', switching:'切換中', ending:'下課中', auto:'暫停', paused:'繼續上課', ready:'開始說話', talking:'說完了，送出'};
   btn.setAttribute('aria-label', labels[state]); btn.title = labels[state];
-  $('hangup').hidden = !(state === 'ready' || state === 'talking' || state === 'auto' || state === 'paused' || state === 'switching' || state === 'ending');
+  $('hangup').hidden = !(state === 'ready' || state === 'talking' || state === 'auto' || state === 'paused' || state === 'switching' || state === 'ending') && !demoHangup;
   $('cancelTalk').hidden = state !== 'talking';
   // 說話方式晶片：只在「開始上課」和「暫停中」出現（IDEAS.md 選 B）。
   // 按一下說沒有暫停，所以「等你開口」（ready）時也要出現，不然換不回自動
@@ -3519,6 +3520,27 @@ else if(!settings.googleKey) setStatus('請先到「設定」貼上 Google AI St
 /* 展示版：左欄排好範例那堂課（字幕標記、紅字、▶ 重聽、秒數），上課按鈕只提示不能用 */
 function showDemo(){
   $('call').onclick = () => setStatus('展示版不能上課，接上自己的 Google 金鑰就能練習');
+  // 結束課堂：老師說一句固定的道別（瀏覽器內建語音念），念完顯示「已下課」，吉祥物探頭眨眼
+  $('hangup').onclick = () => {
+    if(!demoHangup) return;
+    $('hangup').disabled = true;
+    const bye = 'Great work today, Amy! Your self-introduction was clear and fun to listen to. See you next time!';
+    addBubble('assistant', bye);
+    let done = false;
+    const finish = () => {
+      if(done) return; done = true;
+      demoHangup = false; $('hangup').disabled = false;
+      setCallUI('off'); setStatus('已下課'); peekMascot();
+    };
+    if(window.speechSynthesis){
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(bye); u.lang = 'en-US';
+      const v = pronVoice(); if(v) u.voice = v;
+      u.onend = u.onerror = () => setTimeout(finish, 300);
+      speechSynthesis.speak(u);
+      setTimeout(finish, 12000);   // 保險：語音沒回報念完也會下課
+    }else setTimeout(finish, 1500);
+  };
   const L = lessons.find(x => x.id === DEMO_DATA.noteLesson);
   chatLesson = L || null;
   addBubble('sys', '展示版｜範例對話');
